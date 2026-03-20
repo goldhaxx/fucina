@@ -1,0 +1,74 @@
+# fucina
+
+A personal hardware forge for prototyping with Arduino and ESP32 components.
+
+## Tech Stack
+- Platform: PlatformIO (build system and dependency management)
+- Language: C / C++ (Arduino framework)
+- Boards: HERO XL (ATmega2560 / Mega 2560), LilyGo TTGO T-Display ESP32
+- IDE: Google Antigravity (preferred), Cursor, VS Code
+
+## Commands
+```bash
+pio run -e mega             # Compile for HERO XL (Mega 2560)
+pio run -e esp32            # Compile for TTGO T-Display ESP32
+pio run -t upload           # Compile and upload to connected board
+pio device monitor          # Open serial monitor (9600 baud default)
+pio test                    # Run unit tests (native/desktop)
+```
+
+## Architecture
+```
+sketches/                   # One directory per project/experiment
+├── 001-blink/              # Numbered for chronological order
+│   ├── src/main.cpp        # Sketch source
+│   ├── platformio.ini      # Board + library config for this sketch
+│   └── README.md           # What it does, wiring, notes
+├── 002-servo-sweep/
+└── ...
+lib/                        # Shared helper libraries across sketches
+docs/
+├── inventory.md            # Full component list with specs and status
+├── pinouts.md              # Board pin maps and breadboard reference
+├── wiring-patterns.md      # Common circuit recipes
+├── journal.md              # Build log — what worked, what didn't, ideas
+├── spec.md                 # Current feature specification
+├── plan.md                 # Implementation plan
+└── checkpoint.md           # Progress state for session continuity
+```
+
+## Workflow: Explore → Wire → Code → Verify
+
+1. **Pick a component.** Check `docs/inventory.md` for what's available.
+2. **Wire it up.** Document wiring in the sketch's `README.md`.
+3. **Write the sketch.** Simplest possible code that proves the component works.
+4. **Upload and verify.** Flash to board, open serial monitor, confirm behavior.
+5. **Iterate.** Combine components. Try weird ideas. Create a new sketch directory.
+6. **Log it.** Note what you learned in sketch README or `docs/journal.md`.
+
+## Conventions
+- Each sketch is self-contained with its own `platformio.ini`.
+- Sketch directories are numbered (`001-`, `002-`, ...) to preserve build order.
+- Pin assignments go in `pins.h` or top of `main.cpp` — never buried in logic.
+- Use `constexpr` or `#define` for pin numbers. No magic integers.
+- Note the target board in each sketch README header (`Board: HERO XL` or `Board: TTGO ESP32`).
+- ESP32 GPIO is 3.3V. HERO XL GPIO is 5V. Use the logic level converter between them.
+
+## Reference Documents
+### Component Inventory — @docs/inventory.md
+**Read when:** Starting a new sketch, checking available parts, looking up specs or datasheets.
+
+### Pinout Reference — @docs/pinouts.md
+**Read when:** Wiring a circuit. Pin maps for HERO XL and TTGO ESP32.
+
+### Wiring Patterns — @docs/wiring-patterns.md
+**Read when:** Setting up voltage dividers, pull-up/pull-down resistors, motor drivers.
+
+### Build Journal — @docs/journal.md
+**Read when:** Picking up after a break. Chronological notes on builds and open questions.
+
+## Do Not
+- Do not connect 5V signals to ESP32 GPIO — use the logic level converter.
+- Do not drive motors or relays directly from GPIO pins — use driver boards or transistors.
+- Do not overwrite prior sketches — they form a learning trail. Iterate by creating new directories.
+- Do not install PlatformIO libraries globally — scope them to each sketch's `platformio.ini`.

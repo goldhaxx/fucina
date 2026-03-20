@@ -1,0 +1,30 @@
+# PlatformIO build artifacts
+.pio/
+build/
+
+# Compiled binaries
+*.bin
+*.elf
+*.hex
+*.map
+
+# IDE and editor config
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*.swo
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Secrets (should never be read)
+.env
+.env.*
+*.pem
+*.key
+
+# Large data
+*.sqlite
+*.db

@@ -1,0 +1,53 @@
+{
+  "$schema": "https://code.claude.com/schema/settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(pio run:*)",
+      "Bash(pio device monitor:*)",
+      "Bash(pio test:*)",
+      "Bash(pio lib:*)",
+      "Bash(pio pkg:*)",
+      "Bash(git:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(sort:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)*",
+      "Bash(sudo:*)",
+      "Bash(chmod 777:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'File written: '$CLAUDE_FILE_PATHS"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "# Block writes to sensitive files\nfor f in $CLAUDE_FILE_PATHS; do\n  case \"$f\" in\n    *.env|*.env.*|*credentials*|*secret*)\n      echo 'BLOCKED: Cannot write to sensitive file: '$f\n      exit 1\n      ;;\n  esac\ndone"
+          }
+        ]
+      }
+    ]
+  }
+}

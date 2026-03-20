@@ -1,0 +1,27 @@
+# PlatformIO
+.pio/
+build/
+
+# Compiled binaries
+*.bin
+*.elf
+*.hex
+*.map
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.*
+
+# Claude Code personal files
+.claude/settings.local.json
+.claude/local/
+docs/checkpoint.md
