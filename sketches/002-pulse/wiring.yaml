@@ -1,0 +1,24 @@
+name: "002 — Pulse"
+board: hero-xl
+
+components:
+  - type: resistor
+    value: 220
+    from: d7
+    to: d10
+
+  - type: led
+    color: red
+    anode: e10
+    cathode: e11
+
+wires:
+  - from: a7
+    to: pin9
+    color: "#e53935"
+    label: "PWM signal — HERO XL Pin 9"
+
+  - from: a11
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

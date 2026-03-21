@@ -19,7 +19,7 @@
 ## Boards
 
 ### HERO XL (Mega 2560 Rev3 compatible)
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **MCU:** ATmega2560 (8-bit AVR, 16 MHz)
 - **Digital I/O:** 54 pins (15 PWM)
 - **Analog Inputs:** 16
@@ -246,7 +246,7 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 ## Fundamentals & Passive Components
 
 ### 830-Point Breadboard
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Notes:** Full-size solderless breadboard. Two power rail strips on each side, 63 rows of 5-hole terminal strips. Center channel separates the two halves.
 
 ### 400-Point Solderless Breadboard
@@ -254,7 +254,7 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 - **Notes:** Half-size breadboard. Good for smaller sub-circuits or use alongside the 830-point board.
 
 ### Jumper Wire Kit (65× Breadboard Jumpers)
-- **Status:** `[ ]`
+- **Status:** `[~]`
 - **Notes:** Pre-cut, rigid jumper wires in assorted lengths. Color-coded. Used for breadboard connections.
 
 ### 20-Pin Male-to-Female Jumper Wires
@@ -262,7 +262,7 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 - **Notes:** Flexible Dupont wires. Used for connecting modules (sensors, displays) to the board or breadboard.
 
 ### USB A-B Cable
-- **Status:** `[ ]`
+- **Status:** `[~]`
 - **Notes:** Connects HERO XL to computer for power and programming.
 
 ### USB-C Cable
@@ -274,12 +274,12 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 - **Notes:** Snap connector with barrel plug. Powers the HERO XL via the DC jack for portable/untethered operation.
 
 ### Resistor Kit (Assorted Values)
-- **Status:** `[ ]`
+- **Status:** `[~]`
 - **Typical values included:** 220Ω, 330Ω, 1KΩ, 4.7KΩ, 10KΩ, 100KΩ
 - **Notes:** Used for current limiting (LEDs), pull-up/pull-down resistors, and voltage dividers. Color bands indicate value — use a multimeter if unsure.
 
 ### Circuits Essentials Kit
-- **Status:** `[ ]`
+- **Status:** `[~]`
 - **Typically includes:** Assorted LEDs (red, green, yellow, blue), push buttons with colored caps, photoresistors (LDRs), and possibly additional passive components
 - **Notes:** This is the grab bag of small parts. Inventory yours and update this section with exact quantities.
 

@@ -15,6 +15,10 @@ pio run -e esp32            # Compile for TTGO T-Display ESP32
 pio run -t upload           # Compile and upload to connected board
 pio device monitor          # Open serial monitor (9600 baud default)
 pio test                    # Run unit tests (native/desktop)
+
+# Wiring diagrams
+python3 tools/breadboard.py sketches/NNN-name/wiring.yaml -o sketches/NNN-name/wiring.svg
+python3 tools/breadboard.py sketches/NNN-name/wiring.yaml --rows 1-63 -o full.svg  # show all rows
 ```
 
 ## Architecture
@@ -23,9 +27,13 @@ sketches/                   # One directory per project/experiment
 ├── 001-blink/              # Numbered for chronological order
 │   ├── src/main.cpp        # Sketch source
 │   ├── platformio.ini      # Board + library config for this sketch
+│   ├── wiring.yaml         # Machine-readable circuit description
+│   ├── wiring.svg          # Generated breadboard diagram (do not hand-edit)
 │   └── README.md           # What it does, wiring, notes
 ├── 002-servo-sweep/
 └── ...
+tools/
+└── breadboard.py           # SVG breadboard diagram generator
 lib/                        # Shared helper libraries across sketches
 docs/
 ├── inventory.md            # Full component list with specs and status
@@ -40,16 +48,21 @@ docs/
 ## Workflow: Explore → Wire → Code → Verify
 
 1. **Pick a component.** Check `docs/inventory.md` for what's available.
-2. **Wire it up.** Document wiring in the sketch's `README.md`.
-3. **Write the sketch.** Simplest possible code that proves the component works.
-4. **Upload and verify.** Flash to board, open serial monitor, confirm behavior.
-5. **Iterate.** Combine components. Try weird ideas. Create a new sketch directory.
-6. **Log it.** Note what you learned in sketch README or `docs/journal.md`.
+2. **Create the sketch directory.** Next number in sequence, e.g. `sketches/002-servo-sweep/`.
+3. **Write `wiring.yaml`.** Describe every component and wire on the breadboard.
+4. **Generate `wiring.svg`.** Run `python3 tools/breadboard.py sketches/NNN/wiring.yaml -o sketches/NNN/wiring.svg`.
+5. **Wire it up.** Follow the generated diagram. Document anything extra in `README.md`.
+6. **Write the sketch.** Simplest possible code that proves the component works.
+7. **Upload and verify.** Flash to board, open serial monitor, confirm behavior.
+8. **Iterate.** Combine components. Try weird ideas. Create a new sketch directory.
+9. **Log it.** Note what you learned in sketch README or `docs/journal.md`.
 
 ## Conventions
 - Each sketch is self-contained with its own `platformio.ini`.
 - Sketch directories are numbered (`001-`, `002-`, ...) to preserve build order.
+- Every sketch MUST have a `wiring.yaml` and a generated `wiring.svg` breadboard diagram.
 - Pin assignments go in `pins.h` or top of `main.cpp` — never buried in logic.
+- Pin assignments in `main.cpp` must match the holes and board pins in `wiring.yaml`.
 - Use `constexpr` or `#define` for pin numbers. No magic integers.
 - Note the target board in each sketch README header (`Board: HERO XL` or `Board: TTGO ESP32`).
 - ESP32 GPIO is 3.3V. HERO XL GPIO is 5V. Use the logic level converter between them.
@@ -66,6 +79,9 @@ docs/
 
 ### Build Journal — @docs/journal.md
 **Read when:** Picking up after a break. Chronological notes on builds and open questions.
+
+### Breadboard Diagram Tool — @tools/breadboard.py
+**Read when:** Creating or modifying a sketch's wiring. Generates SVG breadboard diagrams from YAML circuit descriptions. See any sketch's `wiring.yaml` for the schema.
 
 ## Do Not
 - Do not connect 5V signals to ESP32 GPIO — use the logic level converter.
