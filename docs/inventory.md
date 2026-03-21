@@ -62,14 +62,17 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 
 ### 2.4" LCD Touchscreen Shield (320×240)
 - **Status:** `[ ]`
-- **Display:** 2.4" TFT LCD, 320×240 resolution
+- **Controller:** ILI9341
+- **Display:** 2.4" TFT LCD, 240×320 resolution
 - **Touch:** Resistive touch panel
 - **Interface:** Plugs directly onto HERO XL headers
-- **Notes:** Designed to stack on top of any Mega-compatible board. Useful for interactive UI projects — menus, dashboards, simple games.
+- **Libraries:** `MCUFRIEND_kbv`, `Adafruit TouchScreen`
+- **Rotations:** 0–3 (0 = portrait with white button on top, clockwise)
+- **Notes:** Designed to stack on top of any Mega-compatible board. Useful for interactive UI projects — menus, dashboards, simple games. Requires touch calibration before use — run calibration sketch to obtain constexpr values for your specific panel.
 
 ### HERO XL Prototype Shield + 170-point Mini Breadboard
 - **Status:** `[ ]`
-- **Notes:** Stacks onto the HERO XL for compact prototyping. The mini breadboard sits on top of the shield.
+- **Notes:** Plugs onto top of the HERO XL (Mega 2560) board for compact prototyping. The mini breadboard sits on top of the shield.
 
 ### Breadboard Power Supply Module
 - **Status:** `[ ]`
@@ -87,16 +90,24 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 - **Interface:** Parallel (requires 6+ pins) or I2C if backpack is soldered
 - **Operating Voltage:** 5V
 - **Library:** `LiquidCrystal` (parallel) or `LiquidCrystal_I2C`
-- **Notes:** Classic character display for showing text, readings, status messages.
+- **Parallel pin mapping:** RS=12, E=11, D4=2, D5=3, D6=4, D7=5 (simplified 4-bit wiring without contrast potentiometer)
+- **Notes:** Classic character display for showing text, readings, status messages. Can use 3.3V pin for backlight anode — dimmer but works without a current-limiting resistor.
 
-### 1-Digit 7-Segment Display
+### 1-Digit 7-Segment Display (5161AS)
 - **Status:** `[ ]`
-- **Type:** Common cathode or common anode (check your unit)
+- **Type:** Common cathode
+- **Pin mapping:** 7 segment pins (A–G) — no decimal point in basic wiring
+- **Library:** `SevSeg` by Dean Reading
 - **Notes:** Good for learning multiplexing and segment control basics.
 
-### 4-Digit 7-Segment Display
+### 4-Digit 7-Segment Display (5641AS)
 - **Status:** `[ ]`
-- **Notes:** Ideal for clocks, counters, timers. Often multiplexed — only one digit is lit at a time, cycled rapidly.
+- **Type:** Common cathode (red)
+- **Pin count:** 12 pins (4 digit commons + 8 segment lines)
+- **Resistance:** At least 800Ω on each segment pin
+- **Library:** `SevSeg` by Dean Reading
+- **Datasheet:** http://www.xlitx.com/datasheet/5641AS.pdf
+- **Notes:** Ideal for clocks, counters, timers. Multiplexed — only one digit is lit at a time, cycled rapidly by the library.
 
 ---
 
@@ -116,19 +127,20 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 - **Pins:** VCC, Trig, Echo, GND
 - **Operating Voltage:** 5V
 - **Library:** `NewPing` or manual `pulseIn()`
-- **Notes:** Trig pin sends 10μs pulse, Echo pin returns HIGH for duration proportional to distance. Distance = (duration × 0.034) / 2 cm.
+- **Notes:** Trig pin sends 10μs pulse, Echo pin returns HIGH for duration proportional to distance. Distance (cm) = duration × 0.034 / 2. Distance (inches) = duration × 0.0133 / 2.
 
-### KY-037 Sound Sensor Module
+### KY-037 / KY-038 Sound Sensor Module
 - **Status:** `[ ]`
 - **Output:** Digital (threshold via potentiometer) + Analog
 - **Operating Voltage:** 5V
-- **Notes:** Has both digital out (D0) for threshold detection and analog out (A0) for raw sound level readings. Sensitivity is adjustable via onboard potentiometer.
+- **Notes:** Has both digital out (D0) for threshold detection and analog out (A0) for raw sound level readings. Sensitivity is adjustable via onboard potentiometer. The KY-037 and KY-038 variants have the same interface — either can be used interchangeably.
 
-### Rain/Water Level Detection Sensor
+### Rain/Water Level Detection Sensor (HW-038)
 - **Status:** `[ ]`
 - **Output:** Analog (varies with water contact area)
 - **Operating Voltage:** 3.3V–5V
-- **Notes:** The sensor board and the control board are separate — connect with included cable. Analog reading increases with more water on the sensing pad.
+- **Sensing traces:** 10 exposed copper traces (5 power, 5 sense)
+- **Notes:** The sensor board and the control board are separate — connect with included cable. Analog reading increases with more water on the sensing pad. Best practice: power the sensor only during reads (use a digital pin for VCC) to prevent corrosion and degradation of the sensing traces.
 
 ### MPU-6050 Accelerometer/Gyroscope (GY-521 Module)
 - **Status:** `[ ]`
@@ -139,6 +151,19 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 - **Library:** `MPU6050` by Electronic Cats, or `Adafruit_MPU6050`
 - **Notes:** Requires soldering header pins. Capable of detecting tilt, orientation, motion, and vibration.
 
+### DHT11 Temperature & Humidity Sensor (KY-015)
+- **Status:** `[ ]`
+- **Interface:** Single-wire digital (data pin)
+- **Operating Voltage:** 3.3V–5V
+- **Accuracy:** ±2°C temperature, ±5% humidity
+- **Library:** `DHT Sensor Library` by Adafruit + `Adafruit Unified Sensor`
+- **Notes:** Readings take ~250ms. Allow 2 seconds between reads. Connect 10KΩ pull-up resistor from data pin to VCC. Anti-static precautions recommended.
+
+### Photoresistor (LDR / Light Dependent Resistor)
+- **Status:** `[~]`
+- **Interface:** Analog (voltage divider with 10KΩ pull-down)
+- **Notes:** Included in the Circuits Essentials Kit. Pair with a 10KΩ pull-down resistor to form a voltage divider. Connect one lead to 5V, other lead to analog pin AND through 10KΩ to GND. `analogRead()` returns 0–1023 based on light intensity.
+
 ---
 
 ## Input Devices
@@ -147,7 +172,15 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 - **Status:** `[ ]`
 - **Outputs:** CLK, DT (quadrature), SW (push button)
 - **Operating Voltage:** 5V
-- **Notes:** Not a potentiometer — it outputs pulses for rotation direction and clicks. Requires debouncing in software or hardware. Good for menu navigation and value adjustment.
+- **Library:** `BasicEncoder`
+- **Notes:** Not a potentiometer — it outputs pulses for rotation direction and clicks. Requires debouncing in software or hardware. Good for menu navigation and value adjustment. Uses interrupts — connect CLK and DT to interrupt-capable pins (2, 3, 18 on Mega). SW requires `INPUT_PULLUP`.
+
+### KY-023 Joystick Module
+- **Status:** `[ ]`
+- **Interface:** 2× analog (X, Y axes) + 1 digital (button)
+- **Operating Voltage:** 5V
+- **Pins:** VRx (analog), VRy (analog), SW (digital button)
+- **Notes:** Each axis outputs 0–1023 via `analogRead()`. Center position reads ~512. Button is active LOW — use `INPUT_PULLUP`.
 
 ### 4×4 Membrane Keypad
 - **Status:** `[ ]`
@@ -169,8 +202,9 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 - **Frequency:** 13.56 MHz
 - **Interface:** SPI
 - **Operating Voltage:** 3.3V (do NOT connect to 5V)
-- **Library:** `MFRC522` by miguelbalboa
+- **Library:** `MFRC522` by miguelbalboa (or `MFRC522-spi-i2c-uart-async`)
 - **SPI Pins on Mega:** SS=53, SCK=52, MOSI=51, MISO=50
+- **RST Pin:** Configurable — commonly pin 26 or pin 8
 - **Notes:** Reads and writes to MIFARE Classic 1K cards/tags. Each card has a unique UID. Requires 3.3V power — the HERO XL has a 3.3V output pin. The RST and SDA (SS) pins are configurable.
 
 ---
@@ -183,14 +217,17 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 - **Operating Voltage:** 4.8V–6V
 - **Signal:** PWM
 - **Library:** `Servo` (built-in)
+- **Datasheet:** http://www.ee.ic.ac.uk/pcheung/teaching/DE1_EE/stores/sg90_datasheet.pdf
 - **Notes:** Three wires — brown (GND), red (VCC), orange (signal/PWM). Can be powered from the board's 5V pin for light loads. For multiple servos, use external power.
 
 ### 28BYJ-48 Stepper Motor + ULN2003 Driver Board
 - **Status:** `[ ]`
 - **Type:** Unipolar, 4-phase
 - **Step Angle:** 5.625°/64 (gear ratio), so 2048 steps per full revolution in half-step mode
+- **Steps per revolution:** 2038 (full step mode, per course calibration)
 - **Operating Voltage:** 5V
 - **Library:** `Stepper` (built-in) or `AccelStepper`
+- **ULN2003 pin order:** IN1–IN3–IN2–IN4 (not sequential — required for proper step sequence)
 - **Notes:** The ULN2003 driver connects between the board and the motor. 4 digital pins → driver board IN1–IN4. The motor is slow but precise — good for positioning, not speed.
 
 ### DC Motor + 3-Leaf Fan Blade
@@ -201,11 +238,15 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 ### Active Buzzer
 - **Status:** `[ ]`
 - **Operating Voltage:** 5V
+- **Variants:** KY-012 (2-pin bare component), HW-512 (3-pin PCB module — third pin not connected)
+- **Identification:** Sealed/closed bottom. Makes a continuous tone when tested with a 9V battery.
 - **Notes:** Produces a fixed-frequency tone when powered. Just apply voltage — no `tone()` function needed. Has a built-in oscillator. Usually has a white sticker or `+` marking on top.
 
 ### Passive Buzzer (KY-006)
 - **Status:** `[ ]`
 - **Operating Voltage:** 3.3V–5V
+- **Variants:** KY-006 (bare component), HW-508 (3-pin PCB module)
+- **Identification:** Open bottom / exposed circuit board. Makes a clicking sound when tested with a 9V battery.
 - **Library:** `tone()` (built-in)
 - **Notes:** Requires a PWM signal to produce sound. You control the frequency, so you can play melodies. No built-in oscillator — silent unless driven.
 
@@ -214,6 +255,18 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 - **Trigger:** Active LOW or Active HIGH (check your module)
 - **Switching:** Up to 10A @ 250VAC or 10A @ 30VDC (rated)
 - **Notes:** Used to switch higher-power devices (lamps, fans, motors) using a low-power signal from the board. Has indicator LED and opto-isolation on some models. Listen for the click — if it clicks, it's switching.
+
+### RGB LED (Common Cathode)
+- **Status:** `[ ]`
+- **Pins:** 4 pins — Red, Common GND (longest leg), Green, Blue
+- **Notes:** Requires 220Ω resistor on each color pin. Use `analogWrite()` for PWM color mixing (0–255 per channel). Common cathode type — longest pin goes to GND.
+
+### L293D Motor Driver IC
+- **Status:** `[ ]`
+- **Type:** Dual H-bridge motor driver IC
+- **Max Voltage:** 36V
+- **Max Current:** 600mA per channel
+- **Notes:** Used for DC motors that draw more than GPIO can supply. Alternative to using a relay or transistor driver. Supports bidirectional motor control and speed control via PWM enable pins.
 
 ---
 
@@ -226,14 +279,15 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 - **Operating Voltage:** 3.3V–6V input, but RX pin is 3.3V logic
 - **Notes:** Pairs with a phone or computer as a serial Bluetooth device. Default name is usually "HC-06", default PIN is "1234". The RX pin needs a voltage divider or the logic level converter when connected to a 5V board's TX pin.
 
-### DS3231 Real-Time Clock Module (AT24C32 EEPROM)
+### DS3231 Real-Time Clock Module (ZS-042, AT24C32 EEPROM)
 - **Status:** `[ ]`
+- **Module model:** ZS-042
 - **Interface:** I2C (SDA, SCL)
 - **Accuracy:** ±2 ppm (very accurate — drifts ~1 minute per year)
 - **Battery:** CR2032 coin cell backup (maintains time when unpowered)
 - **EEPROM:** 32 Kbit (4 KB) AT24C32 onboard for data logging
 - **I2C Address:** 0x68 (RTC), 0x57 (EEPROM)
-- **Library:** `RTClib` by Adafruit
+- **Library:** `RTClib` by Adafruit, or `DS3231` by Andrew Wickert (+ `LibPrintf` for formatted output)
 - **Notes:** Shares I2C address 0x68 with the MPU-6050 — do not use both on the same I2C bus without changing the MPU-6050's address (set AD0 pin HIGH to switch it to 0x69). Also includes a temperature sensor (±3°C accuracy).
 
 ### IIC/I2C Logic Level Converter (Bi-Directional, 5V ↔ 3.3V)
@@ -344,3 +398,25 @@ void loop() {}
 - **ATmega2560 datasheet:** https://ww1.microchip.com/downloads/en/devicedoc/atmel-2549-8-bit-avr-microcontroller-atmega640-1280-1281-2560-2561_datasheet.pdf
 - **ESP32 technical reference:** https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf
 - **TFT_eSPI library:** https://github.com/Bodmer/TFT_eSPI
+
+---
+
+## Library Reference
+
+| Library | Component | Install via |
+|---------|-----------|-------------|
+| SevSeg | 7-segment displays | PlatformIO: `dean/SevSeg` |
+| BasicEncoder | Rotary encoder | PlatformIO: `BasicEncoder` |
+| IRremote | IR receiver/remote | PlatformIO: `z3t0/IRremote` (v3.8.0+) |
+| DHT Sensor Library | DHT11/DHT22 | PlatformIO: `adafruit/DHT sensor library` |
+| Adafruit Unified Sensor | (required by DHT) | PlatformIO: `adafruit/Adafruit Unified Sensor` |
+| DS3231 | Real-time clock | PlatformIO: `andrew-wickert/DS3231` |
+| MFRC522 | RFID reader | PlatformIO: `miguelbalboa/MFRC522` |
+| Keypad | 4×4 membrane keypad | PlatformIO: `chris--a/Keypad` |
+| MCUFRIEND_kbv | LCD touchscreen shield | PlatformIO: `prenticedavid/MCUFRIEND_kbv` |
+| Adafruit TouchScreen | Touch panel | PlatformIO: `adafruit/Adafruit TouchScreen` |
+| TFT_eSPI | TTGO T-Display screen | PlatformIO: `bodmer/TFT_eSPI` |
+| LiquidCrystal | LCD1602 (parallel) | Built-in |
+| Servo | SG90 servo motor | Built-in |
+| Stepper | 28BYJ-48 stepper | Built-in |
+| Wire | I2C communication | Built-in |

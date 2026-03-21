@@ -30,6 +30,9 @@ Thumbs.db
 .claude/local/
 docs/checkpoint.md
 
+# Course archive — cloned external repo (large, not our code)
+course-archive/github-repo/
+
 # Scaffold sync state (machine-generated)
 .claude/scaffold.lock
 .claude/scaffold-sync.log

@@ -104,3 +104,98 @@
 **Terminal strips:** 63 rows × 10 columns. Left bank (a–e) and right bank (f–j) are each connected horizontally per row. The center channel breaks the connection between banks.
 
 **Power rails:** + (red) and − (blue) on both left and right edges. Rail holes appear in 10 groups of 5, aligned to terminal rows 3–7, 9–13, 15–19, 21–25, 27–31, 33–37, 39–43, 45–49, 51–55, 57–61. Each rail is a continuous conductor internally. Some boards split at the midpoint — bridge with a jumper wire if continuity is needed across the full length.
+
+---
+
+## LCD Touchscreen Shield Pin Consumption
+
+The 2.4" ILI9341 LCD Touchscreen Shield plugs directly onto the HERO XL headers and consumes many pins.
+
+| Function | Pins | Notes |
+|----------|------|-------|
+| LCD Data | D2–D9 | 8-bit parallel data bus |
+| LCD Control | A0 (RS), A1 (CS), A2 (RD), A3 (WR), A4 (RST) | |
+| Touch Panel | D8 (XP), A2 (XM), A3 (YP), D9 (YM) | Shares with LCD — multiplex |
+| SD Card | D10 (CS), D11 (MOSI), D12 (MISO), D13 (SCK) | Optional, uses SPI |
+
+**Available pins when shield is mounted:** D22-D53, A5-A15, and SDA/SCL (20/21). Serial pins (0/1) remain available for USB communication.
+
+**Libraries:** `MCUFRIEND_kbv` for LCD, `Adafruit TouchScreen` for touch input.
+
+**Calibration:** Run calibration sketch to obtain touch coordinate mapping constants:
+```
+constexpr int XP=8, XM=A2, YP=A3, YM=9;
+constexpr int TS_LEFT=109, TS_RT=914, TS_TOP=86, TS_BOT=905;
+```
+
+---
+
+## Common Multi-Component Pin Allocations
+
+These are tested pin assignments from Crafting Table course projects that avoid conflicts.
+
+### Basic I/O Project (LEDs + Button + Buzzer + Potentiometer)
+| Component | Pin(s) | Notes |
+|-----------|--------|-------|
+| LED (red) | D2 | With 220Ω resistor |
+| LED (green) | D3 | PWM capable |
+| Button | D12 | INPUT_PULLUP, no external resistor |
+| Active Buzzer | D4 | digitalWrite only |
+| Passive Buzzer | D5 | PWM for tone() |
+| Potentiometer | A0 | analogRead 0-1023 |
+
+### Sensor Array (PIR + Ultrasonic + Sound + Water)
+| Component | Pin(s) | Notes |
+|-----------|--------|-------|
+| PIR Motion | D2 | Digital HIGH/LOW |
+| Ultrasonic Trig | D13 | 10μs pulse output |
+| Ultrasonic Echo | D12 | pulseIn() input |
+| Sound Sensor (digital) | D3 | Threshold trigger |
+| Sound Sensor (analog) | A0 | Raw audio level |
+| Water Level (signal) | A1 | Analog 0-1023 |
+| Water Level (power) | D7 | Gate power to prevent corrosion |
+
+### Security System (Keypad + RFID + Servo + LCD)
+| Component | Pin(s) | Notes |
+|-----------|--------|-------|
+| 4x4 Keypad | D2-D9 | 4 rows + 4 columns |
+| Servo | D10 | PWM signal |
+| RFID SS | D53 | SPI chip select |
+| RFID RST | D26 | Configurable |
+| RFID SPI | D50-D52 | MISO, MOSI, SCK (hardware SPI) |
+| LCD RS | D12 | |
+| LCD E | D11 | |
+| LCD D4-D7 | D22-D25 | Shifted to avoid keypad conflict |
+
+### I2C Bus Devices (RTC + Gyroscope)
+| Component | Pin(s) | I2C Address |
+|-----------|--------|-------------|
+| DS3231 RTC | SDA=20, SCL=21 | 0x68 |
+| MPU-6050 Gyroscope | SDA=20, SCL=21 | 0x69 (AD0 HIGH) |
+
+**Note:** Both share the same I2C bus but use different addresses. Set MPU-6050 AD0 pin HIGH to shift from default 0x68 to 0x69.
+
+### Rotary Encoder (Interrupt Pins Required)
+| Component | Pin(s) | Notes |
+|-----------|--------|-------|
+| CLK | D2 (INT0) | Must be interrupt-capable |
+| DT | D3 (INT1) | Must be interrupt-capable |
+| SW (button) | D18 (INT5) | INPUT_PULLUP, optional interrupt |
+
+---
+
+## TTGO T-Display ESP32 — Safe Pin Quick Reference
+
+Pins are listed in order of "safest to use first" for general projects.
+
+| Priority | GPIO | Type | Notes |
+|----------|------|------|-------|
+| 1st | 32, 33 | I/O + ADC | No boot conflicts, fully general purpose |
+| 2nd | 25, 26, 27 | I/O + ADC | Safe for most uses |
+| 3rd | 13, 15, 2 | I/O | Work fine but may affect boot if pulled LOW |
+| 4th | 12 | I/O | Must be LOW during boot (MTDI strapping pin) |
+| 5th | 17 | I/O | TX2 — safe if not using UART2 |
+| Input only | 36, 37, 38, 39 | Input | No pull-up/pull-down, ADC only |
+| Reserved | 21, 22 | I2C | Default SDA/SCL — use for I2C only |
+| Consumed | 4, 5, 16, 18, 19, 23 | Display | Used by built-in TFT — do not use |
+| Buttons | 0, 35 | Input | Built-in buttons, active LOW |

@@ -1,0 +1,85 @@
+1|169|3|Chapter 02: Base Security 101|Motion Sensor Security System
+2|174|3|Chapter 02: Base Security 101|Keypad Door Lock
+3|176|3|Chapter 02: Base Security 101|NFC Badges
+4|177|3|Chapter 02: Base Security 101|RTTTL Alarm
+5|180|4|Chapter 03: GreenHouse|Forgetting to water the garden again (Dry Plant Warning System)
+6|182|4|Chapter 03: GreenHouse|Heat Management Pt.1 – Fan Ventilation System Simulation
+7|184|4|Chapter 03: GreenHouse|Heat Management Pt.2 – Automatic Fan System FAILURE (Power draw too high! – Relays)
+8|191|5|Chapter 04: Daily Life Essentials|Accurate Alarm Clock
+9|192|5|Chapter 04: Daily Life Essentials|Clap Lights 
+10|193|5|Chapter 04: Daily Life Essentials|There are other survivors….? Getting Started T-Display (and discovering others exist!)
+11|194|6|Chapter 05: The Phoenix Restoration (Resistance Group for Humanity)|The other survivors share their knowlege – Time to fight back! (Advanced T-Display Networking/Communication)
+12|195|6|Chapter 05: The Phoenix Restoration (Resistance Group for Humanity)|Automatic 180 Degree Sweep Radar Upgrade
+13|196|8|Chapter 06: Base Security++ (Radar System)|False Signals – RGB Turret w/LCD TouchScreen
+14|197|8|Chapter 06: Base Security++ (Radar System)|False Signals 2 – RGB Turret w/T-Display
+15|198|9|Chapter 07: Showdown Against The AI|Official Victory Signal Flare (Finale!)
+16|199|9|Chapter 07: Showdown Against The AI|What’s next?
+17|200|9|Chapter 07: Showdown Against The AI|Mega 2560 R3 (HERO XL)
+18|201|10|Individual Part Tutorials|Potentiometer
+19|202|10|Individual Part Tutorials|T-Display S3 w/ESP32
+20|203|10|Individual Part Tutorials|1 Digit 7 Segment Display
+21|204|10|Individual Part Tutorials|Breadboard Power Supply
+22|205|10|Individual Part Tutorials|Real Time Clock Module
+23|206|10|Individual Part Tutorials|Ultrasonic Sensor
+24|207|10|Individual Part Tutorials|Mega 2560 Prototype Shield
+25|208|10|Individual Part Tutorials|180 Degree Servo
+27|210|10|Individual Part Tutorials|LCD Touchscreen Shield
+28|211|10|Individual Part Tutorials|PIR Motion Sensor
+30|213|10|Individual Part Tutorials|Photoresistor
+32|216|10|Individual Part Tutorials|Rain Sensor (Water Level)
+33|220|10|Individual Part Tutorials|Push Button
+35|225|10|Individual Part Tutorials|Infrared Reciever + Remote
+37|230|10|Individual Part Tutorials|RFID Reader & Badge
+38|231|10|Individual Part Tutorials|Rotary Encoder
+39|233|10|Individual Part Tutorials|4 Digit 7 Segment Display
+40|235|10|Individual Part Tutorials|Gyroscope & Accelerometer Module
+41|237|10|Individual Part Tutorials|Sound Sensor
+42|239|10|Individual Part Tutorials|Light Emitting Diodes
+43|241|10|Individual Part Tutorials|Temperature & Humidity Sensor
+44|242|10|Individual Part Tutorials|Joystick Module
+45|244|10|Individual Part Tutorials|RGB LED
+46|246|10|Individual Part Tutorials|Active & Passive Buzzer
+47|248|10|Individual Part Tutorials|Breadboard
+48|250|10|Individual Part Tutorials|Stepper Motor + Driver
+49|251|10|Individual Part Tutorials|LCD 1602 Screen
+50|252|10|Individual Part Tutorials|4×4 Membrane Keypad
+51|254|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|1 – Basic LED Morse Code Transmitter
+52|255|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|2 – IR Remote Control-based Stealth Alarm
+53|256|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|3 – Encrypted Messages using LCD1602 Display
+54|257|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|4 – Motion Detection System using HC-SR501 PIR Motion Sensor
+55|258|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|5 – RFID Message Decoder using MFRC-522 RC522 RFID
+56|260|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|6 – Sound Surveillance System using KY-037 Sound Sensor
+57|262|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|7 – Wireless Signal Detector using ESP32 T-Display
+58|264|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|8 – Two-Way Communication Device
+59|266|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|9 – Spy Motion Tracker
+60|270|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|10 – Weather Station
+61|272|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|11 – Trap Disarming Simulator (w/Servos)
+62|274|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|12 – Hacking Device (w/Keypad)
+63|276|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|13 – Emergency Escape Gadget
+64|277|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|14 – Color Changing Camouflage Device
+65|278|11|Spies Vs Spies - An Alternative Story For Pandoras Box!|15 – Multi-Function Spy Gadget
+66|279|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|That Time I got Reincarnated With my HERO Board?!? – Introduction
+67|280|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Magical Color Wheel (Day 01)
+68|281|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Magic Sensor Light (Day 02)
+69|282|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Mystical Temperature Reader (Day 03)
+70|285|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Mystical Object Tracker (Day 04)
+71|287|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Magic Melody Machine (Day 05)
+72|289|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Mystical Climate Wind (Day 06)
+73|290|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Magic Stepper Oracle (Day 07)
+74|292|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Magic Number Guesser (Day 08)
+75|294|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Magic Labyrinth Navigator (Day 09)
+76|297|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Magical Training System (Day 10)
+77|298|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Magical Rune Decoder (Day 11)
+78|300|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Time Magic Adjuster (Day 12)
+79|303|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Magic Servo Dial (Day 13)
+80|304|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Magic Timebomb (Day 14)
+81|307|12|Reincarnated Into Another World with my HERO Board - Another Alternative Story for Pandoras Box!|Magical TouchScreen Rune Scribe (Day 15)
+82|308|2|Chapter 01: Moving In|Do these antiques still work? (Blink for HERO XL)
+83|319|2|Chapter 01: Moving In|Bad Wiring Systems (Fixing the Lights)
+84|324|2|Chapter 01: Moving In|Easy Light Toggles (adding some button inputs)
+85|325|2|Chapter 01: Moving In|Solar Simulation Shinanigans – (Power Grid Issues!)
+86|328|2|Chapter 01: Moving In|404 ERROR: Alarms not found (Buzzers)
+87|330|2|Chapter 01: Moving In|Dim the Lights! (Potentiometers & Pusle Width Modulation)
+88|332|1|Day Zero: Apocalypse|The Day AI Gained Conceisness (Getting Started)
+89|337|0|Getting Started|Welcome & Getting Started
+90|342|0|Getting Started|Facebook Group (Community & Communications)
