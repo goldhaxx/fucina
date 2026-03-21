@@ -1,0 +1,15 @@
+name: "WiFi Lights — ESP32 Access Point"
+board: esp32
+
+components: []
+
+wires:
+  - from: a10
+    to: pin2
+    color: "#43a047"
+    label: "LED signal — ESP32 GPIO 2"
+
+  - from: a11
+    to: gnd
+    color: "#333333"
+    label: "ground — ESP32 GND"

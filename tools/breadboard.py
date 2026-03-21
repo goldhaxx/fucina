@@ -176,7 +176,8 @@ def detect_row_range(circuit: dict, padding: int = 3) -> tuple[int, int]:
     rows_used = set()
 
     for comp in circuit.get("components", []):
-        for key in ("from", "to", "anode", "cathode"):
+        for key in ("from", "to", "anode", "cathode", "positive", "negative",
+                    "pin1", "pin2", "pin3"):
             if key in comp:
                 r = _extract_row(str(comp[key]))
                 if r:
@@ -426,6 +427,104 @@ def render_led(board: Board, comp: dict) -> list[str]:
     return els
 
 
+BUZZER_PALETTE = {
+    "active": ("#333", "#555"),
+    "passive": ("#555", "#777"),
+}
+
+
+def render_button(board: Board, comp: dict) -> list[str]:
+    """Render a push button spanning two rows across the center channel."""
+    pin1 = str(comp["from"])
+    pin2 = str(comp["to"])
+    x1, y1 = board.hole_xy(pin1)
+    x2, y2 = board.hole_xy(pin2)
+    board.mark_occupied(pin1, pin2)
+
+    mx, my = (x1 + x2) / 2, (y1 + y2) / 2
+    els = []
+
+    # Body (dark rectangle)
+    els.append(_rect(mx - 8, my - 8, 16, 16, rx="2",
+                     fill="#444", stroke="#222", stroke_width="0.8"))
+    # Button cap (lighter circle)
+    els.append(_circle(mx, my, 5, fill="#888", stroke="#666", stroke_width="0.6"))
+    # Lead wires
+    els.append(_line(x1, y1, mx, my, stroke="#999", stroke_width="1.2"))
+    els.append(_line(mx, my, x2, y2, stroke="#999", stroke_width="1.2"))
+
+    return els
+
+
+def render_buzzer(board: Board, comp: dict) -> list[str]:
+    """Render a buzzer (active or passive) as a cylinder viewed from above."""
+    pin_pos = str(comp.get("positive", comp.get("from", "")))
+    pin_neg = str(comp.get("negative", comp.get("to", "")))
+    x1, y1 = board.hole_xy(pin_pos)
+    x2, y2 = board.hole_xy(pin_neg)
+    board.mark_occupied(pin_pos, pin_neg)
+
+    variant = comp.get("variant", "active")
+    fill, stroke = BUZZER_PALETTE.get(variant, BUZZER_PALETTE["active"])
+
+    mx, my = (x1 + x2) / 2, (y1 + y2) / 2
+    els = []
+
+    # Body circle
+    els.append(_circle(mx, my, 8, fill=fill, stroke=stroke, stroke_width="0.8"))
+    # Plus marking
+    els.append(_text(mx - 3, my - 3, "+", font_size="7", fill="#aaa",
+                     font_weight="bold", font_family=FONT))
+    # Sound waves (decorative)
+    els.append(f'<path d="M {mx+5:.1f} {my-3:.1f} q 3 3 0 6" '
+               f'fill="none" stroke="#aaa" stroke-width="0.6" opacity="0.5"/>')
+    # Lead wires
+    els.append(_line(x1, y1, mx - 4, my, stroke="#999", stroke_width="1.2"))
+    els.append(_line(mx + 4, my, x2, y2, stroke="#999", stroke_width="1.2"))
+
+    return els
+
+
+def render_sensor(board: Board, comp: dict) -> list[str]:
+    """Render a generic 3-pin sensor module as a small PCB rectangle."""
+    pins = []
+    for key in ("pin1", "pin2", "pin3", "from", "to"):
+        if key in comp:
+            pins.append(str(comp[key]))
+    if len(pins) < 2:
+        return []
+
+    coords = [board.hole_xy(p) for p in pins]
+    for p in pins:
+        board.mark_occupied(p)
+
+    xs = [c[0] for c in coords]
+    ys = [c[1] for c in coords]
+    cx, cy = sum(xs) / len(xs), sum(ys) / len(ys)
+
+    pad = 6
+    x_min, x_max = min(xs) - pad, max(xs) + pad
+    y_min, y_max = min(ys) - pad, max(ys) + pad
+    w = max(x_max - x_min, 18)
+    h = max(y_max - y_min, 18)
+
+    label = comp.get("label", comp.get("name", ""))
+
+    els = []
+    # PCB body
+    els.append(_rect(cx - w / 2, cy - h / 2, w, h, rx="2",
+                     fill="#1a6b3c", stroke="#0d4025", stroke_width="0.8"))
+    # Module label
+    if label:
+        els.append(_text(cx, cy + 3, label, font_size="6", fill="#cfc",
+                         text_anchor="middle", font_family=FONT_MONO))
+    # Pin dots
+    for x, y in coords:
+        els.append(_circle(x, y, 1.5, fill="#silver", stroke="#999", stroke_width="0.3"))
+
+    return els
+
+
 def _is_board_pin(s: str) -> bool:
     s = s.lower().strip()
     return s.startswith("pin") or s in ("gnd", "5v", "3v3", "vin")
@@ -625,6 +724,19 @@ def render_legend(board: Board, circuit: dict) -> tuple[list[str], float]:
             c = comp.get("color", "red")
             desc = f"{c} LED  {comp['anode']}(+) \u2192 {comp['cathode']}(\u2013)"
             swatch = LED_PALETTE.get(c, LED_PALETTE["red"])[0]
+        elif t == "button":
+            desc = f"button  {comp['from']} \u2192 {comp['to']}"
+            swatch = "#444"
+        elif t == "buzzer":
+            v = comp.get("variant", "active")
+            pos = comp.get("positive", comp.get("from", "?"))
+            neg = comp.get("negative", comp.get("to", "?"))
+            desc = f"{v} buzzer  {pos}(+) \u2192 {neg}(\u2013)"
+            swatch = BUZZER_PALETTE.get(v, BUZZER_PALETTE["active"])[0]
+        elif t == "sensor":
+            label = comp.get("label", comp.get("name", "sensor"))
+            desc = f"{label} module"
+            swatch = "#1a6b3c"
         else:
             desc = str(comp)
             swatch = "#999"
@@ -668,7 +780,8 @@ def generate(circuit: dict, rows: tuple[int, int] | None = None) -> str:
 
     # Mark occupied holes
     for comp in circuit.get("components", []):
-        for key in ("from", "to", "anode", "cathode"):
+        for key in ("from", "to", "anode", "cathode", "positive", "negative",
+                    "pin1", "pin2", "pin3"):
             if key in comp and not _is_board_pin(str(comp[key])):
                 board.mark_occupied(str(comp[key]))
     for wire in circuit.get("wires", []):
@@ -692,6 +805,12 @@ def generate(circuit: dict, rows: tuple[int, int] | None = None) -> str:
             layers.extend(render_resistor(board, comp))
         elif t == "led":
             layers.extend(render_led(board, comp))
+        elif t == "button":
+            layers.extend(render_button(board, comp))
+        elif t == "buzzer":
+            layers.extend(render_buzzer(board, comp))
+        elif t == "sensor":
+            layers.extend(render_sensor(board, comp))
 
     # Wires
     for wire in circuit.get("wires", []):

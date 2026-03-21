@@ -1,0 +1,30 @@
+name: "Radar Sweep — Servo + Ultrasonic + TFT"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: pin22
+    color: "#ff6f00"
+    label: "ultrasonic TRIG — HERO XL Pin 22"
+
+  - from: a11
+    to: pin23
+    color: "#1565c0"
+    label: "ultrasonic ECHO — HERO XL Pin 23"
+
+  - from: a12
+    to: pin24
+    color: "#7b1fa2"
+    label: "servo signal — HERO XL Pin 24"
+
+  - from: a13
+    to: 5v
+    color: "#e53935"
+    label: "ultrasonic + servo power — HERO XL 5V"
+
+  - from: a14
+    to: gnd
+    color: "#333333"
+    label: "ultrasonic + servo ground — HERO XL GND"
