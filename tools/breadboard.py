@@ -658,44 +658,58 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
                f'a 4 4 0 0 1 8 0" fill="#333" stroke="none"/>')
 
     # Draw stylized digit(s) — rotated 90° CCW so top of digit faces column A
-    # Scale digits to fit the available body, with even spacing
+    # Fill ~95% of the body face. Each digit includes a decimal point.
     seg_color = "#600"
+    dp_color = "#600"
     body_cx = body_x + body_w / 2
     body_cy = body_y + body_h / 2
 
-    # Available space for digits (with padding inside the body)
-    avail_h = body_h - 8   # vertical space for all digits
-    avail_w = body_w - 8   # horizontal space (becomes digit height after rotation)
+    # 95% fill of the body
+    avail_h = body_h * 0.95   # vertical space for all digits
+    avail_w = body_w * 0.95   # horizontal space (becomes digit height after rotation)
 
-    # Size each digit to fit: after rotation, digit_h maps to horizontal, digit_w to vertical
-    gap = 3
-    digit_w = min((avail_h - gap * (digits - 1)) / digits, 12)  # vertical per digit
-    digit_h = min(avail_w * 0.8, 18)  # horizontal (depth of numeral)
-    spacing = digit_w + gap
+    # Digit sizing: after 90° rotation, digit_h = horizontal depth, digit_w = vertical width
+    # Reserve ~15% of each digit cell width for the decimal point
+    gap = avail_h * 0.04      # small gap between digits
+    cell_w = (avail_h - gap * (digits - 1)) / digits   # total cell per digit (including DP)
+    digit_w = cell_w * 0.82   # the "8" portion
+    dp_space = cell_w * 0.18  # decimal point portion
+    digit_h = avail_w * 0.95  # depth of numeral (horizontal after rotation)
+    spacing = cell_w + gap
     total_h = digits * spacing - gap
     start_y = body_cy - total_h / 2
 
     for d in range(digits):
-        dy_offset = start_y + d * spacing + digit_w / 2
+        cell_center_y = start_y + d * spacing + cell_w / 2
+        # Offset the "8" slightly to make room for DP below
+        digit_center_y = cell_center_y - dp_space / 2
+        # Slight italic slant (~8°) matching real 7-segment displays
         els.append(
-            f'<g transform="translate({body_cx:.1f},{dy_offset:.1f}) rotate(-90)">'
+            f'<g transform="translate({body_cx:.1f},{digit_center_y:.1f}) rotate(-90) skewX(-8)">'
         )
         hw = digit_h / 2
         hh = digit_w / 2
+        sw = max(1.5, min(digit_w * 0.12, 2.5))  # segment stroke scales with size
         # Simplified "8" shape centered at origin
         segs = [
-            (-hw + 1, -hh, hw - 1, -hh),            # top
-            (-hw + 1, 0, hw - 1, 0),                 # mid
-            (-hw + 1, hh, hw - 1, hh),               # bot
-            (-hw, -hh + 1, -hw, -1),                  # top-left
-            (hw, -hh + 1, hw, -1),                    # top-right
-            (-hw, 1, -hw, hh - 1),                    # bot-left
-            (hw, 1, hw, hh - 1),                      # bot-right
+            (-hw + 1, -hh, hw - 1, -hh),            # top (seg A)
+            (-hw + 1, 0, hw - 1, 0),                 # mid (seg G)
+            (-hw + 1, hh, hw - 1, hh),               # bot (seg D)
+            (-hw, -hh + 1, -hw, -1),                  # top-left (seg F)
+            (hw, -hh + 1, hw, -1),                    # top-right (seg B)
+            (-hw, 1, -hw, hh - 1),                    # bot-left (seg E)
+            (hw, 1, hw, hh - 1),                      # bot-right (seg C)
         ]
         for sx1, sy1, sx2, sy2 in segs:
             els.append(_line(sx1, sy1, sx2, sy2,
-                             stroke=seg_color, stroke_width="1.5", stroke_linecap="round"))
+                             stroke=seg_color, stroke_width=f"{sw:.1f}",
+                             stroke_linecap="round"))
         els.append('</g>')
+
+        # Decimal point — positioned below the digit (higher Y = toward column J)
+        dp_y = digit_center_y + digit_w / 2 + dp_space * 0.6
+        dp_r = max(1.2, min(dp_space * 0.35, 2.5))
+        els.append(_circle(body_cx, dp_y, dp_r, fill=dp_color))
 
     # Pin dots on both sides
     for p in left_pins:
