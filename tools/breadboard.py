@@ -615,14 +615,18 @@ def render_rgb_led(board: Board, comp: dict) -> list[str]:
 
 
 def render_seven_segment(board: Board, comp: dict) -> list[str]:
-    """Render a 7-segment display as a wide DIP package spanning e to i columns."""
+    """Render a 7-segment display as a DIP package.
+
+    Proportions from 5161AS/5641AS datasheets:
+    - Digit face: 8.1mm × 14.2mm (aspect 1.75:1, height/width)
+    - 8° italic slant, DP at bottom-right of each digit
+    - Package row spacing: 15.24mm (0.6") → columns e to i
+    """
     digits = comp.get("digits", 1)
     row_start = int(comp.get("row_start", 10))
     num_pins = int(comp.get("pins", 10 if digits == 1 else 12))
     pins_per_side = num_pins // 2
 
-    # Real 7-seg DIP: left pins in column 'e', right pins in column 'i'
-    # (0.5–0.6" package width spans e through the center channel to i)
     left_col = comp.get("left_col", "e")
     right_col = comp.get("right_col", "i")
 
@@ -637,7 +641,7 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
     for p in all_pins:
         board.mark_occupied(p)
 
-    # Get coordinates for the body rectangle
+    # Body rectangle from pin positions
     x_left, y_top = board.hole_xy(left_pins[0])
     x_right, _ = board.hole_xy(right_pins[0])
     _, y_bot = board.hole_xy(left_pins[-1])
@@ -647,94 +651,117 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
     body_y = y_top - pad_y
     body_w = (x_right - x_left) + pad_x * 2
     body_h = (y_bot - y_top) + pad_y * 2
+    body_cx = body_x + body_w / 2
+    body_cy = body_y + body_h / 2
+
+    clip_id = f"seg-clip-{row_start}"
 
     els = []
-    # IC body
+
+    # IC body (black DIP package)
     els.append(_rect(body_x, body_y, body_w, body_h, rx="2",
                      fill="#1a1a1a", stroke="#444", stroke_width="0.8"))
+
     # Notch at top
     notch_cx = body_x + body_w / 2
     els.append(f'<path d="M {notch_cx - 4:.1f} {body_y:.1f} '
                f'a 4 4 0 0 1 8 0" fill="#333" stroke="none"/>')
 
-    # Draw stylized digit(s) — rotated 90° CCW so top of digit faces column A
-    # Each digit has 7 segments + decimal point, with slight italic slant.
-    # The skew eats ~14% of width (tan(8°) ≈ 0.14), so we budget for that.
+    # Digit is built upright in local coords (top=A, bottom=D, DP at
+    # bottom-right) then rotated 90° CCW so the component's top faces
+    # toward column a — matching how a DIP sits on the breadboard.
+    #
+    # After rotate(-90) skewX(-8):
+    #   horizontal extent = digit_h  (tall dim fills body width)
+    #   vertical extent   = digit_w + 0.14*digit_h + stroke  (fits cell)
+    #
+    # Datasheet: 14.2mm tall × 8.1mm wide → aspect 1.75:1
     seg_color = "#600"
     dp_color = "#600"
     skew_deg = 8
-    skew_margin = 0.14  # tan(8°) — extra horizontal reach from skew
+    aspect = 1.75   # digit_h / digit_w from datasheet
+    k = 0.14        # tan(8°) skew factor
+    inv_a = 1.0 / aspect
+    vert_fill = 0.90
 
-    body_cx = body_x + body_w / 2
-    body_cy = body_y + body_h / 2
+    win_inset = 6
+    avail_w = body_w - win_inset * 2
+    avail_h = body_h - win_inset * 2
 
-    # Inset from body edge: leave room for pin dots and a visual margin
-    inset = 4
-    inner_w = body_w - inset * 2   # horizontal (becomes digit depth after rotation)
-    inner_h = body_h - inset * 2   # vertical (divided among digits)
+    # Display window — full face area
+    win_x = body_x + win_inset
+    win_y = body_y + win_inset
+    win_w = avail_w
+    win_h = avail_h
+    els.append(_rect(win_x, win_y, win_w, win_h, rx="1",
+                     fill="#222", stroke="#333", stroke_width="0.4"))
 
-    # Size digits to fit inside the body with room for DP and skew.
-    #
-    # After 90° rotation, digit_h is horizontal (depth) and digit_w is vertical (width).
-    # The skew adds tan(8°) * digit_w ≈ 0.14 * digit_w to horizontal extent.
-    # Constraint: digit_h + 0.14 * digit_w ≤ inner_w
-    # Constraint: digit_w + dp_space ≤ cell_h
-    # Target aspect ratio: digit_h ≈ 1.8 × digit_w (typical 7-seg proportions)
-    #
-    aspect = 1.8
-    gap = max(2, inner_h * 0.03)
-    cell_h = (inner_h - gap * (digits - 1)) / digits
+    # ClipPath — structural containment to the display window
+    els.append(f'<defs><clipPath id="{clip_id}">'
+               f'<rect x="{win_x:.1f}" y="{win_y:.1f}" '
+               f'width="{win_w:.1f}" height="{win_h:.1f}"/>'
+               f'</clipPath></defs>')
+    els.append(f'<g clip-path="url(#{clip_id})">')
 
-    # Solve from the horizontal constraint (the binding one):
-    # digit_h + skew_margin * digit_w ≤ inner_w * 0.92 (safety margin)
-    # digit_h = aspect * digit_w
-    # → (aspect + skew_margin) * digit_w ≤ inner_w * 0.92
-    max_w_from_horiz = (inner_w * 0.92) / (aspect + skew_margin)
+    gap = max(2, avail_h * 0.04)
+    cell_h = (avail_h - gap * (digits - 1)) / digits
+    vert_budget = cell_h * vert_fill
 
-    # Solve from the vertical constraint:
-    # digit_w ≤ cell_h * 0.80 (leave 20% for DP + padding)
-    max_w_from_vert = cell_h * 0.80
+    # Solve: digit_w + k*digit_h + sw ≤ vert_budget
+    # where digit_w = digit_h / aspect, sw = min(digit_w * k, 3.0)
+    # Two regimes: sw proportional (small digits) vs sw capped at 3 (large)
+    coeff_prop = inv_a + k + k * inv_a   # ~0.791
+    digit_h = min(vert_budget / coeff_prop, avail_w * vert_fill)
+    digit_w = digit_h * inv_a
+    sw = max(1.0, min(digit_w * k, 3.0))
 
-    digit_w = min(max_w_from_horiz, max_w_from_vert)
-    digit_h = digit_w * aspect
-    dp_space = min(cell_h * 0.15, digit_w * 0.4)
+    if digit_w * k > 3.0:
+        # Stroke capped — recompute with fixed sw = 3.0
+        coeff_cap = inv_a + k   # ~0.711
+        digit_h = min((vert_budget - 3.0) / coeff_cap, avail_w * vert_fill)
+        digit_w = digit_h * inv_a
+        sw = 3.0
 
-    spacing = cell_h + gap
-    total_h = digits * spacing - gap
+    total_h = digits * (cell_h + gap) - gap
     start_y = body_cy - total_h / 2
 
     for d in range(digits):
-        cell_top = start_y + d * spacing
-        digit_center_y = cell_top + digit_w / 2
+        cell_top = start_y + d * (cell_h + gap)
+        digit_cy = cell_top + cell_h / 2
 
+        # Upright in local space, rotated 90° CCW for breadboard placement
         els.append(
-            f'<g transform="translate({body_cx:.1f},{digit_center_y:.1f}) rotate(-90) skewX(-{skew_deg})">'
+            f'<g transform="translate({body_cx:.1f},{digit_cy:.1f}) '
+            f'rotate(-90) skewX(-{skew_deg})">'
         )
-        hw = digit_h / 2
-        hh = digit_w / 2
-        sw = max(1.2, min(digit_w * 0.10, 2.5))
-        # Simplified "8" shape centered at origin
+
+        hw = digit_w / 2   # half of narrow dimension
+        hh = digit_h / 2   # half of tall dimension
+
+        # 7 segments in natural upright orientation (pre-rotation)
         segs = [
-            (-hw + 1, -hh, hw - 1, -hh),            # top (seg A)
-            (-hw + 1, 0, hw - 1, 0),                 # mid (seg G)
-            (-hw + 1, hh, hw - 1, hh),               # bot (seg D)
-            (-hw, -hh + 1, -hw, -1),                  # top-left (seg F)
-            (hw, -hh + 1, hw, -1),                    # top-right (seg B)
-            (-hw, 1, -hw, hh - 1),                    # bot-left (seg E)
-            (hw, 1, hw, hh - 1),                      # bot-right (seg C)
+            (-hw + 1, -hh, hw - 1, -hh),    # A — top
+            (-hw + 1, 0, hw - 1, 0),         # G — middle
+            (-hw + 1, hh, hw - 1, hh),       # D — bottom
+            (-hw, -hh + 1, -hw, -1),          # F — upper-left
+            (hw, -hh + 1, hw, -1),            # B — upper-right
+            (-hw, 1, -hw, hh - 1),            # E — lower-left
+            (hw, 1, hw, hh - 1),              # C — lower-right
         ]
         for sx1, sy1, sx2, sy2 in segs:
             els.append(_line(sx1, sy1, sx2, sy2,
                              stroke=seg_color, stroke_width=f"{sw:.1f}",
                              stroke_linecap="round"))
+
+        # DP at bottom-right (upright local coords, before rotation)
+        dp_r = max(0.8, min(digit_w * 0.10, 1.8))
+        els.append(_circle(hw + digit_w * 0.20, hh, dp_r, fill=dp_color))
+
         els.append('</g>')
 
-        # Decimal point — below the digit, within the cell
-        dp_y = cell_top + digit_w + dp_space * 0.5
-        dp_r = max(1.0, min(dp_space * 0.4, 2.0))
-        els.append(_circle(body_cx + hw * 0.7, dp_y, dp_r, fill=dp_color))
+    els.append('</g>')  # close clip group
 
-    # Pin dots on both sides
+    # Pin dots on both sides (outside clip group)
     for p in left_pins:
         x, y = board.hole_xy(p)
         els.append(_circle(x, y, 1.5, fill="#999", stroke="#777", stroke_width="0.3"))
