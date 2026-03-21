@@ -655,21 +655,25 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
                f'a 4 4 0 0 1 8 0" fill="#333" stroke="none"/>')
 
     # Draw stylized digit(s) — rotated 90° CCW so top of digit faces column A
-    # In the SVG, column A is to the left (lower X), column J is to the right (higher X)
-    # So "digit top" = toward body_x, "digit bottom" = toward body_x + body_w
+    # Scale digits to fit the available body, with even spacing
     seg_color = "#600"
-    digit_w = 8    # width of digit (becomes height after rotation)
-    digit_h = 14   # height of digit (becomes width after rotation)
-    # After 90° CCW rotation: digit occupies digit_h wide × digit_w tall
-    total_h = digits * (digit_w + 3) - 3
     body_cx = body_x + body_w / 2
     body_cy = body_y + body_h / 2
+
+    # Available space for digits (with padding inside the body)
+    avail_h = body_h - 8   # vertical space for all digits
+    avail_w = body_w - 8   # horizontal space (becomes digit height after rotation)
+
+    # Size each digit to fit: after rotation, digit_h maps to horizontal, digit_w to vertical
+    gap = 3
+    digit_w = min((avail_h - gap * (digits - 1)) / digits, 12)  # vertical per digit
+    digit_h = min(avail_w * 0.8, 18)  # horizontal (depth of numeral)
+    spacing = digit_w + gap
+    total_h = digits * spacing - gap
     start_y = body_cy - total_h / 2
 
     for d in range(digits):
-        # Each digit drawn rotated: X axis = depth (top→bot of numeral), Y axis = across digits
-        # Origin at center of this digit, then rotate -90° around center
-        dy_offset = start_y + d * (digit_w + 3) + digit_w / 2
+        dy_offset = start_y + d * spacing + digit_w / 2
         els.append(
             f'<g transform="translate({body_cx:.1f},{dy_offset:.1f}) rotate(-90)">'
         )
@@ -677,13 +681,13 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
         hh = digit_w / 2
         # Simplified "8" shape centered at origin
         segs = [
-            (-hw + 1, -hh, hw - 1, -hh),           # top
-            (-hw + 1, 0, hw - 1, 0),                # mid
-            (-hw + 1, hh, hw - 1, hh),              # bot
-            (-hw, -hh + 1, -hw, -1),                # top-left
-            (hw, -hh + 1, hw, -1),                   # top-right
-            (-hw, 1, -hw, hh - 1),                   # bot-left
-            (hw, 1, hw, hh - 1),                     # bot-right
+            (-hw + 1, -hh, hw - 1, -hh),            # top
+            (-hw + 1, 0, hw - 1, 0),                 # mid
+            (-hw + 1, hh, hw - 1, hh),               # bot
+            (-hw, -hh + 1, -hw, -1),                  # top-left
+            (hw, -hh + 1, hw, -1),                    # top-right
+            (-hw, 1, -hw, hh - 1),                    # bot-left
+            (hw, 1, hw, hh - 1),                      # bot-right
         ]
         for sx1, sy1, sx2, sy2 in segs:
             els.append(_line(sx1, sy1, sx2, sy2,
