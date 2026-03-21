@@ -658,38 +658,61 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
                f'a 4 4 0 0 1 8 0" fill="#333" stroke="none"/>')
 
     # Draw stylized digit(s) — rotated 90° CCW so top of digit faces column A
-    # Fill ~95% of the body face. Each digit includes a decimal point.
+    # Each digit has 7 segments + decimal point, with slight italic slant.
+    # The skew eats ~14% of width (tan(8°) ≈ 0.14), so we budget for that.
     seg_color = "#600"
     dp_color = "#600"
+    skew_deg = 8
+    skew_margin = 0.14  # tan(8°) — extra horizontal reach from skew
+
     body_cx = body_x + body_w / 2
     body_cy = body_y + body_h / 2
 
-    # 95% fill of the body
-    avail_h = body_h * 0.95   # vertical space for all digits
-    avail_w = body_w * 0.95   # horizontal space (becomes digit height after rotation)
+    # Inset from body edge: leave room for pin dots and a visual margin
+    inset = 4
+    inner_w = body_w - inset * 2   # horizontal (becomes digit depth after rotation)
+    inner_h = body_h - inset * 2   # vertical (divided among digits)
 
-    # Digit sizing: after 90° rotation, digit_h = horizontal depth, digit_w = vertical width
-    # Reserve ~15% of each digit cell width for the decimal point
-    gap = avail_h * 0.04      # small gap between digits
-    cell_w = (avail_h - gap * (digits - 1)) / digits   # total cell per digit (including DP)
-    digit_w = cell_w * 0.82   # the "8" portion
-    dp_space = cell_w * 0.18  # decimal point portion
-    digit_h = avail_w * 0.95  # depth of numeral (horizontal after rotation)
-    spacing = cell_w + gap
+    # Size digits to fit inside the body with room for DP and skew.
+    #
+    # After 90° rotation, digit_h is horizontal (depth) and digit_w is vertical (width).
+    # The skew adds tan(8°) * digit_w ≈ 0.14 * digit_w to horizontal extent.
+    # Constraint: digit_h + 0.14 * digit_w ≤ inner_w
+    # Constraint: digit_w + dp_space ≤ cell_h
+    # Target aspect ratio: digit_h ≈ 1.8 × digit_w (typical 7-seg proportions)
+    #
+    aspect = 1.8
+    gap = max(2, inner_h * 0.03)
+    cell_h = (inner_h - gap * (digits - 1)) / digits
+
+    # Solve from the horizontal constraint (the binding one):
+    # digit_h + skew_margin * digit_w ≤ inner_w * 0.92 (safety margin)
+    # digit_h = aspect * digit_w
+    # → (aspect + skew_margin) * digit_w ≤ inner_w * 0.92
+    max_w_from_horiz = (inner_w * 0.92) / (aspect + skew_margin)
+
+    # Solve from the vertical constraint:
+    # digit_w ≤ cell_h * 0.80 (leave 20% for DP + padding)
+    max_w_from_vert = cell_h * 0.80
+
+    digit_w = min(max_w_from_horiz, max_w_from_vert)
+    digit_h = digit_w * aspect
+    dp_space = min(cell_h * 0.15, digit_w * 0.4)
+
+    spacing = cell_h + gap
     total_h = digits * spacing - gap
     start_y = body_cy - total_h / 2
 
     for d in range(digits):
-        cell_center_y = start_y + d * spacing + cell_w / 2
-        # Offset the "8" slightly to make room for DP below
-        digit_center_y = cell_center_y - dp_space / 2
-        # Slight italic slant (~8°) matching real 7-segment displays
+        cell_top = start_y + d * spacing
+        digit_center_y = cell_top + digit_w / 2
+
         els.append(
-            f'<g transform="translate({body_cx:.1f},{digit_center_y:.1f}) rotate(-90) skewX(-8)">'
+            f'<g transform="translate({body_cx:.1f},{digit_center_y:.1f}) rotate(-90) skewX(-{skew_deg})">'
         )
         hw = digit_h / 2
         hh = digit_w / 2
-        sw = max(1.5, min(digit_w * 0.12, 2.5))  # segment stroke scales with size
+        sw = max(1.2, min(digit_w * 0.10, 2.5))
         # Simplified "8" shape centered at origin
         segs = [
             (-hw + 1, -hh, hw - 1, -hh),            # top (seg A)
@@ -706,10 +729,10 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
                              stroke_linecap="round"))
         els.append('</g>')
 
-        # Decimal point — positioned below the digit (higher Y = toward column J)
-        dp_y = digit_center_y + digit_w / 2 + dp_space * 0.6
-        dp_r = max(1.2, min(dp_space * 0.35, 2.5))
-        els.append(_circle(body_cx, dp_y, dp_r, fill=dp_color))
+        # Decimal point — below the digit, within the cell
+        dp_y = cell_top + digit_w + dp_space * 0.5
+        dp_r = max(1.0, min(dp_space * 0.4, 2.0))
+        els.append(_circle(body_cx + hw * 0.7, dp_y, dp_r, fill=dp_color))
 
     # Pin dots on both sides
     for p in left_pins:
