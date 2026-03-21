@@ -787,4 +787,23 @@ Every scaffold feature traces back to transformer architecture research. This ta
 
 ## Project-Specific Features
 
-_No project-specific features yet. As you add local commands, rules, agents, or skills, document them here._
+### Commands
+
+| Command | What it does |
+|---------|-------------|
+| `/new-component` | Guided workflow for onboarding a new hardware component. Researches specs from official documentation, updates inventory and wiring patterns, checks for renderer support, creates a complete sketch with wiring diagram. |
+
+### Rules
+
+| Rule file | Concern | Key behaviors |
+|-----------|---------|---------------|
+| `components.md` | Component integration | Check inventory before coding, add missing entries, verify pin conflicts, use correct renderer types in wiring.yaml |
+| `sketches.md` | Sketch creation | Every sketch needs 5 files (wiring.yaml, wiring.svg, platformio.ini, src/main.cpp, README.md), write wiring.yaml first, pins must match between yaml and code |
+
+### Reference Documents
+
+| Document | Purpose |
+|----------|---------|
+| `docs/renderers.md` | Maps component types to breadboard.py renderer names and wiring.yaml schema |
+| `docs/course-map.md` | Maps Crafting Table course lessons to local sketches with coverage stats |
+| `docs/inventory.md` | Full component list with specs, pinouts, libraries, and safety notes |

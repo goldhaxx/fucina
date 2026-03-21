@@ -1,145 +1,129 @@
-# Plan: Integrate Crafting Table Course Content
+# Implementation Plan: Breadboard Component Renderers
 
-## Context
+> Created: 2026-03-21
+> Based on: user request to render all physical components onto wiring.svg diagrams
 
-The Pandora's Box course has 85 lessons across 12 modules:
-- **Getting Started** (2 lessons) — setup, community
-- **Chapter 01: Moving In** (6 lessons) — blink, LEDs, buttons, photoresistor, buzzers, PWM
-- **Chapter 02: Base Security** (4 lessons) — PIR motion, keypad lock, RFID, RTTTL alarm
-- **Chapter 03: GreenHouse** (3 lessons) — rain sensor, fan/motor, relay
-- **Chapter 04: Daily Life** (3 lessons) — RTC alarm clock, clap lights (sound sensor), T-Display intro
-- **Chapter 05: Phoenix Restoration** (2 lessons) — ESP32 WiFi networking, 180° radar sweep
-- **Chapter 06: Base Security++** (2 lessons) — RGB turret with LCD touchscreen, T-Display variant
-- **Chapter 07: Showdown** (3 lessons) — finale, what's next, board reference
-- **Individual Part Tutorials** (27 lessons) — standalone component guides
-- **Spies vs Spies** (15 lessons) — alternative projects using same components
-- **Reincarnated** (15 lessons) — fantasy-themed alternative projects
+## Objective
 
-Source material:
-- `course-archive/raw-html/` — 85 crawled lesson pages (mix of text content and embedded images)
-- `course-archive/github-repo/` — cloned inventrdotio/AdventureKit2 repo with ALL source code (.ino files) and READMEs
-- `course-archive/lesson-metadata.json` — API data for all lessons
-- `course-archive/lesson-index.txt` — lesson number → title mapping
+Add visual renderers to `tools/breadboard.py` for every component type used across sketches, update all `wiring.yaml` files to declare their components, and regenerate all SVGs so every diagram shows what's physically on the breadboard.
 
-## Phase 1: Extract & Organize (current)
+## Current State
 
-Extraction agents are producing:
-- [ ] `course-archive/extracted/parts-tutorials.md` — component tutorials from GitHub repo
-- [ ] `course-archive/extracted/chapters.md` — chapter project code from GitHub repo
-- [ ] `course-archive/extracted/device-docs.md` — component datasheets from GitHub repo
-- [ ] `course-archive/extracted/esp32-tutorials.md` — ESP32/T-Display specific content
-- [ ] `course-archive/extracted/lesson-text.md` — narrative/concept text from crawled HTML
-- [ ] `course-archive/extracted/spies-vs-spies.md` — spy alternative storyline
-- [ ] `course-archive/extracted/reincarnated.md` — isekai alternative storyline
+**Existing renderers:** `resistor`, `led`, `button` (new), `buzzer` (new), `sensor` (new)
 
-## Phase 2: Enhance Existing Docs
+**Missing renderers needed:**
 
-### 2a. Enhance `docs/inventory.md`
-- Add components discovered in course but missing from inventory:
-  - Temperature & Humidity sensor (DHT11/DHT22 — referenced in lessons 43, 69, 120)
-  - Joystick module (lesson 44, 110)
-  - RGB LED (lesson 45, 67)
-  - Photoresistor/LDR (lesson 30, 68)
-  - L293D Motor Driver IC (lesson 220 in GitHub)
-- Update status markers for components used in course projects
-- Add library dependencies per component (from GitHub README files)
+| Renderer | Visual concept | Sketches |
+|----------|---------------|----------|
+| `potentiometer` | 3-pin knob, circular body | ct-potentiometer |
+| `seven_segment_1` | 10-pin DIP spanning center channel | ct-7seg-1digit |
+| `seven_segment_4` | 12-pin DIP spanning center channel, wider | ct-7seg-4digit, ct-alarm-clock |
+| `rgb_led` | 4-pin LED with R/G/B color indicators | ct-rgb-led |
+| `dip` | Generic multi-pin IC/module spanning center channel | ct-lcd1602 (as off-board labeled box) |
+| `module` | Off-board labeled box at board edge (like board pins but for modules) | ct-servo, ct-stepper, ct-rfid, ct-rtc, ct-gyroscope, ct-ir-receiver, ct-rotary-encoder, ct-joystick, ct-keypad, ct-radar-sweep, ct-rfid-lock, ct-lcd1602 |
 
-### 2b. Enhance `docs/wiring-patterns.md`
-- Add patterns discovered in course:
-  - Photoresistor voltage divider circuit
-  - DHT sensor single-wire connection
-  - 7-segment display multiplexing
-  - Keypad matrix scanning wiring
-  - RTTTL buzzer melody pattern
-  - Stepper motor ULN2003 driver wiring
-  - LCD touchscreen shield pin mapping
-  - Relay module with flyback diode (expanded)
-  - Joystick analog + button wiring
+**Key design decision:** Components fall into two categories:
+1. **On-board** — physically in breadboard holes. Draw at hole coordinates. (potentiometer, 7-seg, button, buzzer, RGB LED)
+2. **Off-board modules** — connect via jumper wires but sit outside the breadboard. Draw as labeled boxes at the board edge, similar to board-pin pills. (servo, stepper, RFID, RTC, gyroscope, keypad, IR receiver, rotary encoder, joystick, LCD)
 
-### 2c. Enhance `docs/pinouts.md`
-- Add LCD touchscreen shield pin consumption map
-- Add L293D motor driver IC pinout
-- Add common multi-component pin allocation plans (avoid conflicts)
+The existing `sensor` renderer (green PCB rectangle) covers on-board sensor modules. The `module` renderer will handle off-board components by drawing a labeled pill/box at the left margin showing what the wires connect to — visually similar to the board-pin labels but styled as a module.
 
-### 2d. Enhance `tools/breadboard.py`
-- Add new component renderers based on course projects:
-  - Push button renderer
-  - Potentiometer renderer
-  - 7-segment display renderer
-  - Buzzer renderer
-  - Sensor module renderer (generic 3-pin: VCC/OUT/GND)
-- These will allow generating wiring diagrams for course-derived sketches
+## Sequence
 
-## Phase 3: Create Course-Derived Sketches
+### Step 1: Potentiometer renderer
+- **Implement:** Add `render_potentiometer()` — draws a circular knob with 3 pin leads. Takes `pin1`, `pin2`, `pin3` keys (or `from`/`to` shorthand for the 3 consecutive holes).
+- **Files:** `tools/breadboard.py`
+- **Verify:** Create a test YAML with `type: potentiometer`, generate SVG, inspect visually.
 
-Store in `sketches/` with a `ct-` prefix to indicate Crafting Table origin:
+### Step 2: RGB LED renderer
+- **Implement:** Add `render_rgb_led()` — draws a multi-color LED with 4 pins (red, common, green, blue). Shows the 3 color channels as small colored dots around a central white/clear lens.
+- **Files:** `tools/breadboard.py`
+- **Verify:** Test YAML with `type: rgb_led`, generate SVG, inspect.
 
-### From Individual Part Tutorials (highest priority — standalone component learning)
-- `sketches/craftingtable/ct-potentiometer/` — analog read + serial output (lesson 18 / GitHub 030)
-- `sketches/craftingtable/ct-push-button/` — pull-down, pull-up, toggle (lesson 33 / GitHub 040)
-- `sketches/craftingtable/ct-photoresistor/` — light level detection (lesson 30 / GitHub 006)
-- `sketches/craftingtable/ct-active-buzzer/` — simple alarm tone (lesson 46 / GitHub 010)
-- `sketches/craftingtable/ct-passive-buzzer/` — melody playback (lesson 46 / GitHub 020)
-- `sketches/craftingtable/ct-rotary-encoder/` — rotation + click input (lesson 38 / GitHub 035)
-- `sketches/craftingtable/ct-ir-receiver/` — decode remote codes (lesson 35 / GitHub 060)
-- `sketches/craftingtable/ct-ultrasonic/` — distance measurement (lesson 23 / GitHub 070)
-- `sketches/craftingtable/ct-7seg-1digit/` — single digit display (lesson 20 / GitHub 080)
-- `sketches/craftingtable/ct-7seg-4digit/` — 4-digit counter (lesson 39 / GitHub 085)
-- `sketches/craftingtable/ct-pir-motion/` — motion detection (lesson 28 / GitHub 090)
-- `sketches/craftingtable/ct-keypad/` — 4x4 matrix scanning (lesson 50 / GitHub 100)
-- `sketches/craftingtable/ct-joystick/` — analog X/Y + button (lesson 44 / GitHub 110)
-- `sketches/craftingtable/ct-dht-sensor/` — temperature & humidity (lesson 43 / GitHub 120)
-- `sketches/craftingtable/ct-sound-sensor/` — clap detection (lesson 41 / GitHub 130)
-- `sketches/craftingtable/ct-rtc/` — real-time clock read/set (lesson 22 / GitHub 140)
-- `sketches/craftingtable/ct-rfid/` — card UID reader (lesson 37 / GitHub 150)
-- `sketches/craftingtable/ct-gyroscope/` — accelerometer/gyro data (lesson 40 / GitHub 160)
-- `sketches/craftingtable/ct-servo/` — sweep 0-180° (lesson 25 / GitHub 170)
-- `sketches/craftingtable/ct-lcd1602/` — character display output (lesson 49 / GitHub 200)
-- `sketches/craftingtable/ct-stepper/` — stepper motor control (lesson 48 / GitHub 210)
-- `sketches/craftingtable/ct-rgb-led/` — color cycling (lesson 45)
-- `sketches/craftingtable/ct-rain-sensor/` — water level detection (lesson 32 / GitHub 050)
-- `sketches/craftingtable/ct-touchscreen/` — LCD shield basics (lesson 27 / GitHub 240)
+### Step 3: 7-segment display renderer
+- **Implement:** Add `render_seven_segment()` — draws a DIP-style IC package spanning the center channel. The body rectangle covers both banks (columns a–e and f–j). Pin dots on both sides. Shows a stylized "8" digit pattern on the body. Accepts `pins_left` and `pins_right` arrays, or auto-calculates from a `row_start` and `num_pins` config. Single renderer handles both 1-digit (10 pins) and 4-digit (12 pins) via a `digits` parameter.
+- **Files:** `tools/breadboard.py`
+- **Verify:** Test with both 1-digit and 4-digit configs.
 
-### From Chapter Projects (integrated multi-component builds)
-- `sketches/craftingtable/ct-security-motion/` — PIR + LED + buzzer alarm (Ch.02 lesson 1)
-- `sketches/craftingtable/ct-keypad-lock/` — keypad + servo door lock (Ch.02 lesson 2)
-- `sketches/craftingtable/ct-rfid-lock/` — RFID + servo access control (Ch.02 lesson 3)
-- `sketches/craftingtable/ct-rtttl-alarm/` — melody alarm system (Ch.02 lesson 4)
-- `sketches/craftingtable/ct-plant-monitor/` — rain sensor + buzzer alert (Ch.03 lesson 5)
-- `sketches/craftingtable/ct-fan-control/` — DC motor + temp sensor (Ch.03 lesson 6)
-- `sketches/craftingtable/ct-relay-fan/` — relay-driven fan (Ch.03 lesson 7)
-- `sketches/craftingtable/ct-alarm-clock/` — RTC + LCD + buzzer (Ch.04 lesson 8)
-- `sketches/craftingtable/ct-clap-lights/` — sound sensor + LED (Ch.04 lesson 9)
-- `sketches/craftingtable/ct-radar-sweep/` — servo + ultrasonic scanner (Ch.06 lesson 12)
-- `sketches/craftingtable/ct-wifi-lights/` — ESP32 WiFi LED control (Ch.05)
+### Step 4: Module renderer (off-board components)
+- **Implement:** Add `render_module()` — draws a labeled box at the left edge of the board (similar to board-pin pills but wider/taller). The box shows the module name (e.g., "SG90 Servo", "DS3231 RTC", "HC-SR04"). Wires from this box go to the breadboard holes where jumpers connect. Accepts `name`, `color`, and a list of `pins` with their hole addresses.
+- **Files:** `tools/breadboard.py`
+- **Verify:** Test with a 3-pin module (VCC, SIG, GND) and a 5-pin module.
 
-### From Alternative Storylines (unique project ideas)
-- `sketches/craftingtable/ct-morse-transmitter/` — LED morse code (Spies #1)
-- `sketches/craftingtable/ct-ir-alarm/` — IR remote stealth alarm (Spies #2)
-- `sketches/craftingtable/ct-encrypted-lcd/` — encrypted message display (Spies #3)
-- `sketches/craftingtable/ct-weather-station/` — multi-sensor weather (Spies #10)
+### Step 5: Update wiring.yaml for simple on-board components
+- **Implement:** Add component entries to wiring.yaml files for sketches that use on-board components already supported by renderers:
+  - `ct-potentiometer` — add `type: potentiometer`
+  - `ct-push-button` — add `type: button`
+  - `ct-active-buzzer` — add `type: buzzer, variant: active`
+  - `ct-passive-buzzer` — add `type: buzzer, variant: passive`
+  - `ct-rgb-led` — add `type: rgb_led`
+  - `ct-rtttl-alarm` — add `type: buzzer, variant: passive`
+  - `ct-photoresistor` — add `type: sensor, label: LDR` (the LDR itself, resistor already there)
+- **Files:** 7 `wiring.yaml` files
+- **Verify:** Regenerate SVGs, inspect each.
 
-## Phase 4: Cleanup & Documentation
+### Step 6: Update wiring.yaml for 7-segment displays
+- **Implement:** Add 7-segment component entries:
+  - `ct-7seg-1digit` — add `type: seven_segment, digits: 1`
+  - `ct-7seg-4digit` — add `type: seven_segment, digits: 4`
+  - `ct-alarm-clock` — add `type: seven_segment, digits: 4` (plus buzzer)
+- **Files:** 3 `wiring.yaml` files
+- **Verify:** Regenerate SVGs, inspect.
 
-- [ ] Add `course-archive/` to `.claudeignore` (large, reference-only)
-- [ ] Update `docs/journal.md` with course integration notes
-- [ ] Create `docs/course-map.md` — maps course lessons to local sketches
-- [ ] Update CLAUDE.md if new conventions emerge
+### Step 7: Update wiring.yaml for off-board modules
+- **Implement:** Add module component entries to all sketches that use external modules connected via jumper wires:
+  - `ct-pir-motion` — `type: module, name: HC-SR501`
+  - `ct-ultrasonic` — `type: module, name: HC-SR04`
+  - `ct-sound-sensor` — `type: module, name: KY-038`
+  - `ct-dht-sensor` — `type: module, name: DHT11` (resistor already there)
+  - `ct-rain-sensor` — `type: module, name: HW-038`
+  - `ct-joystick` — `type: module, name: KY-023`
+  - `ct-gyroscope` — `type: module, name: GY-521`
+  - `ct-ir-receiver` — `type: module, name: KY-022`
+  - `ct-rotary-encoder` — `type: module, name: KY-040`
+  - `ct-servo` — `type: module, name: SG90`
+  - `ct-stepper` — `type: module, name: ULN2003`
+  - `ct-rtc` — `type: module, name: DS3231`
+  - `ct-rfid` — `type: module, name: RC522`
+  - `ct-keypad` — `type: module, name: 4x4 Keypad`
+  - `ct-lcd1602` — `type: module, name: LCD1602`
+  - `ct-ir-receiver` — `type: module, name: KY-022`
+- **Files:** ~16 `wiring.yaml` files
+- **Verify:** Regenerate SVGs, inspect.
 
-## Execution Order
+### Step 8: Update wiring.yaml for chapter project sketches
+- **Implement:** Add component entries for multi-component chapter projects:
+  - `ct-security-motion` — add `type: module, name: HC-SR501` (LED + resistor already there)
+  - `ct-keypad-lock` — add `type: module, name: 4x4 Keypad`
+  - `ct-rfid-lock` — add `type: module, name: RC522` + `type: module, name: LCD1602`
+  - `ct-plant-monitor` — add `type: module, name: HW-038` (LED already there)
+  - `ct-clap-lights` — add `type: module, name: KY-038`
+  - `ct-alarm-clock` — add buzzer + RTC module (7-seg from step 6)
+  - `ct-radar-sweep` — add `type: module, name: HC-SR04` + `type: module, name: SG90`
+  - `ct-wifi-lights` — add `type: led` (simple, on ESP32)
+- **Files:** ~8 `wiring.yaml` files
+- **Verify:** Regenerate all SVGs, inspect.
 
-1. **Now:** Wait for extraction agents to finish
-2. **Next session:** Enhance existing docs (Phase 2) using extracted content
-3. **Following sessions:** Create sketches in batches (Phase 3), starting with part tutorials
-4. **Each sketch:** wiring.yaml → wiring.svg → platformio.ini → src/main.cpp → README.md
+### Step 9: Batch regenerate all SVGs and verify
+- **Implement:** Run breadboard.py on every sketch's wiring.yaml to regenerate all SVGs. Compile-check still passes (SVG changes don't affect compilation, but sanity-check).
+- **Files:** All `wiring.svg` files
+- **Verify:** `for d in sketches/*/wiring.yaml sketches/craftingtable/*/wiring.yaml; do python3 tools/breadboard.py "$d" -o "${d%.yaml}.svg"; done` — no errors.
 
-## Decisions (Resolved)
+### Step 10: Update sketches.md rule with new component types
+- **Implement:** Update `.claude/rules/sketches.md` wiring.yaml schema section to document the new component types (`potentiometer`, `rgb_led`, `seven_segment`, `button`, `buzzer`, `sensor`, `module`) with their required keys.
+- **Files:** `.claude/rules/sketches.md`
+- **Verify:** Schema examples cover all new types.
 
-1. **Sketch location:** `sketches/craftingtable/ct-{name}/` — dedicated subdirectory with `ct-` prefix
-2. **Scope:** All component tutorials and chapter projects — full coverage
-3. **Code style:** Rewrite all `.ino` code to PlatformIO conventions:
-   - `src/main.cpp` with `#include <Arduino.h>`
-   - `constexpr` for pin definitions (no `#define` or bare `int`)
-   - Forward declarations where needed
-   - Our standard sketch structure (wiring.yaml, wiring.svg, platformio.ini, README.md)
-4. **ESP32 content:** Include now
+## Risks
+
+- **Visual quality:** SVG renderers are approximations. Components like the 7-segment display have complex pin layouts — the renderer needs to look good enough to be useful without being pixel-perfect. Mitigation: keep renderers simple, focus on recognizability over accuracy.
+- **Module renderer overlap:** Multiple off-board modules stacked at the left edge could visually overlap. Mitigation: auto-stack module boxes vertically based on the y-coordinate of their connected wires.
+- **Existing SVGs change:** Regenerating SVGs for sketches that already had correct diagrams (001-blink, etc.) will produce visually identical output since no new components are added. Low risk.
+
+## Definition of Done
+
+- [ ] All 6 new renderer types produce valid SVG output
+- [ ] Every sketch's `wiring.yaml` declares all physical components
+- [ ] All `wiring.svg` files regenerated with components visible
+- [ ] No breadboard.py crashes on any wiring.yaml
+- [ ] `sketches.md` documents all component types

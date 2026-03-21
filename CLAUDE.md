@@ -39,6 +39,8 @@ docs/
 ├── inventory.md            # Full component list with specs and status
 ├── pinouts.md              # Board pin maps and breadboard reference
 ├── wiring-patterns.md      # Common circuit recipes
+├── renderers.md            # Breadboard diagram component types reference
+├── course-map.md           # Maps Crafting Table course lessons to local sketches
 ├── journal.md              # Build log — what worked, what didn't, ideas
 ├── spec.md                 # Current feature specification
 ├── plan.md                 # Implementation plan
@@ -47,9 +49,9 @@ docs/
 
 ## Workflow: Explore → Wire → Code → Verify
 
-1. **Pick a component.** Check `docs/inventory.md` for what's available.
+1. **Pick a component.** Check `docs/inventory.md` for what's available. For a brand-new component, run `/new-component` — it researches specs, updates inventory, and creates the sketch.
 2. **Create the sketch directory.** Next number in sequence, e.g. `sketches/002-servo-sweep/`.
-3. **Write `wiring.yaml`.** Describe every component and wire on the breadboard.
+3. **Write `wiring.yaml`.** Describe every component and wire on the breadboard. Check `docs/renderers.md` for supported component types.
 4. **Generate `wiring.svg`.** Run `python3 tools/breadboard.py sketches/NNN/wiring.yaml -o sketches/NNN/wiring.svg`.
 5. **Wire it up.** Follow the generated diagram. Document anything extra in `README.md`.
 6. **Write the sketch.** Simplest possible code that proves the component works.
@@ -85,6 +87,12 @@ docs/
 
 ### Breadboard Diagram Tool — @tools/breadboard.py
 **Read when:** Creating or modifying a sketch's wiring. Generates SVG breadboard diagrams from YAML circuit descriptions. See any sketch's `wiring.yaml` for the schema.
+
+### Diagram Renderer Reference — @docs/renderers.md
+**Read when:** Writing `wiring.yaml` component entries. Lists all supported `type:` values with their required keys and visual description.
+
+### Course Map — @docs/course-map.md
+**Read when:** Checking which Crafting Table course lessons have been converted to local sketches.
 
 ## Do Not
 - Do not connect 5V signals to ESP32 GPIO — use the logic level converter.
