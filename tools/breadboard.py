@@ -615,20 +615,23 @@ def render_rgb_led(board: Board, comp: dict) -> list[str]:
 
 
 def render_seven_segment(board: Board, comp: dict) -> list[str]:
-    """Render a 7-segment display as a DIP package spanning the center channel."""
+    """Render a 7-segment display as a wide DIP package spanning e to i columns."""
     digits = comp.get("digits", 1)
     row_start = int(comp.get("row_start", 10))
     num_pins = int(comp.get("pins", 10 if digits == 1 else 12))
     pins_per_side = num_pins // 2
 
-    # The DIP spans from column 'e' (left bank) to column 'f' (right bank)
-    # Pins go down the left side and up the right side
+    # Real 7-seg DIP: left pins in column 'e', right pins in column 'i'
+    # (0.5–0.6" package width spans e through the center channel to i)
+    left_col = comp.get("left_col", "e")
+    right_col = comp.get("right_col", "i")
+
     left_pins = []
     right_pins = []
     for i in range(pins_per_side):
         row = row_start + i
-        left_pins.append(f"e{row}")
-        right_pins.append(f"f{row}")
+        left_pins.append(f"{left_col}{row}")
+        right_pins.append(f"{right_col}{row}")
     all_pins = left_pins + right_pins
 
     for p in all_pins:

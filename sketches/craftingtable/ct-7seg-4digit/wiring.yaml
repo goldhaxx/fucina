@@ -39,7 +39,7 @@ wires:
     color: "#e53935"
     label: "digit 4 (pin 6) — HERO XL Pin 5"
 
-  # Right bank (f-side) — pins 12-7: D1, A, F, D2, B, D3
+  # Right bank (i-side) — pins 12-7: D1, A, F, D2, B, D3
   - from: j10
     to: pin2
     color: "#e53935"

@@ -34,7 +34,7 @@ wires:
     color: "#607d8b"
     label: "seg DP (pin 5) — HERO XL Pin 9"
 
-  # Right bank (f-side) — pins 10-6: B, A, Common(GND), F, G
+  # Right bank (i-side) — pins 10-6: B, A, Common(GND), F, G
   - from: j10
     to: pin3
     color: "#ff6f00"
