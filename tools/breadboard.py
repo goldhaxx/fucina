@@ -513,7 +513,11 @@ BUZZER_PALETTE = {
 
 
 def render_button(board: Board, comp: dict) -> list[str]:
-    """Render a push button spanning two rows across the center channel."""
+    """Render a push button spanning two rows across the center channel.
+
+    Physical: 6mm tactile switch, ~12mm pin-to-pin across channel.
+    Hardcoded: 16×16 body, 5px cap radius. Symmetric — no orientation needed.
+    """
     pin1 = str(comp["from"])
     pin2 = str(comp["to"])
     x1, y1 = board.hole_xy(pin1)
@@ -536,7 +540,11 @@ def render_button(board: Board, comp: dict) -> list[str]:
 
 
 def render_buzzer(board: Board, comp: dict) -> list[str]:
-    """Render a buzzer (active or passive) as a cylinder viewed from above."""
+    """Render a buzzer (active or passive) as a cylinder viewed from above.
+
+    Physical: ~12mm diameter cylinder, 2 pins at 7.6mm spacing.
+    Hardcoded: 8px radius circle. Rotationally symmetric — no orientation needed.
+    """
     pin_pos = str(comp.get("positive", comp.get("from", "")))
     pin_neg = str(comp.get("negative", comp.get("to", "")))
     x1, y1 = board.hole_xy(pin_pos)
@@ -565,7 +573,11 @@ def render_buzzer(board: Board, comp: dict) -> list[str]:
 
 
 def render_sensor(board: Board, comp: dict) -> list[str]:
-    """Render a generic 3-pin sensor module as a small PCB rectangle."""
+    """Render a generic 3-pin sensor module as a small PCB rectangle.
+
+    Physical: varies widely (KY-series modules are ~24×15mm typical).
+    Hardcoded: auto-sized from pin positions, min 18×18. Symmetric — no orientation needed.
+    """
     pins = []
     for key in ("pin1", "pin2", "pin3", "from", "to"):
         if key in comp:
@@ -605,7 +617,11 @@ def render_sensor(board: Board, comp: dict) -> list[str]:
 
 
 def render_potentiometer(board: Board, comp: dict) -> list[str]:
-    """Render a potentiometer as a circular knob with 3 pins."""
+    """Render a potentiometer as a circular knob with 3 pins.
+
+    Physical: ~6.5mm body, 10mm knob, 3 pins at 2.54mm pitch.
+    Hardcoded: 10px radius circle. Rotationally symmetric — no orientation needed.
+    """
     pins = []
     for key in ("pin1", "pin2", "pin3"):
         if key in comp:
@@ -638,7 +654,11 @@ def render_potentiometer(board: Board, comp: dict) -> list[str]:
 
 
 def render_rgb_led(board: Board, comp: dict) -> list[str]:
-    """Render a 4-pin common-cathode RGB LED."""
+    """Render a 4-pin common-cathode RGB LED.
+
+    Physical: 5mm dome, 4 pins at 2.54mm pitch.
+    Hardcoded: 6.5px body radius. Position-derived layout — no orientation needed.
+    """
     pin_keys = ("red", "common", "green", "blue")
     pins = {}
     for key in pin_keys:
