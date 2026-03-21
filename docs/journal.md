@@ -85,3 +85,27 @@ The alarm clock is the most complex — combines 3 components on different inter
 Skipped from plan: ct-fan-control (course warns it can burn the board), ct-relay-fan (concept only), ct-radar-sweep (requires touchscreen shield — save for later), ct-wifi-lights (ESP32 — different board).
 
 **Total sketch count: 30** (3 original + 23 part tutorials + 7 chapter projects, with some plan items deferred)
+
+## 2026-03-21 — Deferred Sketches, Phase 4, Scaffold & Renderers (Session 3)
+
+**Topic:** Complete all deferred work, enhance scaffold, add breadboard component renderers
+**Result:** Mostly complete — 7-segment digit overflow still unresolved
+
+What was done:
+- 2 deferred sketches (ct-radar-sweep, ct-wifi-lights) — total now 32
+- `docs/course-map.md` — lesson-to-sketch mapping
+- `/new-component` command + `components.md` rule + `docs/renderers.md`
+- 8 new breadboard.py renderers (button, buzzer, sensor, potentiometer, rgb_led, seven_segment, module)
+- All 32 wiring.yaml files updated with component declarations, all SVGs regenerated
+- Pin pills anchored to correct side of diagram, sized to avoid overlap
+- 7-segment DIP wiring corrected (both banks), body widened to e→i, digits rotated + italicized + decimal points
+
+Unresolved:
+- 7-segment digit glyphs overflow the DIP body — constraint math doesn't account for SVG transform composition correctly. Need to use clipPath or nested SVG viewBox for structural containment instead of trying to solve it algebraically.
+
+Key learnings documented in checkpoint:
+1. Need visual test fixtures for renderers (not just crash tests)
+2. SVG containment should be structural (clipPath), not mathematical
+3. Physical component dimensions should come from datasheets, not guesswork
+4. wiring.yaml must reflect physical breadboard positions (both banks for DIPs)
+5. PlatformIO library names need a reference mapping document
