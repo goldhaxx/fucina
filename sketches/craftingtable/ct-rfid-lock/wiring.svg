@@ -460,54 +460,54 @@
 <line x1="64.0" y1="320.0" x2="166.0" y2="318.0" stroke="#2e7d32" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
 <text x="10.0" y="335.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">BL</text>
 <line x1="64.0" y1="332.0" x2="166.0" y2="332.0" stroke="#2e7d32" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
-<line x1="58.0" y1="94.0" x2="110.0" y2="94.0" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="85.0" width="54.0" height="18.0" rx="5" fill="#e53935" opacity="0.92"/>
-<text x="10.0" y="98.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 53</text>
-<line x1="58.0" y1="108.0" x2="110.0" y2="108.0" stroke="#ff6f00" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="99.0" width="54.0" height="18.0" rx="5" fill="#ff6f00" opacity="0.92"/>
-<text x="10.0" y="112.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 52</text>
-<line x1="58.0" y1="122.0" x2="110.0" y2="122.0" stroke="#43a047" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="113.0" width="54.0" height="18.0" rx="5" fill="#43a047" opacity="0.92"/>
-<text x="10.0" y="126.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 51</text>
-<line x1="58.0" y1="136.0" x2="110.0" y2="136.0" stroke="#1565c0" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="127.0" width="54.0" height="18.0" rx="5" fill="#1565c0" opacity="0.92"/>
-<text x="10.0" y="140.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 50</text>
-<line x1="58.0" y1="150.0" x2="110.0" y2="150.0" stroke="#7b1fa2" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="141.0" width="54.0" height="18.0" rx="5" fill="#7b1fa2" opacity="0.92"/>
-<text x="10.0" y="154.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 26</text>
-<line x1="44.0" y1="164.0" x2="110.0" y2="164.0" stroke="#ff6f00" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="155.0" width="40.0" height="18.0" rx="5" fill="#ff6f00" opacity="0.92"/>
-<text x="10.0" y="168.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">3V3</text>
-<line x1="44.0" y1="178.0" x2="110.0" y2="178.0" stroke="#333333" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="169.0" width="40.0" height="18.0" rx="5" fill="#333333" opacity="0.92"/>
-<text x="10.0" y="182.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">GND</text>
-<line x1="58.0" y1="220.0" x2="110.0" y2="220.0" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="211.0" width="54.0" height="18.0" rx="5" fill="#e53935" opacity="0.92"/>
-<text x="10.0" y="224.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 22</text>
-<line x1="58.0" y1="234.0" x2="110.0" y2="234.0" stroke="#ff6f00" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="225.0" width="54.0" height="18.0" rx="5" fill="#ff6f00" opacity="0.92"/>
-<text x="10.0" y="238.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 24</text>
-<line x1="58.0" y1="248.0" x2="110.0" y2="248.0" stroke="#43a047" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="239.0" width="54.0" height="18.0" rx="5" fill="#43a047" opacity="0.92"/>
-<text x="10.0" y="252.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 23</text>
-<line x1="58.0" y1="262.0" x2="110.0" y2="262.0" stroke="#1565c0" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="253.0" width="54.0" height="18.0" rx="5" fill="#1565c0" opacity="0.92"/>
-<text x="10.0" y="266.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 25</text>
-<line x1="58.0" y1="276.0" x2="110.0" y2="276.0" stroke="#7b1fa2" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="267.0" width="54.0" height="18.0" rx="5" fill="#7b1fa2" opacity="0.92"/>
-<text x="10.0" y="280.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 27</text>
-<line x1="58.0" y1="290.0" x2="110.0" y2="290.0" stroke="#795548" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="281.0" width="54.0" height="18.0" rx="5" fill="#795548" opacity="0.92"/>
-<text x="10.0" y="294.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 29</text>
-<line x1="44.0" y1="304.0" x2="110.0" y2="304.0" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="295.0" width="40.0" height="18.0" rx="5" fill="#e53935" opacity="0.92"/>
-<text x="10.0" y="308.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">5V</text>
-<line x1="44.0" y1="318.0" x2="110.0" y2="318.0" stroke="#333333" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="309.0" width="40.0" height="18.0" rx="5" fill="#333333" opacity="0.92"/>
-<text x="10.0" y="322.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">GND</text>
-<line x1="44.0" y1="332.0" x2="110.0" y2="332.0" stroke="#ff6f00" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="323.0" width="40.0" height="18.0" rx="5" fill="#ff6f00" opacity="0.92"/>
-<text x="10.0" y="336.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">3V3</text>
+<line x1="45.0" y1="94.0" x2="110.0" y2="94.0" stroke="#e53935" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="88.0" width="41.0" height="12.0" rx="4" fill="#e53935" opacity="0.92"/>
+<text x="8.0" y="97.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 53</text>
+<line x1="45.0" y1="108.0" x2="110.0" y2="108.0" stroke="#ff6f00" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="102.0" width="41.0" height="12.0" rx="4" fill="#ff6f00" opacity="0.92"/>
+<text x="8.0" y="111.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 52</text>
+<line x1="45.0" y1="122.0" x2="110.0" y2="122.0" stroke="#43a047" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="116.0" width="41.0" height="12.0" rx="4" fill="#43a047" opacity="0.92"/>
+<text x="8.0" y="125.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 51</text>
+<line x1="45.0" y1="136.0" x2="110.0" y2="136.0" stroke="#1565c0" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="130.0" width="41.0" height="12.0" rx="4" fill="#1565c0" opacity="0.92"/>
+<text x="8.0" y="139.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 50</text>
+<line x1="45.0" y1="150.0" x2="110.0" y2="150.0" stroke="#7b1fa2" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="144.0" width="41.0" height="12.0" rx="4" fill="#7b1fa2" opacity="0.92"/>
+<text x="8.0" y="153.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 26</text>
+<line x1="36.0" y1="164.0" x2="110.0" y2="164.0" stroke="#ff6f00" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="158.0" width="32.0" height="12.0" rx="4" fill="#ff6f00" opacity="0.92"/>
+<text x="8.0" y="167.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">3V3</text>
+<line x1="36.0" y1="178.0" x2="110.0" y2="178.0" stroke="#333333" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="172.0" width="32.0" height="12.0" rx="4" fill="#333333" opacity="0.92"/>
+<text x="8.0" y="181.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">GND</text>
+<line x1="45.0" y1="220.0" x2="110.0" y2="220.0" stroke="#e53935" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="214.0" width="41.0" height="12.0" rx="4" fill="#e53935" opacity="0.92"/>
+<text x="8.0" y="223.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 22</text>
+<line x1="45.0" y1="234.0" x2="110.0" y2="234.0" stroke="#ff6f00" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="228.0" width="41.0" height="12.0" rx="4" fill="#ff6f00" opacity="0.92"/>
+<text x="8.0" y="237.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 24</text>
+<line x1="45.0" y1="248.0" x2="110.0" y2="248.0" stroke="#43a047" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="242.0" width="41.0" height="12.0" rx="4" fill="#43a047" opacity="0.92"/>
+<text x="8.0" y="251.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 23</text>
+<line x1="45.0" y1="262.0" x2="110.0" y2="262.0" stroke="#1565c0" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="256.0" width="41.0" height="12.0" rx="4" fill="#1565c0" opacity="0.92"/>
+<text x="8.0" y="265.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 25</text>
+<line x1="45.0" y1="276.0" x2="110.0" y2="276.0" stroke="#7b1fa2" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="270.0" width="41.0" height="12.0" rx="4" fill="#7b1fa2" opacity="0.92"/>
+<text x="8.0" y="279.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 27</text>
+<line x1="45.0" y1="290.0" x2="110.0" y2="290.0" stroke="#795548" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="284.0" width="41.0" height="12.0" rx="4" fill="#795548" opacity="0.92"/>
+<text x="8.0" y="293.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 29</text>
+<line x1="36.0" y1="304.0" x2="110.0" y2="304.0" stroke="#e53935" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="298.0" width="32.0" height="12.0" rx="4" fill="#e53935" opacity="0.92"/>
+<text x="8.0" y="307.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">5V</text>
+<line x1="36.0" y1="318.0" x2="110.0" y2="318.0" stroke="#333333" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="312.0" width="32.0" height="12.0" rx="4" fill="#333333" opacity="0.92"/>
+<text x="8.0" y="321.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">GND</text>
+<line x1="36.0" y1="332.0" x2="110.0" y2="332.0" stroke="#ff6f00" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="326.0" width="32.0" height="12.0" rx="4" fill="#ff6f00" opacity="0.92"/>
+<text x="8.0" y="335.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">3V3</text>
 <text x="68.0" y="406.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">COMPONENTS</text>
 <circle cx="73.0" cy="417.0" r="4.0" fill="#e65100" stroke="#0002" stroke-width="0.5"/>
 <text x="82.0" y="420.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">RC522 RFID</text>

@@ -209,15 +209,15 @@
 <text x="166.0" y="111.0" font-size="6" fill="#cfc" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">LDR</text>
 <circle cx="166.0" cy="94.0" r="1.5" fill="#silver" stroke="#999" stroke-width="0.3"/>
 <circle cx="166.0" cy="122.0" r="1.5" fill="#silver" stroke="#999" stroke-width="0.3"/>
-<line x1="65.0" y1="122.0" x2="110.0" y2="122.0" stroke="#43a047" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="113.0" width="61.0" height="18.0" rx="5" fill="#43a047" opacity="0.92"/>
-<text x="10.0" y="126.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin _a0</text>
-<line x1="44.0" y1="94.0" x2="110.0" y2="94.0" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="85.0" width="40.0" height="18.0" rx="5" fill="#e53935" opacity="0.92"/>
-<text x="10.0" y="98.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">5V</text>
-<line x1="44.0" y1="150.0" x2="110.0" y2="150.0" stroke="#333333" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="141.0" width="40.0" height="18.0" rx="5" fill="#333333" opacity="0.92"/>
-<text x="10.0" y="154.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">GND</text>
+<line x1="50.5" y1="122.0" x2="110.0" y2="122.0" stroke="#43a047" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="116.0" width="46.5" height="12.0" rx="4" fill="#43a047" opacity="0.92"/>
+<text x="8.0" y="125.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin _a0</text>
+<line x1="36.0" y1="94.0" x2="110.0" y2="94.0" stroke="#e53935" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="88.0" width="32.0" height="12.0" rx="4" fill="#e53935" opacity="0.92"/>
+<text x="8.0" y="97.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">5V</text>
+<line x1="36.0" y1="150.0" x2="110.0" y2="150.0" stroke="#333333" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="144.0" width="32.0" height="12.0" rx="4" fill="#333333" opacity="0.92"/>
+<text x="8.0" y="153.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">GND</text>
 <text x="68.0" y="224.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">COMPONENTS</text>
 <circle cx="73.0" cy="235.0" r="4.0" fill="#c8aa78" stroke="#0002" stroke-width="0.5"/>
 <text x="82.0" y="238.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">10000Ω resistor  d12 → d14</text>
