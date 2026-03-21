@@ -19,6 +19,7 @@ pio test                    # Run unit tests (native/desktop)
 # Wiring diagrams
 python3 tools/breadboard.py sketches/NNN-name/wiring.yaml -o sketches/NNN-name/wiring.svg
 python3 tools/breadboard.py sketches/NNN-name/wiring.yaml --rows 1-63 -o full.svg  # show all rows
+python3 tools/test-renderers.py -o tools/test-renderers-output.svg  # visual regression test for renderers
 ```
 
 ## Architecture
@@ -33,7 +34,8 @@ sketches/                   # One directory per project/experiment
 ├── 002-servo-sweep/
 └── ...
 tools/
-└── breadboard.py           # SVG breadboard diagram generator
+├── breadboard.py           # SVG breadboard diagram generator
+└── test-renderers.py       # Visual test fixture for all component renderers
 lib/                        # Shared helper libraries across sketches
 docs/
 ├── inventory.md            # Full component list with specs and status

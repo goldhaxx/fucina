@@ -7,6 +7,7 @@
 3. Check `docs/wiring-patterns.md` for the circuit pattern this component uses. Add if missing.
 4. Check `docs/pinouts.md` for pin conflicts with other components in the same sketch.
 5. Check `docs/renderers.md` to know which `type:` value to use in `wiring.yaml`.
+6. For DIP packages or components with an asymmetric face, determine the correct `orientation` value (see Orientation Model in `docs/renderers.md`).
 
 ## When a New Component Enters the Project
 

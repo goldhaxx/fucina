@@ -172,3 +172,42 @@ If no renderer exists for a component, use one of these:
 3. **Omit from `components:`** — the wires still render, just no component body shown
 
 When a new renderer is needed, add it to `tools/breadboard.py`: define a `render_*` function and a `_legend_*` function, then add one entry to the `RENDERERS` dict. Update this document with the new type.
+
+---
+
+## Renderer Development Guide
+
+### Creating a new renderer
+
+1. **Look up the datasheet.** Get the component's physical dimensions: body size, pin pitch, pin count, and row spacing (for DIPs).
+2. **Choose a coordinate strategy:**
+   - **Position-derived** (most components): renderer computes geometry from pin hole positions. No orientation needed. Examples: resistor, LED, button, buzzer, sensor.
+   - **Orientation-based** (DIP packages, displays): renderer draws in natural (datasheet) coords centered at origin, wrapped in a `<g transform="translate(...) rotate(...)">`. Uses `parse_orientation(comp)` for the rotation angle. Example: seven_segment.
+3. **Write `render_*(board, comp) -> list[str]`:** Returns SVG element strings. Call `board.hole_xy()` for coordinates, `board.mark_occupied()` for each pin.
+4. **Write `_legend_*(comp) -> tuple[str, str]`:** Returns `(description, swatch_color)` for the diagram legend.
+5. **Add to `RENDERERS` dict:** One line maps the type string to the `(render_fn, legend_fn)` tuple.
+6. **Add to this document:** Document the type, its YAML keys, and what it draws.
+7. **Test:** Run `python3 tools/test-renderers.py` — add an instance of the new type to `build_test_circuit()`.
+
+### Sizing with rotation
+
+For orientation-based components, use `compute_rotated_fit()` to find the maximum scale factor:
+
+```python
+scale = compute_rotated_fit(
+    natural_w, natural_h,    # from datasheet
+    container_w, container_h, # available space on board
+    rotation_deg,             # from parse_orientation()
+    fill=0.90                 # leave 10% padding
+)
+digit_w = natural_w * scale
+digit_h = natural_h * scale
+```
+
+### Standard DIP widths
+
+| Row spacing | Columns | Use for |
+|------------|---------|---------|
+| 0.3" (7.62mm) | `e` to `f` | Standard ICs (spans center channel only) |
+| 0.5" (12.7mm) | `d` to `g` | Wider ICs |
+| 0.6" (15.24mm) | `e` to `i` | 7-segment displays, wide DIP packages |
