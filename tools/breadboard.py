@@ -842,6 +842,68 @@ def _pin_label(s: str) -> str:
     return s.upper()
 
 
+# ─── Renderer Registry ────────────────────────────────────────────
+
+def _legend_resistor(comp):
+    v = comp.get("value", "?")
+    return f"{v}\u03A9 resistor  {comp['from']} \u2192 {comp['to']}", "#c8aa78"
+
+
+def _legend_led(comp):
+    c = comp.get("color", "red")
+    return (f"{c} LED  {comp['anode']}(+) \u2192 {comp['cathode']}(\u2013)",
+            LED_PALETTE.get(c, LED_PALETTE["red"])[0])
+
+
+def _legend_button(comp):
+    return f"button  {comp['from']} \u2192 {comp['to']}", "#444"
+
+
+def _legend_buzzer(comp):
+    v = comp.get("variant", "active")
+    pos = comp.get("positive", comp.get("from", "?"))
+    neg = comp.get("negative", comp.get("to", "?"))
+    return (f"{v} buzzer  {pos}(+) \u2192 {neg}(\u2013)",
+            BUZZER_PALETTE.get(v, BUZZER_PALETTE["active"])[0])
+
+
+def _legend_sensor(comp):
+    label = comp.get("label", comp.get("name", "sensor"))
+    return f"{label} module", "#1a6b3c"
+
+
+def _legend_potentiometer(comp):
+    return (f"potentiometer  {comp.get('pin1', '?')} / "
+            f"{comp.get('pin2', '?')} / {comp.get('pin3', '?')}"), "#555"
+
+
+def _legend_rgb_led(comp):
+    return (f"RGB LED  R={comp.get('red', '?')} G={comp.get('green', '?')} "
+            f"B={comp.get('blue', '?')}"), "#e8e8e8"
+
+
+def _legend_seven_segment(comp):
+    d = comp.get("digits", 1)
+    return f"{d}-digit 7-segment display (row {comp.get('row_start', '?')})", "#1a1a1a"
+
+
+def _legend_module(comp):
+    return comp.get("name", "module"), comp.get("color", "#37474f")
+
+
+RENDERERS: dict[str, tuple] = {
+    "resistor":      (render_resistor,      _legend_resistor),
+    "led":           (render_led,           _legend_led),
+    "button":        (render_button,        _legend_button),
+    "buzzer":        (render_buzzer,        _legend_buzzer),
+    "sensor":        (render_sensor,        _legend_sensor),
+    "potentiometer": (render_potentiometer, _legend_potentiometer),
+    "rgb_led":       (render_rgb_led,       _legend_rgb_led),
+    "seven_segment": (render_seven_segment, _legend_seven_segment),
+    "module":        (render_module,        _legend_module),
+}
+
+
 def render_wire(board: Board, wire: dict) -> list[str]:
     color = wire.get("color", "#444")
     from_id, to_id = str(wire["from"]), str(wire["to"])
@@ -1042,44 +1104,11 @@ def render_legend(board: Board, circuit: dict) -> tuple[list[str], float]:
     y += 14
 
     for comp in circuit.get("components", []):
-        t = comp.get("type", "?")
-        if t == "resistor":
-            v = comp.get("value", "?")
-            desc = f"{v}\u03A9 resistor  {comp['from']} \u2192 {comp['to']}"
-            swatch = "#c8aa78"
-        elif t == "led":
-            c = comp.get("color", "red")
-            desc = f"{c} LED  {comp['anode']}(+) \u2192 {comp['cathode']}(\u2013)"
-            swatch = LED_PALETTE.get(c, LED_PALETTE["red"])[0]
-        elif t == "button":
-            desc = f"button  {comp['from']} \u2192 {comp['to']}"
-            swatch = "#444"
-        elif t == "buzzer":
-            v = comp.get("variant", "active")
-            pos = comp.get("positive", comp.get("from", "?"))
-            neg = comp.get("negative", comp.get("to", "?"))
-            desc = f"{v} buzzer  {pos}(+) \u2192 {neg}(\u2013)"
-            swatch = BUZZER_PALETTE.get(v, BUZZER_PALETTE["active"])[0]
-        elif t == "sensor":
-            label = comp.get("label", comp.get("name", "sensor"))
-            desc = f"{label} module"
-            swatch = "#1a6b3c"
-        elif t == "potentiometer":
-            desc = f"potentiometer  {comp.get('pin1', '?')} / {comp.get('pin2', '?')} / {comp.get('pin3', '?')}"
-            swatch = "#555"
-        elif t == "rgb_led":
-            desc = f"RGB LED  R={comp.get('red', '?')} G={comp.get('green', '?')} B={comp.get('blue', '?')}"
-            swatch = "#e8e8e8"
-        elif t == "seven_segment":
-            d = comp.get("digits", 1)
-            desc = f"{d}-digit 7-segment display (row {comp.get('row_start', '?')})"
-            swatch = "#1a1a1a"
-        elif t == "module":
-            desc = comp.get("name", "module")
-            swatch = comp.get("color", "#37474f")
+        entry = RENDERERS.get(comp.get("type", ""))
+        if entry:
+            desc, swatch = entry[1](comp)
         else:
-            desc = str(comp)
-            swatch = "#999"
+            desc, swatch = str(comp), "#999"
 
         els.append(_circle(x + 5, y - 3, 4, fill=swatch, stroke="#0002", stroke_width="0.5"))
         els.append(_text(x + 14, y, desc, font_size="9", fill="#444", font_family=FONT))
@@ -1147,25 +1176,9 @@ def generate(circuit: dict, rows: tuple[int, int] | None = None) -> str:
 
     # Components
     for comp in circuit.get("components", []):
-        t = comp.get("type", "")
-        if t == "resistor":
-            layers.extend(render_resistor(board, comp))
-        elif t == "led":
-            layers.extend(render_led(board, comp))
-        elif t == "button":
-            layers.extend(render_button(board, comp))
-        elif t == "buzzer":
-            layers.extend(render_buzzer(board, comp))
-        elif t == "sensor":
-            layers.extend(render_sensor(board, comp))
-        elif t == "potentiometer":
-            layers.extend(render_potentiometer(board, comp))
-        elif t == "rgb_led":
-            layers.extend(render_rgb_led(board, comp))
-        elif t == "seven_segment":
-            layers.extend(render_seven_segment(board, comp))
-        elif t == "module":
-            layers.extend(render_module(board, comp))
+        entry = RENDERERS.get(comp.get("type", ""))
+        if entry:
+            layers.extend(entry[0](board, comp))
 
     # Wires
     for wire in circuit.get("wires", []):
