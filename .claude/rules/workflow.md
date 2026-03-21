@@ -15,7 +15,7 @@
 
 ## Context Preservation
 
-- When I say "checkpoint," write to `docs/checkpoint.md`:
+- When I say "checkpoint," write to `docs/checkpoint.md` (see `docs/templates/checkpoint.md` for format):
   - What was accomplished this session
   - Current state of the implementation
   - Failing tests (if any) and why
@@ -34,6 +34,12 @@
 - Use sub-agents for: researching unfamiliar APIs, reading large files, exploring codebase structure.
 - Keep the main session for: implementation decisions, writing code, running tests.
 - When spawning a sub-agent, give it a specific question to answer, not an open-ended exploration.
+
+## Scaffold Sync
+
+- After adding a new rule, command, agent, or skill, consider whether it's project-specific or globally useful.
+- Run `/scaffold-status` periodically to check for scaffold updates.
+- Before starting a new project, pull latest scaffold changes into your current project first.
 
 ## Error Recovery
 
