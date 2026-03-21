@@ -64,6 +64,7 @@ components:
   - type: seven_segment      # DIP display spanning center channel
     digits: 1                # 1 or 4
     row_start: 10            # first breadboard row
+    orientation: left        # optional — up/right/down/left (default: left)
     pins: 10                 # total pin count (10 or 12)
 
   - type: module             # off-board component (labeled box at margin)

@@ -58,6 +58,40 @@ LABEL_COLOR = "#666"
 FONT = "system-ui, -apple-system, 'Segoe UI', sans-serif"
 FONT_MONO = "'SF Mono', 'Cascadia Code', 'Fira Code', monospace"
 
+# Orientation presets — maps named orientations to rotation degrees.
+# The orientation describes which direction the component's natural "top"
+# faces when placed on the breadboard.
+#   up    → 0°    (natural top faces toward row 1)
+#   right → 90°   (natural top faces toward column j)
+#   down  → 180°  (natural top faces toward row 63)
+#   left  → -90°  (natural top faces toward column a)
+ORIENTATION_PRESETS = {
+    "up": 0,
+    "right": 90,
+    "down": 180,
+    "left": -90,
+}
+
+# Default orientation per component type. Only types that use orientation
+# are listed here — most components are symmetric or position-derived.
+ORIENTATION_DEFAULTS = {
+    "seven_segment": "left",
+}
+
+
+def parse_orientation(comp: dict) -> int:
+    """Return the rotation angle (degrees) for a component's orientation.
+
+    Reads the optional 'orientation' key from the component dict.
+    Falls back to the type-specific default from ORIENTATION_DEFAULTS,
+    or 0 (upright / no rotation) if no default exists.
+    """
+    raw = comp.get("orientation", ORIENTATION_DEFAULTS.get(comp.get("type", ""), "up"))
+    if isinstance(raw, (int, float)):
+        return int(raw)
+    return ORIENTATION_PRESETS.get(str(raw).lower(), 0)
+
+
 # Resistor band colors
 BAND_DIGIT = {
     0: "#000", 1: "#8B4513", 2: "#FF0000", 3: "#FF8C00",

@@ -103,6 +103,7 @@ Draws a frosted dome with 3 colored channel dots (R/G/B) and a GND label on the 
   digits: 1            # 1 or 4
   row_start: 10        # first breadboard row
   pins: 10             # total pin count (10 for 1-digit, 12 for 4-digit)
+  orientation: left    # optional — default "left" (segment A faces column a)
 ```
 
 Draws a black DIP IC body spanning columns e–f (across the center channel) with a notch at the top, stylized "8" digit segments, and pin dots on both sides.
@@ -136,6 +137,32 @@ Draws a labeled box at the left edge of the board with pin labels and dashed lea
 
 ---
 
+## Orientation Model
+
+Some components (DIP packages, displays) have a natural "top" direction defined by their datasheet. The optional `orientation` key controls which direction that natural top faces when the component is placed on the breadboard.
+
+### Values
+
+| Value | Rotation | Natural top faces... |
+|-------|----------|---------------------|
+| `up` | 0° | Toward row 1 (default for most types) |
+| `right` | 90° | Toward column j |
+| `down` | 180° | Toward row 63 |
+| `left` | -90° | Toward column a |
+
+You can also pass a numeric angle (e.g., `orientation: -90`).
+
+### Defaults per type
+
+| Type | Default | Why |
+|------|---------|-----|
+| `seven_segment` | `left` | DIP display's segment A faces toward column a, matching physical placement |
+| All others | `up` (no rotation) | Symmetric or position-derived — orientation not needed |
+
+Most components (resistor, LED, button, buzzer, sensor, potentiometer, rgb_led) derive their visual layout from pin positions and don't use orientation. Only add `orientation` when the component has an asymmetric face that needs to point a specific direction.
+
+---
+
 ## Fallback Strategy
 
 If no renderer exists for a component, use one of these:
@@ -144,4 +171,4 @@ If no renderer exists for a component, use one of these:
 2. **`module`** — for anything that connects via jumper wires from off-board
 3. **Omit from `components:`** — the wires still render, just no component body shown
 
-When a new renderer is needed, add it to `tools/breadboard.py` following the pattern of existing `render_*` functions, update the dispatch in `generate()`, update the legend in `render_legend()`, and add the type to this document.
+When a new renderer is needed, add it to `tools/breadboard.py`: define a `render_*` function and a `_legend_*` function, then add one entry to the `RENDERERS` dict. Update this document with the new type.
