@@ -69,44 +69,52 @@ Draws a green PCB rectangle centered on the pin positions. Good fallback for any
 
 ---
 
-## Planned Renderers (not yet implemented)
-
-These types are defined in `docs/plan.md` and will be added:
-
 ### `potentiometer` — 3-pin rotary knob
 
 ```yaml
 - type: potentiometer
   pin1: a10            # wiper output
-  pin2: a11            # one end
-  pin3: a12            # other end
+  pin2: a11            # reference voltage
+  pin3: a12            # ground
 ```
+
+Draws a circular knob with a position indicator line and 3 lead wires.
+
+---
 
 ### `rgb_led` — 4-pin common-cathode RGB LED
 
 ```yaml
 - type: rgb_led
-  red: e10
-  common: e11          # longest pin, GND
-  green: e12
-  blue: e13
+  red: e10             # red pin
+  common: e11          # longest pin (GND)
+  green: e12           # green pin
+  blue: e14            # blue pin
 ```
+
+Draws a frosted dome with 3 colored channel dots (R/G/B) and a GND label on the common pin.
+
+---
 
 ### `seven_segment` — DIP display spanning center channel
 
 ```yaml
 - type: seven_segment
   digits: 1            # 1 or 4
-  row_start: 10        # first row (component spans both banks)
+  row_start: 10        # first breadboard row
   pins: 10             # total pin count (10 for 1-digit, 12 for 4-digit)
 ```
+
+Draws a black DIP IC body spanning columns e–f (across the center channel) with a notch at the top, stylized "8" digit segments, and pin dots on both sides.
+
+---
 
 ### `module` — Off-board component (labeled box at margin)
 
 ```yaml
 - type: module
   name: "HC-SR04"      # displayed on the label
-  color: "#1565c0"     # optional — box color
+  color: "#1565c0"     # box color
   pins:
     - hole: a10
       label: VCC
@@ -118,7 +126,13 @@ These types are defined in `docs/plan.md` and will be added:
       label: GND
 ```
 
-Draws a labeled box at the left edge of the board (like board-pin pills but styled as an external module). Wires from the box connect to breadboard holes.
+Draws a labeled box at the left edge of the board with pin labels and dashed lead lines to the breadboard holes. Use for any component that connects via jumper wires but doesn't physically sit on the breadboard (servos, sensor modules, RFID readers, LCDs, etc.).
+
+**Color conventions:**
+- `#1565c0` (blue) — sensors
+- `#6a1b9a` (purple) — input devices (keypad, encoder, joystick)
+- `#2e7d32` (green) — output devices (servo, stepper, LCD)
+- `#e65100` (orange) — communication modules (RFID, RTC, Bluetooth)
 
 ---
 

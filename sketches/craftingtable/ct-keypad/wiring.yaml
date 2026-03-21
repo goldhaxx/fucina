@@ -1,7 +1,27 @@
 name: "4x4 Keypad — Matrix Scanning"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "4x4 Keypad"
+    color: "#6a1b9a"
+    pins:
+      - hole: a5
+        label: R1
+      - hole: a6
+        label: R2
+      - hole: a7
+        label: R3
+      - hole: a8
+        label: R4
+      - hole: a9
+        label: C1
+      - hole: a10
+        label: C2
+      - hole: a11
+        label: C3
+      - hole: a12
+        label: C4
 
 wires:
   - from: a5

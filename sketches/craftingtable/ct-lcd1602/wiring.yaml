@@ -1,7 +1,29 @@
 name: "LCD1602 — Character Display"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "LCD1602"
+    color: "#2e7d32"
+    pins:
+      - hole: a10
+        label: RS
+      - hole: a11
+        label: E
+      - hole: a12
+        label: D4
+      - hole: a13
+        label: D5
+      - hole: a14
+        label: D6
+      - hole: a15
+        label: D7
+      - hole: a16
+        label: VSS
+      - hole: a17
+        label: VDD
+      - hole: a18
+        label: A
 
 wires:
   - from: a10

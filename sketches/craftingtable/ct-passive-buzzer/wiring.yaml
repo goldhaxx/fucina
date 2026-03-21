@@ -1,7 +1,11 @@
 name: "Passive Buzzer — Tone Generator"
 board: hero-xl
 
-components: []
+components:
+  - type: buzzer
+    variant: passive
+    positive: e10
+    negative: e11
 
 wires:
   - from: a10

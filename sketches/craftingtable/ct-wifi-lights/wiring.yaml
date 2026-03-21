@@ -1,7 +1,11 @@
 name: "WiFi Lights — ESP32 Access Point"
 board: esp32
 
-components: []
+components:
+  - type: led
+    color: green
+    anode: e10
+    cathode: e11
 
 wires:
   - from: a10

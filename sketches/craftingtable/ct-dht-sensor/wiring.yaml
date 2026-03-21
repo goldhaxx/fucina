@@ -2,6 +2,17 @@ name: "DHT11 — Temperature & Humidity"
 board: hero-xl
 
 components:
+  - type: module
+    name: "DHT11"
+    color: "#1565c0"
+    pins:
+      - hole: a10
+        label: DATA
+      - hole: a12
+        label: VCC
+      - hole: a14
+        label: GND
+
   - type: resistor
     value: 10000
     from: d10

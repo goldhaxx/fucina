@@ -1,7 +1,27 @@
 name: "Keypad Door Lock — Secret Code Entry"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "4x4 Keypad"
+    color: "#6a1b9a"
+    pins:
+      - hole: e5
+        label: R1
+      - hole: e6
+        label: R2
+      - hole: e7
+        label: R3
+      - hole: e8
+        label: R4
+      - hole: e9
+        label: C1
+      - hole: e10
+        label: C2
+      - hole: e11
+        label: C3
+      - hole: e12
+        label: C4
 
 wires:
   - from: a5

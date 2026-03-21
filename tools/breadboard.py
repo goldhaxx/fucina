@@ -177,11 +177,26 @@ def detect_row_range(circuit: dict, padding: int = 3) -> tuple[int, int]:
 
     for comp in circuit.get("components", []):
         for key in ("from", "to", "anode", "cathode", "positive", "negative",
-                    "pin1", "pin2", "pin3"):
+                    "pin1", "pin2", "pin3", "red", "common", "green", "blue"):
             if key in comp:
                 r = _extract_row(str(comp[key]))
                 if r:
                     rows_used.add(r)
+        # seven_segment uses row_start + pins to span multiple rows
+        if comp.get("type") == "seven_segment":
+            rs = int(comp.get("row_start", 0))
+            np = int(comp.get("pins", 10)) // 2
+            if rs:
+                for i in range(np):
+                    rows_used.add(rs + i)
+        # module uses pins list
+        pins_val = comp.get("pins", [])
+        if isinstance(pins_val, list):
+            for pin in pins_val:
+                if isinstance(pin, dict) and "hole" in pin:
+                    r = _extract_row(str(pin["hole"]))
+                    if r:
+                        rows_used.add(r)
 
     for wire in circuit.get("wires", []):
         for key in ("from", "to"):
@@ -525,6 +540,214 @@ def render_sensor(board: Board, comp: dict) -> list[str]:
     return els
 
 
+def render_potentiometer(board: Board, comp: dict) -> list[str]:
+    """Render a potentiometer as a circular knob with 3 pins."""
+    pins = []
+    for key in ("pin1", "pin2", "pin3"):
+        if key in comp:
+            pins.append(str(comp[key]))
+    if len(pins) < 3:
+        return []
+
+    coords = [board.hole_xy(p) for p in pins]
+    for p in pins:
+        board.mark_occupied(p)
+
+    # Center on the middle pin
+    cx, cy = coords[1]
+    radius = 10
+
+    els = []
+    # Body (dark circle)
+    els.append(_circle(cx, cy, radius, fill="#555", stroke="#333", stroke_width="1"))
+    # Knob indicator (white line from center to edge)
+    els.append(_line(cx, cy, cx, cy - radius + 2,
+                     stroke="#ccc", stroke_width="1.5", stroke_linecap="round"))
+    # Knob center dot
+    els.append(_circle(cx, cy, 2.5, fill="#888", stroke="#666", stroke_width="0.5"))
+    # Lead wires to pins
+    for x, y in coords:
+        els.append(_line(x, y, cx, cy + radius,
+                         stroke="#999", stroke_width="1.2"))
+
+    return els
+
+
+def render_rgb_led(board: Board, comp: dict) -> list[str]:
+    """Render a 4-pin common-cathode RGB LED."""
+    pin_keys = ("red", "common", "green", "blue")
+    pins = {}
+    for key in pin_keys:
+        if key in comp:
+            pins[key] = str(comp[key])
+    if len(pins) < 4:
+        return []
+
+    coords = {k: board.hole_xy(v) for k, v in pins.items()}
+    for v in pins.values():
+        board.mark_occupied(v)
+
+    # Center on the common pin
+    cx, cy = coords["common"]
+
+    els = []
+    # Outer glow
+    els.append(_circle(cx, cy, 9, fill="#fff", opacity="0.15"))
+    # Main body (frosted clear)
+    els.append(_circle(cx, cy, 6.5, fill="#e8e8e8", stroke="#999", stroke_width="0.6"))
+    # Color channel dots arranged around the lens
+    color_map = {"red": "#ff1744", "green": "#00c853", "blue": "#2979ff"}
+    offsets = {"red": (-3.5, -2), "green": (0, 3.5), "blue": (3.5, -2)}
+    for channel, color in color_map.items():
+        ox, oy = offsets[channel]
+        els.append(_circle(cx + ox, cy + oy, 2, fill=color, opacity="0.8"))
+
+    # Cathode bar (on the common pin side)
+    rx, ry = coords["common"]
+    els.append(_text(rx - 3, ry + 12, "GND", font_size="5", fill="#999",
+                     font_family=FONT_MONO))
+
+    # Lead wires
+    for key, (x, y) in coords.items():
+        els.append(_line(x, y, cx, cy, stroke="#999", stroke_width="1"))
+
+    return els
+
+
+def render_seven_segment(board: Board, comp: dict) -> list[str]:
+    """Render a 7-segment display as a DIP package spanning the center channel."""
+    digits = comp.get("digits", 1)
+    row_start = int(comp.get("row_start", 10))
+    num_pins = int(comp.get("pins", 10 if digits == 1 else 12))
+    pins_per_side = num_pins // 2
+
+    # The DIP spans from column 'e' (left bank) to column 'f' (right bank)
+    # Pins go down the left side and up the right side
+    left_pins = []
+    right_pins = []
+    for i in range(pins_per_side):
+        row = row_start + i
+        left_pins.append(f"e{row}")
+        right_pins.append(f"f{row}")
+    all_pins = left_pins + right_pins
+
+    for p in all_pins:
+        board.mark_occupied(p)
+
+    # Get coordinates for the body rectangle
+    x_left, y_top = board.hole_xy(left_pins[0])
+    x_right, _ = board.hole_xy(right_pins[0])
+    _, y_bot = board.hole_xy(left_pins[-1])
+
+    pad_x, pad_y = 6, 4
+    body_x = x_left - pad_x
+    body_y = y_top - pad_y
+    body_w = (x_right - x_left) + pad_x * 2
+    body_h = (y_bot - y_top) + pad_y * 2
+
+    els = []
+    # IC body
+    els.append(_rect(body_x, body_y, body_w, body_h, rx="2",
+                     fill="#1a1a1a", stroke="#444", stroke_width="0.8"))
+    # Notch at top
+    notch_cx = body_x + body_w / 2
+    els.append(f'<path d="M {notch_cx - 4:.1f} {body_y:.1f} '
+               f'a 4 4 0 0 1 8 0" fill="#333" stroke="none"/>')
+
+    # Draw stylized digit(s)
+    seg_color = "#600"
+    digit_w = 8
+    digit_h = 14
+    total_w = digits * (digit_w + 3) - 3
+    start_x = body_x + (body_w - total_w) / 2
+    digit_cy = body_y + body_h / 2
+
+    for d in range(digits):
+        dx = start_x + d * (digit_w + 3)
+        dy = digit_cy - digit_h / 2
+        # Simplified "8" shape — top, middle, bottom horizontals + 4 verticals
+        segs = [
+            (dx + 1, dy, dx + digit_w - 1, dy),                        # top
+            (dx + 1, dy + digit_h / 2, dx + digit_w - 1, dy + digit_h / 2),  # mid
+            (dx + 1, dy + digit_h, dx + digit_w - 1, dy + digit_h),    # bot
+            (dx, dy + 1, dx, dy + digit_h / 2 - 1),                    # top-left
+            (dx + digit_w, dy + 1, dx + digit_w, dy + digit_h / 2 - 1),  # top-right
+            (dx, dy + digit_h / 2 + 1, dx, dy + digit_h - 1),          # bot-left
+            (dx + digit_w, dy + digit_h / 2 + 1, dx + digit_w, dy + digit_h - 1),  # bot-right
+        ]
+        for sx1, sy1, sx2, sy2 in segs:
+            els.append(_line(sx1, sy1, sx2, sy2,
+                             stroke=seg_color, stroke_width="1.5", stroke_linecap="round"))
+
+    # Pin dots on both sides
+    for p in left_pins:
+        x, y = board.hole_xy(p)
+        els.append(_circle(x, y, 1.5, fill="#999", stroke="#777", stroke_width="0.3"))
+    for p in right_pins:
+        x, y = board.hole_xy(p)
+        els.append(_circle(x, y, 1.5, fill="#999", stroke="#777", stroke_width="0.3"))
+
+    return els
+
+
+def render_module(board: Board, comp: dict) -> list[str]:
+    """Render an off-board module as a labeled box at the left margin.
+
+    The box is positioned at the average y-coordinate of its connected holes,
+    with lead lines going to each hole.
+    """
+    name = comp.get("name", "Module")
+    color = comp.get("color", "#37474f")
+    pins_list = comp.get("pins", [])
+
+    if not pins_list:
+        return []
+
+    # Collect hole coordinates
+    hole_coords = []
+    for pin in pins_list:
+        hole = str(pin.get("hole", ""))
+        if hole and not _is_board_pin(hole):
+            board.mark_occupied(hole)
+            hole_coords.append((board.hole_xy(hole), pin.get("label", "")))
+
+    if not hole_coords:
+        return []
+
+    # Position the module box at the left margin
+    avg_y = sum(c[0][1] for c in hole_coords) / len(hole_coords)
+    box_h = max(len(hole_coords) * 12 + 8, 24)
+    box_w = max(len(name) * 6 + 16, 60)
+    box_x = 4
+    box_y = avg_y - box_h / 2
+    box_right = box_x + box_w
+
+    els = []
+
+    # Module box
+    els.append(_rect(box_x, box_y, box_w, box_h, rx="4",
+                     fill=color, stroke="#263238", stroke_width="0.8", opacity="0.92"))
+
+    # Module name
+    els.append(_text(box_x + box_w / 2, box_y + 11, name,
+                     font_size="8", fill="white", font_weight="600",
+                     text_anchor="middle", font_family=FONT))
+
+    # Pin labels and lead lines
+    for i, ((hx, hy), label) in enumerate(hole_coords):
+        pin_y = box_y + 18 + i * 12
+        if label:
+            els.append(_text(box_x + 6, pin_y + 3, label,
+                             font_size="6", fill="#ccc", font_family=FONT_MONO))
+        # Lead line from box edge to hole
+        els.append(_line(box_right, pin_y, hx, hy,
+                         stroke=color, stroke_width="1.5",
+                         stroke_linecap="round", opacity="0.5",
+                         stroke_dasharray="3,3"))
+
+    return els
+
+
 def _is_board_pin(s: str) -> bool:
     s = s.lower().strip()
     return s.startswith("pin") or s in ("gnd", "5v", "3v3", "vin")
@@ -737,6 +960,19 @@ def render_legend(board: Board, circuit: dict) -> tuple[list[str], float]:
             label = comp.get("label", comp.get("name", "sensor"))
             desc = f"{label} module"
             swatch = "#1a6b3c"
+        elif t == "potentiometer":
+            desc = f"potentiometer  {comp.get('pin1', '?')} / {comp.get('pin2', '?')} / {comp.get('pin3', '?')}"
+            swatch = "#555"
+        elif t == "rgb_led":
+            desc = f"RGB LED  R={comp.get('red', '?')} G={comp.get('green', '?')} B={comp.get('blue', '?')}"
+            swatch = "#e8e8e8"
+        elif t == "seven_segment":
+            d = comp.get("digits", 1)
+            desc = f"{d}-digit 7-segment display (row {comp.get('row_start', '?')})"
+            swatch = "#1a1a1a"
+        elif t == "module":
+            desc = comp.get("name", "module")
+            swatch = comp.get("color", "#37474f")
         else:
             desc = str(comp)
             swatch = "#999"
@@ -781,9 +1017,16 @@ def generate(circuit: dict, rows: tuple[int, int] | None = None) -> str:
     # Mark occupied holes
     for comp in circuit.get("components", []):
         for key in ("from", "to", "anode", "cathode", "positive", "negative",
-                    "pin1", "pin2", "pin3"):
+                    "pin1", "pin2", "pin3", "red", "common", "green", "blue"):
             if key in comp and not _is_board_pin(str(comp[key])):
                 board.mark_occupied(str(comp[key]))
+        pins_val = comp.get("pins", [])
+        if isinstance(pins_val, list):
+            for pin in pins_val:
+                if isinstance(pin, dict) and "hole" in pin:
+                    h = str(pin["hole"])
+                    if not _is_board_pin(h):
+                        board.mark_occupied(h)
     for wire in circuit.get("wires", []):
         for key in ("from", "to"):
             if not _is_board_pin(str(wire[key])):
@@ -811,6 +1054,14 @@ def generate(circuit: dict, rows: tuple[int, int] | None = None) -> str:
             layers.extend(render_buzzer(board, comp))
         elif t == "sensor":
             layers.extend(render_sensor(board, comp))
+        elif t == "potentiometer":
+            layers.extend(render_potentiometer(board, comp))
+        elif t == "rgb_led":
+            layers.extend(render_rgb_led(board, comp))
+        elif t == "seven_segment":
+            layers.extend(render_seven_segment(board, comp))
+        elif t == "module":
+            layers.extend(render_module(board, comp))
 
     # Wires
     for wire in circuit.get("wires", []):

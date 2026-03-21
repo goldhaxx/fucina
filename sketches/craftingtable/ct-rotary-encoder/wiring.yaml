@@ -1,7 +1,21 @@
 name: "Rotary Encoder — Rotation + Click"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "KY-040 Encoder"
+    color: "#6a1b9a"
+    pins:
+      - hole: a10
+        label: CLK
+      - hole: a11
+        label: DT
+      - hole: a12
+        label: SW
+      - hole: a13
+        label: VCC
+      - hole: a14
+        label: GND
 
 wires:
   - from: a10

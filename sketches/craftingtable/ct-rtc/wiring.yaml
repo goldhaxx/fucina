@@ -1,7 +1,19 @@
 name: "Real-Time Clock — DS3231"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "DS3231 RTC"
+    color: "#e65100"
+    pins:
+      - hole: a10
+        label: VCC
+      - hole: a11
+        label: GND
+      - hole: a12
+        label: SDA
+      - hole: a13
+        label: SCL
 
 wires:
   - from: a10

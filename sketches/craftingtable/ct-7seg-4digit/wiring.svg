@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 312 560"
-     width="312" height="560"
+     viewBox="0 0 312 575"
+     width="312" height="575"
      style="background:#fff">
 <rect x="70.0" y="42.0" width="224.0" height="276.0" rx="8" fill="#00000015"/>
 <rect x="68.0" y="40.0" width="224.0" height="276.0" rx="8" fill="#e8dcc8" stroke="#b8a88a" stroke-width="1.2"/>
@@ -336,6 +336,48 @@
 <text x="260.0" y="293.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">19</text>
 <text x="100.0" y="307.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">20</text>
 <text x="260.0" y="307.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">20</text>
+<rect x="160.0" y="90.0" width="40.0" height="78.0" rx="2" fill="#1a1a1a" stroke="#444" stroke-width="0.8"/>
+<path d="M 176.0 90.0 a 4 4 0 0 1 8 0" fill="#333" stroke="none"/>
+<line x1="160.5" y1="122.0" x2="166.5" y2="122.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="160.5" y1="129.0" x2="166.5" y2="129.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="160.5" y1="136.0" x2="166.5" y2="136.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="159.5" y1="123.0" x2="159.5" y2="128.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="167.5" y1="123.0" x2="167.5" y2="128.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="159.5" y1="130.0" x2="159.5" y2="135.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="167.5" y1="130.0" x2="167.5" y2="135.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="171.5" y1="122.0" x2="177.5" y2="122.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="171.5" y1="129.0" x2="177.5" y2="129.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="171.5" y1="136.0" x2="177.5" y2="136.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="170.5" y1="123.0" x2="170.5" y2="128.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="178.5" y1="123.0" x2="178.5" y2="128.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="170.5" y1="130.0" x2="170.5" y2="135.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="178.5" y1="130.0" x2="178.5" y2="135.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="182.5" y1="122.0" x2="188.5" y2="122.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="182.5" y1="129.0" x2="188.5" y2="129.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="182.5" y1="136.0" x2="188.5" y2="136.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="181.5" y1="123.0" x2="181.5" y2="128.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="189.5" y1="123.0" x2="189.5" y2="128.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="181.5" y1="130.0" x2="181.5" y2="135.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="189.5" y1="130.0" x2="189.5" y2="135.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="193.5" y1="122.0" x2="199.5" y2="122.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="193.5" y1="129.0" x2="199.5" y2="129.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="193.5" y1="136.0" x2="199.5" y2="136.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="192.5" y1="123.0" x2="192.5" y2="128.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="200.5" y1="123.0" x2="200.5" y2="128.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="192.5" y1="130.0" x2="192.5" y2="135.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<line x1="200.5" y1="130.0" x2="200.5" y2="135.0" stroke="#600" stroke-width="1.5" stroke-linecap="round"/>
+<circle cx="166.0" cy="94.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
+<circle cx="166.0" cy="108.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
+<circle cx="166.0" cy="122.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
+<circle cx="166.0" cy="136.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
+<circle cx="166.0" cy="150.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
+<circle cx="166.0" cy="164.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
+<circle cx="194.0" cy="94.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
+<circle cx="194.0" cy="108.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
+<circle cx="194.0" cy="122.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
+<circle cx="194.0" cy="136.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
+<circle cx="194.0" cy="150.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
+<circle cx="194.0" cy="164.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
 <line x1="51.0" y1="94.0" x2="110.0" y2="94.0" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
 <rect x="4.0" y="85.0" width="47.0" height="18.0" rx="5" fill="#e53935" opacity="0.92"/>
 <text x="10.0" y="98.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 2</text>
@@ -373,31 +415,33 @@
 <rect x="4.0" y="253.0" width="54.0" height="18.0" rx="5" fill="#1565c0" opacity="0.92"/>
 <text x="10.0" y="266.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 13</text>
 <text x="68.0" y="336.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">COMPONENTS</text>
-<text x="68.0" y="356.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">WIRES</text>
-<line x1="69.0" y1="367.0" x2="78.0" y2="367.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="370.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">digit 1 — HERO XL Pin 2</text>
-<line x1="69.0" y1="382.0" x2="78.0" y2="382.0" stroke="#ff6f00" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="385.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">digit 2 — HERO XL Pin 3</text>
-<line x1="69.0" y1="397.0" x2="78.0" y2="397.0" stroke="#fdd835" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="400.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">digit 3 — HERO XL Pin 4</text>
-<line x1="69.0" y1="412.0" x2="78.0" y2="412.0" stroke="#43a047" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="415.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">digit 4 — HERO XL Pin 5</text>
-<line x1="69.0" y1="427.0" x2="78.0" y2="427.0" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="430.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg A — HERO XL Pin 6</text>
-<line x1="69.0" y1="442.0" x2="78.0" y2="442.0" stroke="#7b1fa2" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="445.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg B — HERO XL Pin 7</text>
-<line x1="69.0" y1="457.0" x2="78.0" y2="457.0" stroke="#795548" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="460.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg C — HERO XL Pin 8</text>
-<line x1="69.0" y1="472.0" x2="78.0" y2="472.0" stroke="#607d8b" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="475.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg D — HERO XL Pin 9</text>
-<line x1="69.0" y1="487.0" x2="78.0" y2="487.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="490.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg E — HERO XL Pin 10</text>
-<line x1="69.0" y1="502.0" x2="78.0" y2="502.0" stroke="#ff6f00" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="505.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg F — HERO XL Pin 11</text>
-<line x1="69.0" y1="517.0" x2="78.0" y2="517.0" stroke="#43a047" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="520.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg G — HERO XL Pin 12</text>
-<line x1="69.0" y1="532.0" x2="78.0" y2="532.0" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="535.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg DP — HERO XL Pin 13</text>
+<circle cx="73.0" cy="347.0" r="4.0" fill="#1a1a1a" stroke="#0002" stroke-width="0.5"/>
+<text x="82.0" y="350.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">4-digit 7-segment display (row 5)</text>
+<text x="68.0" y="371.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">WIRES</text>
+<line x1="69.0" y1="382.0" x2="78.0" y2="382.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="385.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">digit 1 — HERO XL Pin 2</text>
+<line x1="69.0" y1="397.0" x2="78.0" y2="397.0" stroke="#ff6f00" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="400.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">digit 2 — HERO XL Pin 3</text>
+<line x1="69.0" y1="412.0" x2="78.0" y2="412.0" stroke="#fdd835" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="415.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">digit 3 — HERO XL Pin 4</text>
+<line x1="69.0" y1="427.0" x2="78.0" y2="427.0" stroke="#43a047" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="430.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">digit 4 — HERO XL Pin 5</text>
+<line x1="69.0" y1="442.0" x2="78.0" y2="442.0" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="445.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg A — HERO XL Pin 6</text>
+<line x1="69.0" y1="457.0" x2="78.0" y2="457.0" stroke="#7b1fa2" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="460.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg B — HERO XL Pin 7</text>
+<line x1="69.0" y1="472.0" x2="78.0" y2="472.0" stroke="#795548" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="475.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg C — HERO XL Pin 8</text>
+<line x1="69.0" y1="487.0" x2="78.0" y2="487.0" stroke="#607d8b" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="490.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg D — HERO XL Pin 9</text>
+<line x1="69.0" y1="502.0" x2="78.0" y2="502.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="505.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg E — HERO XL Pin 10</text>
+<line x1="69.0" y1="517.0" x2="78.0" y2="517.0" stroke="#ff6f00" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="520.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg F — HERO XL Pin 11</text>
+<line x1="69.0" y1="532.0" x2="78.0" y2="532.0" stroke="#43a047" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="535.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg G — HERO XL Pin 12</text>
+<line x1="69.0" y1="547.0" x2="78.0" y2="547.0" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="550.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">seg DP — HERO XL Pin 13</text>
 <text x="180.0" y="18.0" font-size="13" fill="#222" font-weight="700" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">7-Segment 4-Digit — Stopwatch</text>
 <text x="180.0" y="30.0" font-size="9" fill="#999" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">rows 2–20 of 63</text>
 </svg>

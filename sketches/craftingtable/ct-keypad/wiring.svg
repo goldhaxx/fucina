@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 312 430"
-     width="312" height="430"
+     viewBox="0 0 312 445"
+     width="312" height="445"
      style="background:#fff">
 <rect x="70.0" y="42.0" width="224.0" height="206.0" rx="8" fill="#00000015"/>
 <rect x="68.0" y="40.0" width="224.0" height="206.0" rx="8" fill="#e8dcc8" stroke="#b8a88a" stroke-width="1.2"/>
@@ -252,6 +252,24 @@
 <text x="260.0" y="223.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">14</text>
 <text x="100.0" y="237.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">15</text>
 <text x="260.0" y="237.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">15</text>
+<rect x="4.0" y="91.0" width="76.0" height="104.0" rx="4" fill="#6a1b9a" stroke="#263238" stroke-width="0.8" opacity="0.92"/>
+<text x="42.0" y="102.0" font-size="8" fill="white" font-weight="600" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">4x4 Keypad</text>
+<text x="10.0" y="112.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">R1</text>
+<line x1="80.0" y1="109.0" x2="110.0" y2="94.0" stroke="#6a1b9a" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="124.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">R2</text>
+<line x1="80.0" y1="121.0" x2="110.0" y2="108.0" stroke="#6a1b9a" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="136.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">R3</text>
+<line x1="80.0" y1="133.0" x2="110.0" y2="122.0" stroke="#6a1b9a" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="148.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">R4</text>
+<line x1="80.0" y1="145.0" x2="110.0" y2="136.0" stroke="#6a1b9a" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="160.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">C1</text>
+<line x1="80.0" y1="157.0" x2="110.0" y2="150.0" stroke="#6a1b9a" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="172.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">C2</text>
+<line x1="80.0" y1="169.0" x2="110.0" y2="164.0" stroke="#6a1b9a" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="184.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">C3</text>
+<line x1="80.0" y1="181.0" x2="110.0" y2="178.0" stroke="#6a1b9a" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="196.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">C4</text>
+<line x1="80.0" y1="193.0" x2="110.0" y2="192.0" stroke="#6a1b9a" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
 <line x1="51.0" y1="94.0" x2="110.0" y2="94.0" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
 <rect x="4.0" y="85.0" width="47.0" height="18.0" rx="5" fill="#e53935" opacity="0.92"/>
 <text x="10.0" y="98.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 9</text>
@@ -277,23 +295,25 @@
 <rect x="4.0" y="183.0" width="47.0" height="18.0" rx="5" fill="#607d8b" opacity="0.92"/>
 <text x="10.0" y="196.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 2</text>
 <text x="68.0" y="266.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">COMPONENTS</text>
-<text x="68.0" y="286.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">WIRES</text>
-<line x1="69.0" y1="297.0" x2="78.0" y2="297.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="300.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">row 1 — HERO XL Pin 9</text>
-<line x1="69.0" y1="312.0" x2="78.0" y2="312.0" stroke="#ff6f00" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="315.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">row 2 — HERO XL Pin 8</text>
-<line x1="69.0" y1="327.0" x2="78.0" y2="327.0" stroke="#fdd835" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="330.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">row 3 — HERO XL Pin 7</text>
-<line x1="69.0" y1="342.0" x2="78.0" y2="342.0" stroke="#43a047" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="345.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">row 4 — HERO XL Pin 6</text>
-<line x1="69.0" y1="357.0" x2="78.0" y2="357.0" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="360.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">col 1 — HERO XL Pin 5</text>
-<line x1="69.0" y1="372.0" x2="78.0" y2="372.0" stroke="#7b1fa2" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="375.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">col 2 — HERO XL Pin 4</text>
-<line x1="69.0" y1="387.0" x2="78.0" y2="387.0" stroke="#795548" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="390.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">col 3 — HERO XL Pin 3</text>
-<line x1="69.0" y1="402.0" x2="78.0" y2="402.0" stroke="#607d8b" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="405.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">col 4 — HERO XL Pin 2</text>
+<circle cx="73.0" cy="277.0" r="4.0" fill="#6a1b9a" stroke="#0002" stroke-width="0.5"/>
+<text x="82.0" y="280.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">4x4 Keypad</text>
+<text x="68.0" y="301.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">WIRES</text>
+<line x1="69.0" y1="312.0" x2="78.0" y2="312.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="315.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">row 1 — HERO XL Pin 9</text>
+<line x1="69.0" y1="327.0" x2="78.0" y2="327.0" stroke="#ff6f00" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="330.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">row 2 — HERO XL Pin 8</text>
+<line x1="69.0" y1="342.0" x2="78.0" y2="342.0" stroke="#fdd835" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="345.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">row 3 — HERO XL Pin 7</text>
+<line x1="69.0" y1="357.0" x2="78.0" y2="357.0" stroke="#43a047" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="360.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">row 4 — HERO XL Pin 6</text>
+<line x1="69.0" y1="372.0" x2="78.0" y2="372.0" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="375.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">col 1 — HERO XL Pin 5</text>
+<line x1="69.0" y1="387.0" x2="78.0" y2="387.0" stroke="#7b1fa2" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="390.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">col 2 — HERO XL Pin 4</text>
+<line x1="69.0" y1="402.0" x2="78.0" y2="402.0" stroke="#795548" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="405.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">col 3 — HERO XL Pin 3</text>
+<line x1="69.0" y1="417.0" x2="78.0" y2="417.0" stroke="#607d8b" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="420.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">col 4 — HERO XL Pin 2</text>
 <text x="180.0" y="18.0" font-size="13" fill="#222" font-weight="700" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">4x4 Keypad — Matrix Scanning</text>
 <text x="180.0" y="30.0" font-size="9" fill="#999" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">rows 2–15 of 63</text>
 </svg>

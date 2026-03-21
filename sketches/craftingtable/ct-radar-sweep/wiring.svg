@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 312 343"
-     width="312" height="343"
+     viewBox="0 0 312 373"
+     width="312" height="373"
      style="background:#fff">
 <rect x="70.0" y="42.0" width="224.0" height="164.0" rx="8" fill="#00000015"/>
 <rect x="68.0" y="40.0" width="224.0" height="164.0" rx="8" fill="#e8dcc8" stroke="#b8a88a" stroke-width="1.2"/>
@@ -67,11 +67,11 @@
 <circle cx="166.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
 <circle cx="166.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
 <circle cx="166.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="166.0" cy="94.0" r="3.0" fill="#666"/>
+<circle cx="166.0" cy="108.0" r="3.0" fill="#666"/>
+<circle cx="166.0" cy="122.0" r="3.0" fill="#666"/>
+<circle cx="166.0" cy="136.0" r="3.0" fill="#666"/>
+<circle cx="166.0" cy="150.0" r="3.0" fill="#666"/>
 <circle cx="166.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
 <circle cx="166.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
 <circle cx="166.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
@@ -202,6 +202,24 @@
 <text x="260.0" y="181.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">16</text>
 <text x="100.0" y="195.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">17</text>
 <text x="260.0" y="195.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">17</text>
+<rect x="4.0" y="94.0" width="60.0" height="56.0" rx="4" fill="#1565c0" stroke="#263238" stroke-width="0.8" opacity="0.92"/>
+<text x="34.0" y="105.0" font-size="8" fill="white" font-weight="600" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">HC-SR04</text>
+<text x="10.0" y="115.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">TRIG</text>
+<line x1="64.0" y1="112.0" x2="166.0" y2="94.0" stroke="#1565c0" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="127.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">ECHO</text>
+<line x1="64.0" y1="124.0" x2="166.0" y2="108.0" stroke="#1565c0" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="139.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">VCC</text>
+<line x1="64.0" y1="136.0" x2="166.0" y2="136.0" stroke="#1565c0" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="151.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">GND</text>
+<line x1="64.0" y1="148.0" x2="166.0" y2="150.0" stroke="#1565c0" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<rect x="4.0" y="114.0" width="76.0" height="44.0" rx="4" fill="#2e7d32" stroke="#263238" stroke-width="0.8" opacity="0.92"/>
+<text x="42.0" y="125.0" font-size="8" fill="white" font-weight="600" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">SG90 Servo</text>
+<text x="10.0" y="135.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">SIG</text>
+<line x1="80.0" y1="132.0" x2="166.0" y2="122.0" stroke="#2e7d32" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="147.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">VCC</text>
+<line x1="80.0" y1="144.0" x2="166.0" y2="136.0" stroke="#2e7d32" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="159.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">GND</text>
+<line x1="80.0" y1="156.0" x2="166.0" y2="150.0" stroke="#2e7d32" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
 <line x1="58.0" y1="94.0" x2="110.0" y2="94.0" stroke="#ff6f00" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
 <rect x="4.0" y="85.0" width="54.0" height="18.0" rx="5" fill="#ff6f00" opacity="0.92"/>
 <text x="10.0" y="98.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 22</text>
@@ -218,17 +236,21 @@
 <rect x="4.0" y="141.0" width="40.0" height="18.0" rx="5" fill="#333333" opacity="0.92"/>
 <text x="10.0" y="154.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">GND</text>
 <text x="68.0" y="224.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">COMPONENTS</text>
-<text x="68.0" y="244.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">WIRES</text>
-<line x1="69.0" y1="255.0" x2="78.0" y2="255.0" stroke="#ff6f00" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="258.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ultrasonic TRIG — HERO XL Pin 22</text>
-<line x1="69.0" y1="270.0" x2="78.0" y2="270.0" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="273.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ultrasonic ECHO — HERO XL Pin 23</text>
-<line x1="69.0" y1="285.0" x2="78.0" y2="285.0" stroke="#7b1fa2" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="288.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">servo signal — HERO XL Pin 24</text>
-<line x1="69.0" y1="300.0" x2="78.0" y2="300.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="303.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ultrasonic + servo power — HERO XL 5V</text>
-<line x1="69.0" y1="315.0" x2="78.0" y2="315.0" stroke="#333333" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="318.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ultrasonic + servo ground — HERO XL GND</text>
+<circle cx="73.0" cy="235.0" r="4.0" fill="#1565c0" stroke="#0002" stroke-width="0.5"/>
+<text x="82.0" y="238.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">HC-SR04</text>
+<circle cx="73.0" cy="250.0" r="4.0" fill="#2e7d32" stroke="#0002" stroke-width="0.5"/>
+<text x="82.0" y="253.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">SG90 Servo</text>
+<text x="68.0" y="274.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">WIRES</text>
+<line x1="69.0" y1="285.0" x2="78.0" y2="285.0" stroke="#ff6f00" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="288.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ultrasonic TRIG — HERO XL Pin 22</text>
+<line x1="69.0" y1="300.0" x2="78.0" y2="300.0" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="303.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ultrasonic ECHO — HERO XL Pin 23</text>
+<line x1="69.0" y1="315.0" x2="78.0" y2="315.0" stroke="#7b1fa2" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="318.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">servo signal — HERO XL Pin 24</text>
+<line x1="69.0" y1="330.0" x2="78.0" y2="330.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="333.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ultrasonic + servo power — HERO XL 5V</text>
+<line x1="69.0" y1="345.0" x2="78.0" y2="345.0" stroke="#333333" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="348.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ultrasonic + servo ground — HERO XL GND</text>
 <text x="180.0" y="18.0" font-size="13" fill="#222" font-weight="700" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Radar Sweep — Servo + Ultrasonic + TFT</text>
 <text x="180.0" y="30.0" font-size="9" fill="#999" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">rows 7–17 of 63</text>
 </svg>

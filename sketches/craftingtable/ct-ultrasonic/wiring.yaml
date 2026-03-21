@@ -1,7 +1,19 @@
 name: "Ultrasonic Sensor — Distance Measurement"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "HC-SR04"
+    color: "#1565c0"
+    pins:
+      - hole: a10
+        label: VCC
+      - hole: a11
+        label: TRIG
+      - hole: a12
+        label: ECHO
+      - hole: a13
+        label: GND
 
 wires:
   - from: a10

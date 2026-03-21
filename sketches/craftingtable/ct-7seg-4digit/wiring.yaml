@@ -1,7 +1,11 @@
 name: "7-Segment 4-Digit — Stopwatch"
 board: hero-xl
 
-components: []
+components:
+  - type: seven_segment
+    digits: 4
+    row_start: 5
+    pins: 12
 
 wires:
   - from: a5

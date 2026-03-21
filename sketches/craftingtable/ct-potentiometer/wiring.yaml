@@ -1,7 +1,11 @@
 name: "Potentiometer — Analog Read"
 board: hero-xl
 
-components: []
+components:
+  - type: potentiometer
+    pin1: a10
+    pin2: a11
+    pin3: a12
 
 wires:
   - from: a10

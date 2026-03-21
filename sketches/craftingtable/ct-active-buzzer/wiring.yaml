@@ -1,7 +1,11 @@
 name: "Active Buzzer — Simple Alarm"
 board: hero-xl
 
-components: []
+components:
+  - type: buzzer
+    variant: active
+    positive: e10
+    negative: e11
 
 wires:
   - from: a10

@@ -1,7 +1,10 @@
 name: "Push Button — Digital Read"
 board: hero-xl
 
-components: []
+components:
+  - type: button
+    from: e10
+    to: f10
 
 wires:
   - from: a10

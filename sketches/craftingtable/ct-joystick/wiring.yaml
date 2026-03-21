@@ -1,7 +1,21 @@
 name: "Joystick — Analog X/Y + Button"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "KY-023 Joystick"
+    color: "#6a1b9a"
+    pins:
+      - hole: a10
+        label: VCC
+      - hole: a11
+        label: GND
+      - hole: a12
+        label: VRx
+      - hole: a13
+        label: VRy
+      - hole: a14
+        label: SW
 
 wires:
   - from: a10

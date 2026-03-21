@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 312 314"
-     width="312" height="314"
+     viewBox="0 0 312 329"
+     width="312" height="329"
      style="background:#fff">
 <rect x="70.0" y="42.0" width="224.0" height="150.0" rx="8" fill="#00000015"/>
 <rect x="68.0" y="40.0" width="224.0" height="150.0" rx="8" fill="#e8dcc8" stroke="#b8a88a" stroke-width="1.2"/>
@@ -184,6 +184,16 @@
 <text x="260.0" y="167.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">15</text>
 <text x="100.0" y="181.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">16</text>
 <text x="260.0" y="181.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">16</text>
+<rect x="4.0" y="87.0" width="76.0" height="56.0" rx="4" fill="#e65100" stroke="#263238" stroke-width="0.8" opacity="0.92"/>
+<text x="42.0" y="98.0" font-size="8" fill="white" font-weight="600" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">DS3231 RTC</text>
+<text x="10.0" y="108.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">VCC</text>
+<line x1="80.0" y1="105.0" x2="110.0" y2="94.0" stroke="#e65100" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="120.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">GND</text>
+<line x1="80.0" y1="117.0" x2="110.0" y2="108.0" stroke="#e65100" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="132.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">SDA</text>
+<line x1="80.0" y1="129.0" x2="110.0" y2="122.0" stroke="#e65100" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="144.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">SCL</text>
+<line x1="80.0" y1="141.0" x2="110.0" y2="136.0" stroke="#e65100" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
 <line x1="44.0" y1="94.0" x2="110.0" y2="94.0" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
 <rect x="4.0" y="85.0" width="40.0" height="18.0" rx="5" fill="#e53935" opacity="0.92"/>
 <text x="10.0" y="98.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">5V</text>
@@ -197,15 +207,17 @@
 <rect x="4.0" y="127.0" width="54.0" height="18.0" rx="5" fill="#43a047" opacity="0.92"/>
 <text x="10.0" y="140.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 21</text>
 <text x="68.0" y="210.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">COMPONENTS</text>
-<text x="68.0" y="230.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">WIRES</text>
-<line x1="69.0" y1="241.0" x2="78.0" y2="241.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="244.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">power — HERO XL 5V</text>
-<line x1="69.0" y1="256.0" x2="78.0" y2="256.0" stroke="#333333" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="259.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ground — HERO XL GND</text>
-<line x1="69.0" y1="271.0" x2="78.0" y2="271.0" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="274.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">SDA — HERO XL Pin 20</text>
-<line x1="69.0" y1="286.0" x2="78.0" y2="286.0" stroke="#43a047" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="289.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">SCL — HERO XL Pin 21</text>
+<circle cx="73.0" cy="221.0" r="4.0" fill="#e65100" stroke="#0002" stroke-width="0.5"/>
+<text x="82.0" y="224.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">DS3231 RTC</text>
+<text x="68.0" y="245.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">WIRES</text>
+<line x1="69.0" y1="256.0" x2="78.0" y2="256.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="259.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">power — HERO XL 5V</text>
+<line x1="69.0" y1="271.0" x2="78.0" y2="271.0" stroke="#333333" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="274.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ground — HERO XL GND</text>
+<line x1="69.0" y1="286.0" x2="78.0" y2="286.0" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="289.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">SDA — HERO XL Pin 20</text>
+<line x1="69.0" y1="301.0" x2="78.0" y2="301.0" stroke="#43a047" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="304.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">SCL — HERO XL Pin 21</text>
 <text x="180.0" y="18.0" font-size="13" fill="#222" font-weight="700" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Real-Time Clock — DS3231</text>
 <text x="180.0" y="30.0" font-size="9" fill="#999" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">rows 7–16 of 63</text>
 </svg>

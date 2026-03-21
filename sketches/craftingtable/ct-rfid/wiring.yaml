@@ -1,7 +1,25 @@
 name: "RFID Reader — Card UID Scanner"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "RC522 RFID"
+    color: "#e65100"
+    pins:
+      - hole: a5
+        label: SDA
+      - hole: a6
+        label: SCK
+      - hole: a7
+        label: MOSI
+      - hole: a8
+        label: MISO
+      - hole: a9
+        label: RST
+      - hole: a10
+        label: VCC
+      - hole: a11
+        label: GND
 
 wires:
   - from: a5

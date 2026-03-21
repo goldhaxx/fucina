@@ -7,6 +7,11 @@ components:
     from: d12
     to: d14
 
+  - type: sensor
+    label: "LDR"
+    pin1: e10
+    pin2: e12
+
 wires:
   - from: a12
     to: pin_a0

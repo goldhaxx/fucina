@@ -1,7 +1,11 @@
 name: "RTTTL Alarm — Melody Player"
 board: hero-xl
 
-components: []
+components:
+  - type: buzzer
+    variant: passive
+    positive: e10
+    negative: e11
 
 wires:
   - from: a10

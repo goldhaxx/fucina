@@ -1,7 +1,30 @@
 name: "Radar Sweep — Servo + Ultrasonic + TFT"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "HC-SR04"
+    color: "#1565c0"
+    pins:
+      - hole: e10
+        label: TRIG
+      - hole: e11
+        label: ECHO
+      - hole: e13
+        label: VCC
+      - hole: e14
+        label: GND
+
+  - type: module
+    name: "SG90 Servo"
+    color: "#2e7d32"
+    pins:
+      - hole: e12
+        label: SIG
+      - hole: e13
+        label: VCC
+      - hole: e14
+        label: GND
 
 wires:
   - from: a10

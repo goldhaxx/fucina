@@ -1,7 +1,11 @@
 name: "7-Segment 1-Digit — Counter"
 board: hero-xl
 
-components: []
+components:
+  - type: seven_segment
+    digits: 1
+    row_start: 10
+    pins: 10
 
 wires:
   - from: a10

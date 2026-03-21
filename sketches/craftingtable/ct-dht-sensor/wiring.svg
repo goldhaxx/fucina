@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 312 328"
-     width="312" height="328"
+     viewBox="0 0 312 343"
+     width="312" height="343"
      style="background:#fff">
 <rect x="70.0" y="42.0" width="224.0" height="164.0" rx="8" fill="#00000015"/>
 <rect x="68.0" y="40.0" width="224.0" height="164.0" rx="8" fill="#e8dcc8" stroke="#b8a88a" stroke-width="1.2"/>
@@ -198,6 +198,14 @@
 <text x="260.0" y="181.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">16</text>
 <text x="100.0" y="195.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">17</text>
 <text x="260.0" y="195.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">17</text>
+<rect x="4.0" y="100.0" width="60.0" height="44.0" rx="4" fill="#1565c0" stroke="#263238" stroke-width="0.8" opacity="0.92"/>
+<text x="34.0" y="111.0" font-size="8" fill="white" font-weight="600" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">DHT11</text>
+<text x="10.0" y="121.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">DATA</text>
+<line x1="64.0" y1="118.0" x2="110.0" y2="94.0" stroke="#1565c0" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="133.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">VCC</text>
+<line x1="64.0" y1="130.0" x2="110.0" y2="122.0" stroke="#1565c0" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<text x="10.0" y="145.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">GND</text>
+<line x1="64.0" y1="142.0" x2="110.0" y2="150.0" stroke="#1565c0" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
 <line x1="152.0" y1="94.0" x2="152.0" y2="100.3" stroke="#999" stroke-width="1.5"/>
 <line x1="152.0" y1="115.7" x2="152.0" y2="122.0" stroke="#999" stroke-width="1.5"/>
 <rect x="-7.7" y="-4.5" width="15.4" height="9.0" rx="2.5" fill="#c8aa78" stroke="#9a7e50" stroke-width="0.8" transform="translate(152.0,108.0) rotate(90.0)"/>
@@ -215,15 +223,17 @@
 <rect x="4.0" y="141.0" width="40.0" height="18.0" rx="5" fill="#333333" opacity="0.92"/>
 <text x="10.0" y="154.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">GND</text>
 <text x="68.0" y="224.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">COMPONENTS</text>
-<circle cx="73.0" cy="235.0" r="4.0" fill="#c8aa78" stroke="#0002" stroke-width="0.5"/>
-<text x="82.0" y="238.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">10000Ω resistor  d10 → d12</text>
-<text x="68.0" y="259.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">WIRES</text>
-<line x1="69.0" y1="270.0" x2="78.0" y2="270.0" stroke="#43a047" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="273.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">data — HERO XL Pin 7</text>
-<line x1="69.0" y1="285.0" x2="78.0" y2="285.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="288.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">power — HERO XL 5V</text>
-<line x1="69.0" y1="300.0" x2="78.0" y2="300.0" stroke="#333333" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="303.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ground — HERO XL GND</text>
+<circle cx="73.0" cy="235.0" r="4.0" fill="#1565c0" stroke="#0002" stroke-width="0.5"/>
+<text x="82.0" y="238.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">DHT11</text>
+<circle cx="73.0" cy="250.0" r="4.0" fill="#c8aa78" stroke="#0002" stroke-width="0.5"/>
+<text x="82.0" y="253.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">10000Ω resistor  d10 → d12</text>
+<text x="68.0" y="274.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">WIRES</text>
+<line x1="69.0" y1="285.0" x2="78.0" y2="285.0" stroke="#43a047" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="288.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">data — HERO XL Pin 7</text>
+<line x1="69.0" y1="300.0" x2="78.0" y2="300.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="303.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">power — HERO XL 5V</text>
+<line x1="69.0" y1="315.0" x2="78.0" y2="315.0" stroke="#333333" stroke-width="3" stroke-linecap="round"/>
+<text x="84.0" y="318.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ground — HERO XL GND</text>
 <text x="180.0" y="18.0" font-size="13" fill="#222" font-weight="700" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">DHT11 — Temperature &amp; Humidity</text>
 <text x="180.0" y="30.0" font-size="9" fill="#999" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">rows 7–17 of 63</text>
 </svg>

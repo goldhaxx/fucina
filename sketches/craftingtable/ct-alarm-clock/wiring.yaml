@@ -1,7 +1,29 @@
 name: "Alarm Clock — RTC + 7-Segment + Buzzer"
 board: hero-xl
 
-components: []
+components:
+  - type: seven_segment
+    digits: 4
+    row_start: 5
+    pins: 12
+
+  - type: buzzer
+    variant: active
+    positive: e25
+    negative: e26
+
+  - type: module
+    name: "DS3231 RTC"
+    color: "#1565c0"
+    pins:
+      - hole: a20
+        label: SDA
+      - hole: a21
+        label: SCL
+      - hole: a22
+        label: VCC
+      - hole: a23
+        label: GND
 
 wires:
   - from: a5

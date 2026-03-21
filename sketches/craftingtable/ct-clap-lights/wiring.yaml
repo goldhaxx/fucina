@@ -1,7 +1,19 @@
 name: "Clap Lights — Sound Sensor Toggle"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "KY-038 Sound Sensor"
+    color: "#1565c0"
+    pins:
+      - hole: e10
+        label: VCC
+      - hole: e11
+        label: GND
+      - hole: e12
+        label: AO
+      - hole: e13
+        label: DO
 
 wires:
   - from: a10

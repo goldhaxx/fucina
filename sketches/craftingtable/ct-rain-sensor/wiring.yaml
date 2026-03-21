@@ -1,7 +1,17 @@
 name: "Rain Sensor — Water Level Detection"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "HW-038 Water"
+    color: "#1565c0"
+    pins:
+      - hole: a10
+        label: SIG
+      - hole: a11
+        label: VCC
+      - hole: a12
+        label: GND
 
 wires:
   - from: a10

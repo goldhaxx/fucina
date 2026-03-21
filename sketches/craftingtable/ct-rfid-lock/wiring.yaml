@@ -1,7 +1,48 @@
 name: "RFID Door Lock — Card Access Control"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "RC522 RFID"
+    color: "#e65100"
+    pins:
+      - hole: e5
+        label: SDA
+      - hole: e6
+        label: SCK
+      - hole: e7
+        label: MOSI
+      - hole: e8
+        label: MISO
+      - hole: e9
+        label: RST
+      - hole: e10
+        label: VCC
+      - hole: e11
+        label: GND
+
+  - type: module
+    name: "LCD1602"
+    color: "#2e7d32"
+    pins:
+      - hole: e14
+        label: RS
+      - hole: e15
+        label: E
+      - hole: e16
+        label: D4
+      - hole: e17
+        label: D5
+      - hole: e18
+        label: D6
+      - hole: e19
+        label: D7
+      - hole: e20
+        label: VCC
+      - hole: e21
+        label: GND
+      - hole: e22
+        label: BL
 
 wires:
   - from: a5

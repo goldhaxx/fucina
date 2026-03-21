@@ -1,7 +1,19 @@
 name: "Sound Sensor — Clap Detection"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "KY-038 Sound"
+    color: "#1565c0"
+    pins:
+      - hole: a10
+        label: VCC
+      - hole: a11
+        label: GND
+      - hole: a12
+        label: A0
+      - hole: a13
+        label: D0
 
 wires:
   - from: a10

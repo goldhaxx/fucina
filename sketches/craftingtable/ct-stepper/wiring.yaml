@@ -1,7 +1,21 @@
 name: "Stepper Motor — 28BYJ-48"
 board: hero-xl
 
-components: []
+components:
+  - type: module
+    name: "ULN2003 Driver"
+    color: "#2e7d32"
+    pins:
+      - hole: a10
+        label: IN1
+      - hole: a11
+        label: IN3
+      - hole: a12
+        label: IN2
+      - hole: a13
+        label: IN4
+      - hole: a14
+        label: GND
 
 wires:
   - from: a10

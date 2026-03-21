@@ -7,6 +7,17 @@ components:
     anode: e10
     cathode: e11
 
+  - type: module
+    name: "HW-038 Water Sensor"
+    color: "#1565c0"
+    pins:
+      - hole: e14
+        label: SIG
+      - hole: e15
+        label: VCC
+      - hole: e16
+        label: GND
+
 wires:
   - from: a10
     to: pin22

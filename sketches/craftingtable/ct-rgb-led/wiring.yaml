@@ -17,6 +17,12 @@ components:
     from: d9
     to: d14
 
+  - type: rgb_led
+    red: e10
+    common: e11
+    green: e12
+    blue: e14
+
 wires:
   - from: a7
     to: pin7
