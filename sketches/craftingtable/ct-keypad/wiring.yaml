@@ -1,0 +1,45 @@
+name: "4x4 Keypad — Matrix Scanning"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a5
+    to: pin9
+    color: "#e53935"
+    label: "row 1 — HERO XL Pin 9"
+
+  - from: a6
+    to: pin8
+    color: "#ff6f00"
+    label: "row 2 — HERO XL Pin 8"
+
+  - from: a7
+    to: pin7
+    color: "#fdd835"
+    label: "row 3 — HERO XL Pin 7"
+
+  - from: a8
+    to: pin6
+    color: "#43a047"
+    label: "row 4 — HERO XL Pin 6"
+
+  - from: a9
+    to: pin5
+    color: "#1565c0"
+    label: "col 1 — HERO XL Pin 5"
+
+  - from: a10
+    to: pin4
+    color: "#7b1fa2"
+    label: "col 2 — HERO XL Pin 4"
+
+  - from: a11
+    to: pin3
+    color: "#795548"
+    label: "col 3 — HERO XL Pin 3"
+
+  - from: a12
+    to: pin2
+    color: "#607d8b"
+    label: "col 4 — HERO XL Pin 2"

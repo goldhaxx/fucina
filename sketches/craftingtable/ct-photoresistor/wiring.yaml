@@ -1,0 +1,24 @@
+name: "Photoresistor — Light Level"
+board: hero-xl
+
+components:
+  - type: resistor
+    value: 10000
+    from: d12
+    to: d14
+
+wires:
+  - from: a12
+    to: pin_a0
+    color: "#43a047"
+    label: "signal — HERO XL A0"
+
+  - from: a10
+    to: 5v
+    color: "#e53935"
+    label: "power — HERO XL 5V"
+
+  - from: a14
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

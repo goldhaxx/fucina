@@ -1,0 +1,20 @@
+name: "PIR Motion Sensor — Motion Detection"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: 5v
+    color: "#e53935"
+    label: "power — HERO XL 5V"
+
+  - from: a11
+    to: pin2
+    color: "#ff6f00"
+    label: "signal — HERO XL Pin 2"
+
+  - from: a12
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

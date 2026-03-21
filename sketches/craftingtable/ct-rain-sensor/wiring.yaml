@@ -1,0 +1,20 @@
+name: "Rain Sensor — Water Level Detection"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: pin_a0
+    color: "#43a047"
+    label: "signal — HERO XL A0"
+
+  - from: a11
+    to: pin7
+    color: "#ff6f00"
+    label: "power gate — HERO XL Pin 7"
+
+  - from: a12
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

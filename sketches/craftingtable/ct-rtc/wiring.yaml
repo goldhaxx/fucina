@@ -1,0 +1,25 @@
+name: "Real-Time Clock — DS3231"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: 5v
+    color: "#e53935"
+    label: "power — HERO XL 5V"
+
+  - from: a11
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"
+
+  - from: a12
+    to: pin20
+    color: "#1565c0"
+    label: "SDA — HERO XL Pin 20"
+
+  - from: a13
+    to: pin21
+    color: "#43a047"
+    label: "SCL — HERO XL Pin 21"

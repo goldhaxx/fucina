@@ -1,0 +1,15 @@
+name: "Passive Buzzer — Tone Generator"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: pin2
+    color: "#7b1fa2"
+    label: "signal — HERO XL Pin 2"
+
+  - from: a11
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

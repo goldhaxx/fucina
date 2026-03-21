@@ -1,0 +1,24 @@
+name: "DHT11 — Temperature & Humidity"
+board: hero-xl
+
+components:
+  - type: resistor
+    value: 10000
+    from: d10
+    to: d12
+
+wires:
+  - from: a10
+    to: pin7
+    color: "#43a047"
+    label: "data — HERO XL Pin 7"
+
+  - from: a12
+    to: 5v
+    color: "#e53935"
+    label: "power — HERO XL 5V"
+
+  - from: a14
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

@@ -1,0 +1,25 @@
+name: "Ultrasonic Sensor — Distance Measurement"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: 5v
+    color: "#e53935"
+    label: "power — HERO XL 5V"
+
+  - from: a11
+    to: pin13
+    color: "#ff6f00"
+    label: "trigger — HERO XL Pin 13"
+
+  - from: a12
+    to: pin12
+    color: "#1565c0"
+    label: "echo — HERO XL Pin 12"
+
+  - from: a13
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

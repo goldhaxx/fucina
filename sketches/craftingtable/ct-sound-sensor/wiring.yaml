@@ -1,0 +1,25 @@
+name: "Sound Sensor — Clap Detection"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: 5v
+    color: "#e53935"
+    label: "power — HERO XL 5V"
+
+  - from: a11
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"
+
+  - from: a12
+    to: pin_a0
+    color: "#43a047"
+    label: "analog out — HERO XL A0"
+
+  - from: a13
+    to: pin2
+    color: "#ff6f00"
+    label: "digital out — HERO XL Pin 2"

@@ -45,3 +45,23 @@ What was produced:
 - `docs/plan.md` — plan for creating `sketches/craftingtable/ct-*` directories from course projects
 
 Next: Create PlatformIO sketches from course content (Phase 3 of plan)
+
+## 2026-03-21 — Part Tutorial Sketches (Phase 3a)
+
+**Topic:** Create all Individual Part Tutorial sketches from course content
+**Result:** Complete — 23 sketches, all compile clean
+
+Converted all course Part Tutorials into PlatformIO sketches at `sketches/craftingtable/ct-*/`. Each has wiring.yaml, wiring.svg, platformio.ini, src/main.cpp, and README.md.
+
+Sketches created (23 total):
+- **No-library basics:** potentiometer, push-button, active-buzzer, passive-buzzer, photoresistor, rgb-led
+- **Sensor modules:** ultrasonic, pir-motion, joystick, sound-sensor, gyroscope, rain-sensor, dht-sensor
+- **Actuator/output:** servo, stepper, lcd1602, 7seg-1digit, 7seg-4digit
+- **Communication/input:** ir-receiver, rotary-encoder, keypad, rtc, rfid
+
+Gotchas:
+- PlatformIO registry names differ from Arduino IDE: `arduino-libraries/Servo`, `deanisme/SevSeg`, `z3t0/IRremote`, `micromouseonline/BasicEncoder`, etc. Must use `pio pkg search` to find correct names.
+- Built-in Arduino libraries (Servo, Stepper, LiquidCrystal) are NOT automatically available in PlatformIO — need explicit `lib_deps` entries
+- RFID module (MFRC522) MUST use 3.3V — 5V damages it
+
+Next: Chapter projects (multi-component integration builds)

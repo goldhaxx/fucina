@@ -1,0 +1,65 @@
+name: "7-Segment 4-Digit — Stopwatch"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a5
+    to: pin2
+    color: "#e53935"
+    label: "digit 1 — HERO XL Pin 2"
+
+  - from: a6
+    to: pin3
+    color: "#ff6f00"
+    label: "digit 2 — HERO XL Pin 3"
+
+  - from: a7
+    to: pin4
+    color: "#fdd835"
+    label: "digit 3 — HERO XL Pin 4"
+
+  - from: a8
+    to: pin5
+    color: "#43a047"
+    label: "digit 4 — HERO XL Pin 5"
+
+  - from: a10
+    to: pin6
+    color: "#1565c0"
+    label: "seg A — HERO XL Pin 6"
+
+  - from: a11
+    to: pin7
+    color: "#7b1fa2"
+    label: "seg B — HERO XL Pin 7"
+
+  - from: a12
+    to: pin8
+    color: "#795548"
+    label: "seg C — HERO XL Pin 8"
+
+  - from: a13
+    to: pin9
+    color: "#607d8b"
+    label: "seg D — HERO XL Pin 9"
+
+  - from: a14
+    to: pin10
+    color: "#e53935"
+    label: "seg E — HERO XL Pin 10"
+
+  - from: a15
+    to: pin11
+    color: "#ff6f00"
+    label: "seg F — HERO XL Pin 11"
+
+  - from: a16
+    to: pin12
+    color: "#43a047"
+    label: "seg G — HERO XL Pin 12"
+
+  - from: a17
+    to: pin13
+    color: "#1565c0"
+    label: "seg DP — HERO XL Pin 13"

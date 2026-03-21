@@ -1,0 +1,20 @@
+name: "IR Receiver — Remote Control Decoder"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: pin11
+    color: "#ff6f00"
+    label: "signal — HERO XL Pin 11"
+
+  - from: a11
+    to: 5v
+    color: "#e53935"
+    label: "power — HERO XL 5V"
+
+  - from: a12
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

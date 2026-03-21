@@ -1,0 +1,30 @@
+name: "Rotary Encoder — Rotation + Click"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: pin2
+    color: "#43a047"
+    label: "CLK — HERO XL Pin 2 (INT0)"
+
+  - from: a11
+    to: pin3
+    color: "#1565c0"
+    label: "DT — HERO XL Pin 3 (INT1)"
+
+  - from: a12
+    to: pin18
+    color: "#7b1fa2"
+    label: "SW — HERO XL Pin 18 (INT5)"
+
+  - from: a13
+    to: 5v
+    color: "#e53935"
+    label: "power — HERO XL 5V"
+
+  - from: a14
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

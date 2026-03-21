@@ -1,0 +1,15 @@
+name: "Push Button — Digital Read"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: pin12
+    color: "#1565c0"
+    label: "signal — HERO XL Pin 12"
+
+  - from: a11
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

@@ -1,0 +1,20 @@
+name: "Potentiometer — Analog Read"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: pin_a0
+    color: "#43a047"
+    label: "signal — HERO XL A0"
+
+  - from: a11
+    to: 5v
+    color: "#e53935"
+    label: "power — HERO XL 5V"
+
+  - from: a12
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

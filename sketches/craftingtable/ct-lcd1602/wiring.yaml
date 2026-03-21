@@ -1,0 +1,50 @@
+name: "LCD1602 — Character Display"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: pin12
+    color: "#ff6f00"
+    label: "RS — HERO XL Pin 12"
+
+  - from: a11
+    to: pin11
+    color: "#7b1fa2"
+    label: "E — HERO XL Pin 11"
+
+  - from: a12
+    to: pin2
+    color: "#43a047"
+    label: "D4 — HERO XL Pin 2"
+
+  - from: a13
+    to: pin3
+    color: "#1565c0"
+    label: "D5 — HERO XL Pin 3"
+
+  - from: a14
+    to: pin4
+    color: "#e53935"
+    label: "D6 — HERO XL Pin 4"
+
+  - from: a15
+    to: pin5
+    color: "#795548"
+    label: "D7 — HERO XL Pin 5"
+
+  - from: a16
+    to: gnd
+    color: "#333333"
+    label: "VSS + RW + K — HERO XL GND"
+
+  - from: a17
+    to: 5v
+    color: "#e53935"
+    label: "VDD — HERO XL 5V"
+
+  - from: a18
+    to: 3v3
+    color: "#ff6f00"
+    label: "backlight anode — HERO XL 3.3V"

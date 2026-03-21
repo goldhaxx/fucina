@@ -1,0 +1,30 @@
+name: "Stepper Motor — 28BYJ-48"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: pin8
+    color: "#e53935"
+    label: "IN1 — HERO XL Pin 8"
+
+  - from: a11
+    to: pin10
+    color: "#ff6f00"
+    label: "IN3 — HERO XL Pin 10"
+
+  - from: a12
+    to: pin9
+    color: "#43a047"
+    label: "IN2 — HERO XL Pin 9"
+
+  - from: a13
+    to: pin11
+    color: "#1565c0"
+    label: "IN4 — HERO XL Pin 11"
+
+  - from: a14
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

@@ -1,0 +1,30 @@
+name: "Joystick — Analog X/Y + Button"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: 5v
+    color: "#e53935"
+    label: "power — HERO XL 5V"
+
+  - from: a11
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"
+
+  - from: a12
+    to: pin_a0
+    color: "#43a047"
+    label: "VRx — HERO XL A0"
+
+  - from: a13
+    to: pin_a1
+    color: "#1565c0"
+    label: "VRy — HERO XL A1"
+
+  - from: a14
+    to: pin2
+    color: "#7b1fa2"
+    label: "switch — HERO XL Pin 2"

@@ -1,0 +1,39 @@
+name: "RGB LED — Color Cycling"
+board: hero-xl
+
+components:
+  - type: resistor
+    value: 220
+    from: d7
+    to: d10
+
+  - type: resistor
+    value: 220
+    from: d8
+    to: d12
+
+  - type: resistor
+    value: 220
+    from: d9
+    to: d14
+
+wires:
+  - from: a7
+    to: pin7
+    color: "#e53935"
+    label: "red — HERO XL Pin 7"
+
+  - from: a8
+    to: pin6
+    color: "#43a047"
+    label: "green — HERO XL Pin 6"
+
+  - from: a9
+    to: pin5
+    color: "#1565c0"
+    label: "blue — HERO XL Pin 5"
+
+  - from: a11
+    to: gnd
+    color: "#333333"
+    label: "common cathode — HERO XL GND"
