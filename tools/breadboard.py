@@ -246,13 +246,19 @@ def detect_row_range(circuit: dict, padding: int = 3) -> tuple[int, int]:
                 r = _extract_row(str(comp[key]))
                 if r:
                     rows_used.add(r)
-        # seven_segment uses row_start + pins to span multiple rows
+        # seven_segment: account for full body extent, not just pin rows.
+        # Multi-digit displays have bodies much larger than their pin span.
         if comp.get("type") == "seven_segment":
             rs = int(comp.get("row_start", 0))
-            np = int(comp.get("pins", 10)) // 2
+            nd = comp.get("digits", 1)
+            np = int(comp.get("pins", 10 if nd == 1 else 12)) // 2
             if rs:
-                for i in range(np):
-                    rows_used.add(rs + i)
+                pin_center = rs + (np - 1) / 2
+                body_rows = _seven_segment_body_rows(nd)
+                body_lo = int(pin_center - body_rows / 2)
+                body_hi = int(pin_center + body_rows / 2) + 1
+                for i in range(max(1, body_lo), min(TERMINAL_ROWS + 1, body_hi)):
+                    rows_used.add(i)
         # module uses pins list
         pins_val = comp.get("pins", [])
         if isinstance(pins_val, list):
@@ -731,13 +737,30 @@ def _seven_segment_digit(digit_w: float, digit_h: float, sw: float,
     return els
 
 
+def _seven_segment_body_rows(digits: int) -> float:
+    """Return the body length in breadboard rows from datasheet dimensions.
+
+    Datasheet body widths (the long axis, which maps to rows on the board):
+    - 5161AS (1-digit): 12.60mm → 12.60 / 2.54 ≈ 5.0 rows
+    - 5641AS (4-digit): 50.30mm → 50.30 / 2.54 ≈ 19.8 rows
+
+    General formula: ~12.7mm per digit (≈ digit pitch from datasheet).
+    """
+    BODY_MM = {1: 12.60, 4: 50.30}
+    body_mm = BODY_MM.get(digits, digits * 12.70)
+    return body_mm / 2.54
+
+
 def render_seven_segment(board: Board, comp: dict) -> list[str]:
     """Render a 7-segment display as a DIP package.
 
     Proportions from 5161AS/5641AS datasheets:
+    - 5161AS: 12.6mm × 19.0mm body, 10 pins (5/side), 10.16mm pin span
+    - 5641AS: 50.3mm × 19.0mm body, 12 pins (6/side), 12.70mm pin span
     - Digit face: 8.1mm × 14.2mm (aspect 1.75:1, height/width)
     - 8° italic slant, DP at bottom-right of each digit
-    - Package row spacing: 15.24mm (0.6") → columns e to i
+    - Pin row spacing: 15.24mm (0.6") → columns e to i
+    - Pins are centered on the body along the long axis
     """
     digits = comp.get("digits", 1)
     row_start = int(comp.get("row_start", 10))
@@ -759,18 +782,23 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
     for p in all_pins:
         board.mark_occupied(p)
 
-    # Body rectangle from pin positions
-    x_left, y_top = board.hole_xy(left_pins[0])
+    # Pin positions on the board
+    x_left, y_pin_top = board.hole_xy(left_pins[0])
     x_right, _ = board.hole_xy(right_pins[0])
-    _, y_bot = board.hole_xy(left_pins[-1])
+    _, y_pin_bot = board.hole_xy(left_pins[-1])
+    pin_span_cy = (y_pin_top + y_pin_bot) / 2
 
-    pad_x, pad_y = 6, 4
-    body_x = x_left - pad_x
-    body_y = y_top - pad_y
+    # Body dimensions — derived from datasheet, NOT from pin span.
+    # The body length (along rows) is much larger than the pin span for
+    # multi-digit displays. Pins are centered on the body.
+    body_rows = _seven_segment_body_rows(digits)
+    body_h = body_rows * HOLE_PITCH
+    pad_x = 6
     body_w = (x_right - x_left) + pad_x * 2
-    body_h = (y_bot - y_top) + pad_y * 2
+    body_x = x_left - pad_x
+    body_y = pin_span_cy - body_h / 2
     body_cx = body_x + body_w / 2
-    body_cy = body_y + body_h / 2
+    body_cy = pin_span_cy
 
     clip_id = f"seg-clip-{row_start}"
 
@@ -780,8 +808,8 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
     els.append(_rect(body_x, body_y, body_w, body_h, rx="2",
                      fill="#1a1a1a", stroke="#444", stroke_width="0.8"))
 
-    # Notch at top
-    notch_cx = body_x + body_w / 2
+    # Notch — positioned at the top edge of the body
+    notch_cx = body_cx
     els.append(f'<path d="M {notch_cx - 4:.1f} {body_y:.1f} '
                f'a 4 4 0 0 1 8 0" fill="#333" stroke="none"/>')
 

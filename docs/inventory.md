@@ -96,18 +96,25 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 ### 1-Digit 7-Segment Display (5161AS)
 - **Status:** `[ ]`
 - **Type:** Common cathode
+- **Package:** 12.6mm × 19.0mm × 8.0mm, 10 pins (5/side)
+- **Pin pitch:** 2.54mm (0.100"), row spacing 15.24mm (0.600")
+- **Digit face:** 8.1mm × 14.2mm, 8° italic slant
 - **Pin mapping:** 7 segment pins (A–G) — no decimal point in basic wiring
 - **Library:** `SevSeg` by Dean Reading
-- **Notes:** Good for learning multiplexing and segment control basics.
+- **Datasheet:** http://www.xlitx.com/datasheet/5161AS.pdf
+- **Notes:** Good for learning multiplexing and segment control basics. Body width roughly matches pin span — fits neatly on the breadboard.
 
 ### 4-Digit 7-Segment Display (5641AS)
 - **Status:** `[ ]`
 - **Type:** Common cathode (red)
-- **Pin count:** 12 pins (4 digit commons + 8 segment lines)
+- **Package:** 50.3mm × 19.0mm × 8.0mm, 12 pins (6/side)
+- **Pin pitch:** 2.54mm (0.100"), row spacing 15.24mm (0.600")
+- **Pin span:** 12.70mm per side (6 pins), centered on the 50.3mm body
+- **Digit face:** 8.1mm × 14.2mm per digit, 12.70mm digit-to-digit pitch, 8° italic slant
 - **Resistance:** At least 800Ω on each segment pin
 - **Library:** `SevSeg` by Dean Reading
 - **Datasheet:** http://www.xlitx.com/datasheet/5641AS.pdf
-- **Notes:** Ideal for clocks, counters, timers. Multiplexed — only one digit is lit at a time, cycled rapidly by the library.
+- **Notes:** Body is ~4× wider than pin span — overhangs ~19mm on each side beyond the pins, covering about 7 extra breadboard rows per side. Multiplexed — only one digit is lit at a time, cycled rapidly by the library.
 
 ---
 
