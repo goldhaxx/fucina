@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 312 477"
-     width="312" height="477"
+     viewBox="0 0 372 477"
+     width="372" height="477"
      style="background:#fff">
 <rect x="70.0" y="42.0" width="224.0" height="178.0" rx="8" fill="#00000015"/>
 <rect x="68.0" y="40.0" width="224.0" height="178.0" rx="8" fill="#e8dcc8" stroke="#b8a88a" stroke-width="1.2"/>
@@ -288,24 +288,24 @@
 <line x1="51.0" y1="164.0" x2="110.0" y2="164.0" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
 <rect x="4.0" y="155.0" width="47.0" height="18.0" rx="5" fill="#e53935" opacity="0.92"/>
 <text x="10.0" y="168.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 5</text>
-<line x1="51.0" y1="94.0" x2="250.0" y2="94.0" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="85.0" width="47.0" height="18.0" rx="5" fill="#e53935" opacity="0.92"/>
-<text x="10.0" y="98.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 2</text>
-<line x1="51.0" y1="108.0" x2="250.0" y2="108.0" stroke="#ff6f00" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="99.0" width="47.0" height="18.0" rx="5" fill="#ff6f00" opacity="0.92"/>
-<text x="10.0" y="112.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 6</text>
-<line x1="58.0" y1="122.0" x2="250.0" y2="122.0" stroke="#7b1fa2" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="113.0" width="54.0" height="18.0" rx="5" fill="#7b1fa2" opacity="0.92"/>
-<text x="10.0" y="126.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 11</text>
-<line x1="51.0" y1="136.0" x2="250.0" y2="136.0" stroke="#ff6f00" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="127.0" width="47.0" height="18.0" rx="5" fill="#ff6f00" opacity="0.92"/>
-<text x="10.0" y="140.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 4</text>
-<line x1="51.0" y1="150.0" x2="250.0" y2="150.0" stroke="#43a047" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="141.0" width="47.0" height="18.0" rx="5" fill="#43a047" opacity="0.92"/>
-<text x="10.0" y="154.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 7</text>
-<line x1="51.0" y1="164.0" x2="250.0" y2="164.0" stroke="#fdd835" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="155.0" width="47.0" height="18.0" rx="5" fill="#fdd835" opacity="0.92"/>
-<text x="10.0" y="168.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 3</text>
+<line x1="250.0" y1="94.0" x2="321.0" y2="94.0" stroke="#e53935" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
+<rect x="321.0" y="85.0" width="47.0" height="18.0" rx="5" fill="#e53935" opacity="0.92"/>
+<text x="327.0" y="98.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 2</text>
+<line x1="250.0" y1="108.0" x2="321.0" y2="108.0" stroke="#ff6f00" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
+<rect x="321.0" y="99.0" width="47.0" height="18.0" rx="5" fill="#ff6f00" opacity="0.92"/>
+<text x="327.0" y="112.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 6</text>
+<line x1="250.0" y1="122.0" x2="314.0" y2="122.0" stroke="#7b1fa2" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
+<rect x="314.0" y="113.0" width="54.0" height="18.0" rx="5" fill="#7b1fa2" opacity="0.92"/>
+<text x="320.0" y="126.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 11</text>
+<line x1="250.0" y1="136.0" x2="321.0" y2="136.0" stroke="#ff6f00" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
+<rect x="321.0" y="127.0" width="47.0" height="18.0" rx="5" fill="#ff6f00" opacity="0.92"/>
+<text x="327.0" y="140.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 4</text>
+<line x1="250.0" y1="150.0" x2="321.0" y2="150.0" stroke="#43a047" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
+<rect x="321.0" y="141.0" width="47.0" height="18.0" rx="5" fill="#43a047" opacity="0.92"/>
+<text x="327.0" y="154.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 7</text>
+<line x1="250.0" y1="164.0" x2="321.0" y2="164.0" stroke="#fdd835" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
+<rect x="321.0" y="155.0" width="47.0" height="18.0" rx="5" fill="#fdd835" opacity="0.92"/>
+<text x="327.0" y="168.0" font-size="10" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 3</text>
 <text x="68.0" y="238.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">COMPONENTS</text>
 <circle cx="73.0" cy="249.0" r="4.0" fill="#1a1a1a" stroke="#0002" stroke-width="0.5"/>
 <text x="82.0" y="252.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">4-digit 7-segment display (row 10)</text>

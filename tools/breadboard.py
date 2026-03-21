@@ -29,7 +29,7 @@ RAIL_GAP = 10
 MARGIN_TOP = 52
 MARGIN_BOTTOM = 16
 MARGIN_LEFT = 80
-MARGIN_RIGHT = 20
+MARGIN_RIGHT = 80
 
 BOARD_PAD_X = 12
 BOARD_PAD_Y = 12
@@ -791,22 +791,42 @@ def render_wire(board: Board, wire: dict) -> list[str]:
 
     if from_board or to_board:
         pin = from_id if from_board else to_id
+        hole = to_id if from_board else from_id
         label = _pin_label(pin)
         text_w = max(len(label) * 7 + 12, 40)
-        pill_x = 4
-        pill_right = pill_x + text_w
 
-        # Wire line from pill to hole
-        els.append(_line(pill_right, by, bx, by,
-                         stroke=color, stroke_width="2.8",
-                         stroke_linecap="round", opacity="0.8"))
+        # Determine which side of the breadboard the hole is on
+        # Right bank: columns f-j and right power rails (+R, -R)
+        hole_col = hole.strip().lower()
+        on_right = (hole_col[0] in "fghij"
+                    or (hole_col[0] in "+-" and len(hole_col) > 1 and hole_col[1] == "r"))
 
-        # Label pill
-        els.append(_rect(pill_x, by - 9, text_w, 18, rx="5",
-                         fill=color, opacity="0.92"))
-        els.append(_text(pill_x + 6, by + 4, label,
-                         font_size="10", fill="white", font_weight="600",
-                         font_family=FONT))
+        if on_right:
+            # Pin pill on the right side
+            pill_right = board.svg_width - 4
+            pill_x = pill_right - text_w
+
+            els.append(_line(bx, by, pill_x, by,
+                             stroke=color, stroke_width="2.8",
+                             stroke_linecap="round", opacity="0.8"))
+            els.append(_rect(pill_x, by - 9, text_w, 18, rx="5",
+                             fill=color, opacity="0.92"))
+            els.append(_text(pill_x + 6, by + 4, label,
+                             font_size="10", fill="white", font_weight="600",
+                             font_family=FONT))
+        else:
+            # Pin pill on the left side (original behavior)
+            pill_x = 4
+            pill_right = pill_x + text_w
+
+            els.append(_line(pill_right, by, bx, by,
+                             stroke=color, stroke_width="2.8",
+                             stroke_linecap="round", opacity="0.8"))
+            els.append(_rect(pill_x, by - 9, text_w, 18, rx="5",
+                             fill=color, opacity="0.92"))
+            els.append(_text(pill_x + 6, by + 4, label,
+                             font_size="10", fill="white", font_weight="600",
+                             font_family=FONT))
     else:
         x1, y1 = board.hole_xy(from_id)
         x2, y2 = board.hole_xy(to_id)
