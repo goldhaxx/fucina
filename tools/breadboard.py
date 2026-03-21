@@ -648,6 +648,39 @@ def render_rgb_led(board: Board, comp: dict) -> list[str]:
     return els
 
 
+def _seven_segment_digit(digit_w: float, digit_h: float, sw: float,
+                         seg_color: str = "#600", dp_color: str = "#600") -> list[str]:
+    """Draw one 7-segment digit glyph centered at the origin in natural coords.
+
+    Natural orientation: upright, segment A at top, DP at bottom-right.
+    The caller wraps this in a <g transform="..."> for positioning and rotation.
+    """
+    hw = digit_w / 2
+    hh = digit_h / 2
+    els = []
+
+    # 7 segments in natural upright orientation
+    segs = [
+        (-hw + 1, -hh, hw - 1, -hh),    # A — top
+        (-hw + 1, 0, hw - 1, 0),         # G — middle
+        (-hw + 1, hh, hw - 1, hh),       # D — bottom
+        (-hw, -hh + 1, -hw, -1),          # F — upper-left
+        (hw, -hh + 1, hw, -1),            # B — upper-right
+        (-hw, 1, -hw, hh - 1),            # E — lower-left
+        (hw, 1, hw, hh - 1),              # C — lower-right
+    ]
+    for sx1, sy1, sx2, sy2 in segs:
+        els.append(_line(sx1, sy1, sx2, sy2,
+                         stroke=seg_color, stroke_width=f"{sw:.1f}",
+                         stroke_linecap="round"))
+
+    # DP at bottom-right
+    dp_r = max(0.8, min(digit_w * 0.10, 1.8))
+    els.append(_circle(hw + digit_w * 0.20, hh, dp_r, fill=dp_color))
+
+    return els
+
+
 def render_seven_segment(board: Board, comp: dict) -> list[str]:
     """Render a 7-segment display as a DIP package.
 
@@ -660,6 +693,7 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
     row_start = int(comp.get("row_start", 10))
     num_pins = int(comp.get("pins", 10 if digits == 1 else 12))
     pins_per_side = num_pins // 2
+    rotation = parse_orientation(comp)
 
     left_col = comp.get("left_col", "e")
     right_col = comp.get("right_col", "i")
@@ -701,17 +735,13 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
     els.append(f'<path d="M {notch_cx - 4:.1f} {body_y:.1f} '
                f'a 4 4 0 0 1 8 0" fill="#333" stroke="none"/>')
 
-    # Digit is built upright in local coords (top=A, bottom=D, DP at
-    # bottom-right) then rotated 90° CCW so the component's top faces
-    # toward column a — matching how a DIP sits on the breadboard.
+    # Digit sizing — constrained by the display window and rotation.
     #
-    # After rotate(-90) skewX(-8):
+    # After rotate + skewX(-8):
     #   horizontal extent = digit_h  (tall dim fills body width)
     #   vertical extent   = digit_w + 0.14*digit_h + stroke  (fits cell)
     #
     # Datasheet: 14.2mm tall × 8.1mm wide → aspect 1.75:1
-    seg_color = "#600"
-    dp_color = "#600"
     skew_deg = 8
     aspect = 1.75   # digit_h / digit_w from datasheet
     k = 0.14        # tan(8°) skew factor
@@ -763,34 +793,12 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
         cell_top = start_y + d * (cell_h + gap)
         digit_cy = cell_top + cell_h / 2
 
-        # Upright in local space, rotated 90° CCW for breadboard placement
+        # Digit drawn upright at origin, then rotated for board placement
         els.append(
             f'<g transform="translate({body_cx:.1f},{digit_cy:.1f}) '
-            f'rotate(-90) skewX(-{skew_deg})">'
+            f'rotate({rotation}) skewX(-{skew_deg})">'
         )
-
-        hw = digit_w / 2   # half of narrow dimension
-        hh = digit_h / 2   # half of tall dimension
-
-        # 7 segments in natural upright orientation (pre-rotation)
-        segs = [
-            (-hw + 1, -hh, hw - 1, -hh),    # A — top
-            (-hw + 1, 0, hw - 1, 0),         # G — middle
-            (-hw + 1, hh, hw - 1, hh),       # D — bottom
-            (-hw, -hh + 1, -hw, -1),          # F — upper-left
-            (hw, -hh + 1, hw, -1),            # B — upper-right
-            (-hw, 1, -hw, hh - 1),            # E — lower-left
-            (hw, 1, hw, hh - 1),              # C — lower-right
-        ]
-        for sx1, sy1, sx2, sy2 in segs:
-            els.append(_line(sx1, sy1, sx2, sy2,
-                             stroke=seg_color, stroke_width=f"{sw:.1f}",
-                             stroke_linecap="round"))
-
-        # DP at bottom-right (upright local coords, before rotation)
-        dp_r = max(0.8, min(digit_w * 0.10, 1.8))
-        els.append(_circle(hw + digit_w * 0.20, hh, dp_r, fill=dp_color))
-
+        els.extend(_seven_segment_digit(digit_w, digit_h, sw))
         els.append('</g>')
 
     els.append('</g>')  # close clip group
