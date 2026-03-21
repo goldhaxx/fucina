@@ -1,0 +1,117 @@
+name: "003 — Patterns"
+board: hero-xl
+
+components:
+  # Red LED (reuse from 001/002 — already on the breadboard)
+  - type: resistor
+    value: 220
+    from: d7
+    to: d10
+
+  - type: led
+    color: red
+    anode: e10
+    cathode: e11
+
+  # Green LED
+  - type: resistor
+    value: 220
+    from: d14
+    to: d17
+
+  - type: led
+    color: green
+    anode: e17
+    cathode: e18
+
+  # Blue LED
+  - type: resistor
+    value: 220
+    from: d21
+    to: d24
+
+  - type: led
+    color: blue
+    anode: e24
+    cathode: e25
+
+  # White LED
+  - type: resistor
+    value: 220
+    from: d28
+    to: d31
+
+  - type: led
+    color: white
+    anode: e31
+    cathode: e32
+
+  # Yellow LED
+  - type: resistor
+    value: 220
+    from: d35
+    to: d38
+
+  - type: led
+    color: yellow
+    anode: e38
+    cathode: e39
+
+wires:
+  # GND bus: one wire from HERO XL to breadboard negative rail
+  - from: gnd
+    to: -L1
+    color: "#333333"
+    label: "GND bus — HERO XL GND to - rail"
+
+  # Signal wires (PWM pins)
+  - from: a7
+    to: pin9
+    color: "#e53935"
+    label: "red signal — Pin 9"
+
+  - from: a14
+    to: pin10
+    color: "#2e7d32"
+    label: "green signal — Pin 10"
+
+  - from: a21
+    to: pin11
+    color: "#1565c0"
+    label: "blue signal — Pin 11"
+
+  - from: a28
+    to: pin5
+    color: "#757575"
+    label: "white signal — Pin 5"
+
+  - from: a35
+    to: pin6
+    color: "#f9a825"
+    label: "yellow signal — Pin 6"
+
+  # Ground jumpers: each LED cathode row to the - rail
+  - from: a11
+    to: -L8
+    color: "#333333"
+    label: "red GND to - rail"
+
+  - from: a18
+    to: -L14
+    color: "#333333"
+    label: "green GND to - rail"
+
+  - from: a25
+    to: -L20
+    color: "#333333"
+    label: "blue GND to - rail"
+
+  - from: a32
+    to: -L26
+    color: "#333333"
+    label: "white GND to - rail"
+
+  - from: a39
+    to: -L31
+    color: "#333333"
+    label: "yellow GND to - rail"
