@@ -25,3 +25,7 @@ Thumbs.db
 .claude/settings.local.json
 .claude/local/
 docs/checkpoint.md
+
+# Scaffold sync state (machine-generated)
+.claude/scaffold.lock
+.claude/scaffold-sync.log
