@@ -1,0 +1,14 @@
+name: "RTTTL Alarm — Melody Player"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a10
+    to: pin24
+    color: "#7b1fa2"
+    label: "tone signal — HERO XL Pin 24"
+  - from: a11
+    to: gnd
+    color: "#333333"
+    label: "ground — HERO XL GND"

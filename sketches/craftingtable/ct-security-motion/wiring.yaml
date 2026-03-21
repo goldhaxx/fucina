@@ -1,0 +1,39 @@
+name: "Security Motion Lights — PIR + LED"
+board: hero-xl
+
+components:
+  - type: resistor
+    value: 220
+    from: d7
+    to: d10
+
+  - type: led
+    color: red
+    anode: e10
+    cathode: e11
+
+wires:
+  - from: a7
+    to: pin22
+    color: "#e53935"
+    label: "flood light — HERO XL Pin 22"
+
+  - from: a11
+    to: gnd
+    color: "#333333"
+    label: "LED ground — HERO XL GND"
+
+  - from: a14
+    to: pin23
+    color: "#ff6f00"
+    label: "motion sensor signal — HERO XL Pin 23"
+
+  - from: a15
+    to: 5v
+    color: "#e53935"
+    label: "PIR power — HERO XL 5V"
+
+  - from: a16
+    to: gnd
+    color: "#333333"
+    label: "PIR ground — HERO XL GND"

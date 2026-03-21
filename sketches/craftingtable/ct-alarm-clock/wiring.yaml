@@ -1,0 +1,78 @@
+name: "Alarm Clock — RTC + 7-Segment + Buzzer"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a5
+    to: pin2
+    color: "#e53935"
+    label: "digit 1 — HERO XL Pin 2"
+  - from: a6
+    to: pin3
+    color: "#ff6f00"
+    label: "digit 2 — HERO XL Pin 3"
+  - from: a7
+    to: pin4
+    color: "#fdd835"
+    label: "digit 3 — HERO XL Pin 4"
+  - from: a8
+    to: pin5
+    color: "#43a047"
+    label: "digit 4 — HERO XL Pin 5"
+  - from: a10
+    to: pin6
+    color: "#1565c0"
+    label: "seg A — HERO XL Pin 6"
+  - from: a11
+    to: pin7
+    color: "#7b1fa2"
+    label: "seg B — HERO XL Pin 7"
+  - from: a12
+    to: pin8
+    color: "#795548"
+    label: "seg C — HERO XL Pin 8"
+  - from: a13
+    to: pin9
+    color: "#607d8b"
+    label: "seg D — HERO XL Pin 9"
+  - from: a14
+    to: pin10
+    color: "#e53935"
+    label: "seg E — HERO XL Pin 10"
+  - from: a15
+    to: pin11
+    color: "#ff6f00"
+    label: "seg F — HERO XL Pin 11"
+  - from: a16
+    to: pin12
+    color: "#43a047"
+    label: "seg G — HERO XL Pin 12"
+  - from: a17
+    to: pin13
+    color: "#1565c0"
+    label: "seg DP — HERO XL Pin 13"
+  - from: a20
+    to: pin20
+    color: "#1565c0"
+    label: "RTC SDA — HERO XL Pin 20"
+  - from: a21
+    to: pin21
+    color: "#43a047"
+    label: "RTC SCL — HERO XL Pin 21"
+  - from: a22
+    to: 5v
+    color: "#e53935"
+    label: "RTC power — HERO XL 5V"
+  - from: a23
+    to: gnd
+    color: "#333333"
+    label: "RTC ground — HERO XL GND"
+  - from: a25
+    to: pin45
+    color: "#7b1fa2"
+    label: "buzzer — HERO XL Pin 45"
+  - from: a26
+    to: gnd
+    color: "#333333"
+    label: "buzzer ground — HERO XL GND"

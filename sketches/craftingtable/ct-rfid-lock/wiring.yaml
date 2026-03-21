@@ -1,0 +1,70 @@
+name: "RFID Door Lock — Card Access Control"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a5
+    to: pin53
+    color: "#e53935"
+    label: "RFID SDA (SS) — HERO XL Pin 53"
+  - from: a6
+    to: pin52
+    color: "#ff6f00"
+    label: "RFID SCK — HERO XL Pin 52"
+  - from: a7
+    to: pin51
+    color: "#43a047"
+    label: "RFID MOSI — HERO XL Pin 51"
+  - from: a8
+    to: pin50
+    color: "#1565c0"
+    label: "RFID MISO — HERO XL Pin 50"
+  - from: a9
+    to: pin26
+    color: "#7b1fa2"
+    label: "RFID RST — HERO XL Pin 26"
+  - from: a10
+    to: 3v3
+    color: "#ff6f00"
+    label: "RFID power — HERO XL 3.3V (NOT 5V!)"
+  - from: a11
+    to: gnd
+    color: "#333333"
+    label: "RFID ground — HERO XL GND"
+  - from: a14
+    to: pin22
+    color: "#e53935"
+    label: "LCD RS — HERO XL Pin 22"
+  - from: a15
+    to: pin24
+    color: "#ff6f00"
+    label: "LCD E — HERO XL Pin 24"
+  - from: a16
+    to: pin23
+    color: "#43a047"
+    label: "LCD D4 — HERO XL Pin 23"
+  - from: a17
+    to: pin25
+    color: "#1565c0"
+    label: "LCD D5 — HERO XL Pin 25"
+  - from: a18
+    to: pin27
+    color: "#7b1fa2"
+    label: "LCD D6 — HERO XL Pin 27"
+  - from: a19
+    to: pin29
+    color: "#795548"
+    label: "LCD D7 — HERO XL Pin 29"
+  - from: a20
+    to: 5v
+    color: "#e53935"
+    label: "LCD power — HERO XL 5V"
+  - from: a21
+    to: gnd
+    color: "#333333"
+    label: "LCD ground — HERO XL GND"
+  - from: a22
+    to: 3v3
+    color: "#ff6f00"
+    label: "LCD backlight — HERO XL 3.3V"

@@ -1,0 +1,38 @@
+name: "Keypad Door Lock — Secret Code Entry"
+board: hero-xl
+
+components: []
+
+wires:
+  - from: a5
+    to: pin23
+    color: "#e53935"
+    label: "row 1 — HERO XL Pin 23"
+  - from: a6
+    to: pin25
+    color: "#ff6f00"
+    label: "row 2 — HERO XL Pin 25"
+  - from: a7
+    to: pin27
+    color: "#fdd835"
+    label: "row 3 — HERO XL Pin 27"
+  - from: a8
+    to: pin29
+    color: "#43a047"
+    label: "row 4 — HERO XL Pin 29"
+  - from: a9
+    to: pin31
+    color: "#1565c0"
+    label: "col 1 — HERO XL Pin 31"
+  - from: a10
+    to: pin33
+    color: "#7b1fa2"
+    label: "col 2 — HERO XL Pin 33"
+  - from: a11
+    to: pin35
+    color: "#795548"
+    label: "col 3 — HERO XL Pin 35"
+  - from: a12
+    to: pin37
+    color: "#607d8b"
+    label: "col 4 — HERO XL Pin 37"
