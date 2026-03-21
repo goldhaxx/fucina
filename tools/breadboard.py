@@ -92,6 +92,36 @@ def parse_orientation(comp: dict) -> int:
     return ORIENTATION_PRESETS.get(str(raw).lower(), 0)
 
 
+def compute_rotated_fit(natural_w: float, natural_h: float,
+                        container_w: float, container_h: float,
+                        rotation_deg: float, fill: float = 0.90) -> float:
+    """Compute the max scale factor for a natural-size rect to fit inside
+    a container after rotation.
+
+    The natural rect (natural_w × natural_h) is rotated by rotation_deg
+    around its center. The rotated bounding box must fit within
+    container_w × container_h, scaled by `fill` (0.0–1.0) to leave padding.
+
+    Returns the scale factor s such that (natural_w * s, natural_h * s)
+    rotated by rotation_deg fits within (container_w * fill, container_h * fill).
+    """
+    rad = math.radians(rotation_deg)
+    cos_a = abs(math.cos(rad))
+    sin_a = abs(math.sin(rad))
+
+    # Rotated bounding box dimensions (at scale 1)
+    rot_w = natural_w * cos_a + natural_h * sin_a
+    rot_h = natural_w * sin_a + natural_h * cos_a
+
+    if rot_w == 0 or rot_h == 0:
+        return 1.0
+
+    target_w = container_w * fill
+    target_h = container_h * fill
+
+    return min(target_w / rot_w, target_h / rot_h)
+
+
 # Resistor band colors
 BAND_DIGIT = {
     0: "#000", 1: "#8B4513", 2: "#FF0000", 3: "#FF8C00",
