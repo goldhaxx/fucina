@@ -147,9 +147,28 @@ def _coerce(val: str):
 # ─── Row Range Detection ─────────────────────────────────────────
 
 def _extract_row(hole_id: str) -> int | None:
-    """Extract row number from a hole address like 'd7' or 'e10'."""
-    m = re.match(r'^[a-jA-J](\d+)$', hole_id.strip())
-    return int(m.group(1)) if m else None
+    """Extract terminal row number from any hole address.
+
+    Handles terminal strips ('d7' → 7) and power rails ('+L3' → row 5)
+    by mapping rail indices back to their aligned terminal rows.
+    The L/R side letter selects the physical rail but doesn't affect the row.
+    Board pins ('pin9', 'gnd') return None — they have no breadboard row.
+    """
+    hole_id = hole_id.strip()
+
+    # Terminal strip: a1–j63
+    m = re.match(r'^[a-jA-J](\d+)$', hole_id)
+    if m:
+        return int(m.group(1))
+
+    # Power rail: +L1, -L1, +R1, -R1, +1, -1
+    m = re.match(r'^[+-][LR]?(\d+)$', hole_id)
+    if m:
+        idx = int(m.group(1))
+        if 1 <= idx <= len(POWER_RAIL_ROWS):
+            return POWER_RAIL_ROWS[idx - 1]
+
+    return None
 
 
 def detect_row_range(circuit: dict, padding: int = 3) -> tuple[int, int]:
