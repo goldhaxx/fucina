@@ -102,11 +102,11 @@ Introduce a first-principles component rendering architecture where components a
 
 ## Definition of Done
 
-- [ ] `tools/test-renderers.py` generates a visual test SVG with all 9 component types
-- [ ] `RENDERERS` registry replaces if-elif dispatch in `generate()` and `render_legend()`
-- [ ] `orientation` key documented in wiring.yaml schema with per-type defaults
-- [ ] `render_seven_segment` factored into natural renderer + orientation transform
-- [ ] `compute_rotated_fit()` utility available for future renderer development
-- [ ] `docs/renderers.md` has Orientation Model and Renderer Development Guide sections
-- [ ] All 32 existing sketch SVGs are unchanged (visual regression check)
-- [ ] Rules updated: `sketches.md`, `components.md`
+- [x] `tools/test-renderers.py` generates a visual test SVG with all 9 component types
+- [x] `RENDERERS` registry replaces if-elif dispatch in `generate()` and `render_legend()`
+- [x] `orientation` key documented in wiring.yaml schema with per-type defaults
+- [x] `render_seven_segment` factored into natural renderer + orientation transform
+- [x] `compute_rotated_fit()` utility available for future renderer development
+- [x] `docs/renderers.md` has Orientation Model and Renderer Development Guide sections
+- [x] All 32 existing sketch SVGs are unchanged (visual regression check)
+- [x] Rules updated: `sketches.md`, `components.md`
