@@ -68,6 +68,9 @@ docs/
 - ESP32 GPIO is 3.3V. HERO XL GPIO is 5V. Use the logic level converter between them.
 
 ## Reference Documents
+### Scaffold Guide — @GUIDE.md
+**Read when:** Adding or modifying scaffold commands, rules, agents, skills, hooks, or scripts. Update its diagrams and tables to reflect the change.
+
 ### Component Inventory — @docs/inventory.md
 **Read when:** Starting a new sketch, checking available parts, looking up specs or datasheets.
 
