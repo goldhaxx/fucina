@@ -654,30 +654,41 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
     els.append(f'<path d="M {notch_cx - 4:.1f} {body_y:.1f} '
                f'a 4 4 0 0 1 8 0" fill="#333" stroke="none"/>')
 
-    # Draw stylized digit(s)
+    # Draw stylized digit(s) — rotated 90° CCW so top of digit faces column A
+    # In the SVG, column A is to the left (lower X), column J is to the right (higher X)
+    # So "digit top" = toward body_x, "digit bottom" = toward body_x + body_w
     seg_color = "#600"
-    digit_w = 8
-    digit_h = 14
-    total_w = digits * (digit_w + 3) - 3
-    start_x = body_x + (body_w - total_w) / 2
-    digit_cy = body_y + body_h / 2
+    digit_w = 8    # width of digit (becomes height after rotation)
+    digit_h = 14   # height of digit (becomes width after rotation)
+    # After 90° CCW rotation: digit occupies digit_h wide × digit_w tall
+    total_h = digits * (digit_w + 3) - 3
+    body_cx = body_x + body_w / 2
+    body_cy = body_y + body_h / 2
+    start_y = body_cy - total_h / 2
 
     for d in range(digits):
-        dx = start_x + d * (digit_w + 3)
-        dy = digit_cy - digit_h / 2
-        # Simplified "8" shape — top, middle, bottom horizontals + 4 verticals
+        # Each digit drawn rotated: X axis = depth (top→bot of numeral), Y axis = across digits
+        # Origin at center of this digit, then rotate -90° around center
+        dy_offset = start_y + d * (digit_w + 3) + digit_w / 2
+        els.append(
+            f'<g transform="translate({body_cx:.1f},{dy_offset:.1f}) rotate(-90)">'
+        )
+        hw = digit_h / 2
+        hh = digit_w / 2
+        # Simplified "8" shape centered at origin
         segs = [
-            (dx + 1, dy, dx + digit_w - 1, dy),                        # top
-            (dx + 1, dy + digit_h / 2, dx + digit_w - 1, dy + digit_h / 2),  # mid
-            (dx + 1, dy + digit_h, dx + digit_w - 1, dy + digit_h),    # bot
-            (dx, dy + 1, dx, dy + digit_h / 2 - 1),                    # top-left
-            (dx + digit_w, dy + 1, dx + digit_w, dy + digit_h / 2 - 1),  # top-right
-            (dx, dy + digit_h / 2 + 1, dx, dy + digit_h - 1),          # bot-left
-            (dx + digit_w, dy + digit_h / 2 + 1, dx + digit_w, dy + digit_h - 1),  # bot-right
+            (-hw + 1, -hh, hw - 1, -hh),           # top
+            (-hw + 1, 0, hw - 1, 0),                # mid
+            (-hw + 1, hh, hw - 1, hh),              # bot
+            (-hw, -hh + 1, -hw, -1),                # top-left
+            (hw, -hh + 1, hw, -1),                   # top-right
+            (-hw, 1, -hw, hh - 1),                   # bot-left
+            (hw, 1, hw, hh - 1),                     # bot-right
         ]
         for sx1, sy1, sx2, sy2 in segs:
             els.append(_line(sx1, sy1, sx2, sy2,
                              stroke=seg_color, stroke_width="1.5", stroke_linecap="round"))
+        els.append('</g>')
 
     # Pin dots on both sides
     for p in left_pins:

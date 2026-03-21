@@ -4,7 +4,7 @@ board: hero-xl
 components:
   - type: seven_segment
     digits: 4
-    row_start: 5
+    row_start: 10
     pins: 12
 
   - type: buzzer
@@ -26,74 +26,96 @@ components:
         label: GND
 
 wires:
-  - from: a5
-    to: pin2
-    color: "#e53935"
-    label: "digit 1 — HERO XL Pin 2"
-  - from: a6
-    to: pin3
-    color: "#ff6f00"
-    label: "digit 2 — HERO XL Pin 3"
-  - from: a7
-    to: pin4
-    color: "#fdd835"
-    label: "digit 3 — HERO XL Pin 4"
-  - from: a8
-    to: pin5
-    color: "#43a047"
-    label: "digit 4 — HERO XL Pin 5"
+  # 4-digit 7-seg display (5641AS) — DIP at rows 10-15
+  # Left bank pins 1-6: E, D, DP, C, G, D4
   - from: a10
-    to: pin6
+    to: pin10
     color: "#1565c0"
-    label: "seg A — HERO XL Pin 6"
+    label: "seg E (pin 1) — HERO XL Pin 10"
+
   - from: a11
-    to: pin7
-    color: "#7b1fa2"
-    label: "seg B — HERO XL Pin 7"
-  - from: a12
-    to: pin8
-    color: "#795548"
-    label: "seg C — HERO XL Pin 8"
-  - from: a13
     to: pin9
     color: "#607d8b"
-    label: "seg D — HERO XL Pin 9"
+    label: "seg D (pin 2) — HERO XL Pin 9"
+
+  - from: a12
+    to: pin13
+    color: "#795548"
+    label: "seg DP (pin 3) — HERO XL Pin 13"
+
+  - from: a13
+    to: pin8
+    color: "#fdd835"
+    label: "seg C (pin 4) — HERO XL Pin 8"
+
   - from: a14
-    to: pin10
-    color: "#e53935"
-    label: "seg E — HERO XL Pin 10"
-  - from: a15
-    to: pin11
-    color: "#ff6f00"
-    label: "seg F — HERO XL Pin 11"
-  - from: a16
     to: pin12
     color: "#43a047"
-    label: "seg G — HERO XL Pin 12"
-  - from: a17
-    to: pin13
-    color: "#1565c0"
-    label: "seg DP — HERO XL Pin 13"
+    label: "seg G (pin 5) — HERO XL Pin 12"
+
+  - from: a15
+    to: pin5
+    color: "#e53935"
+    label: "digit 4 (pin 6) — HERO XL Pin 5"
+
+  # Right bank pins 12-7: D1, A, F, D2, B, D3
+  - from: j10
+    to: pin2
+    color: "#e53935"
+    label: "digit 1 (pin 12) — HERO XL Pin 2"
+
+  - from: j11
+    to: pin6
+    color: "#ff6f00"
+    label: "seg A (pin 11) — HERO XL Pin 6"
+
+  - from: j12
+    to: pin11
+    color: "#7b1fa2"
+    label: "seg F (pin 10) — HERO XL Pin 11"
+
+  - from: j13
+    to: pin4
+    color: "#ff6f00"
+    label: "digit 2 (pin 9) — HERO XL Pin 4"
+
+  - from: j14
+    to: pin7
+    color: "#43a047"
+    label: "seg B (pin 8) — HERO XL Pin 7"
+
+  - from: j15
+    to: pin3
+    color: "#fdd835"
+    label: "digit 3 (pin 7) — HERO XL Pin 3"
+
+  # DS3231 RTC (I2C)
   - from: a20
     to: pin20
     color: "#1565c0"
     label: "RTC SDA — HERO XL Pin 20"
+
   - from: a21
     to: pin21
     color: "#43a047"
     label: "RTC SCL — HERO XL Pin 21"
+
   - from: a22
     to: 5v
     color: "#e53935"
     label: "RTC power — HERO XL 5V"
+
   - from: a23
     to: gnd
     color: "#333333"
     label: "RTC ground — HERO XL GND"
+
+  # Active buzzer
   - from: a25
     to: pin45
     color: "#7b1fa2"
     label: "buzzer — HERO XL Pin 45"
+
   - from: a26
     to: gnd
     color: "#333333"

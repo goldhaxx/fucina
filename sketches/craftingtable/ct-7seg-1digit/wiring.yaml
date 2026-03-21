@@ -8,42 +8,54 @@ components:
     pins: 10
 
 wires:
+  # Left bank (e-side) — pins 1-5: E, D, Common(GND), C, DP
   - from: a10
-    to: pin2
-    color: "#e53935"
-    label: "seg A — HERO XL Pin 2"
-
-  - from: a11
-    to: pin3
-    color: "#ff6f00"
-    label: "seg B — HERO XL Pin 3"
-
-  - from: a12
-    to: pin4
-    color: "#fdd835"
-    label: "seg C — HERO XL Pin 4"
-
-  - from: a13
-    to: pin5
-    color: "#43a047"
-    label: "seg D — HERO XL Pin 5"
-
-  - from: a14
     to: pin6
     color: "#1565c0"
-    label: "seg E — HERO XL Pin 6"
+    label: "seg E (pin 1) — HERO XL Pin 6"
 
-  - from: a15
-    to: pin7
-    color: "#7b1fa2"
-    label: "seg F — HERO XL Pin 7"
+  - from: a11
+    to: pin5
+    color: "#43a047"
+    label: "seg D (pin 2) — HERO XL Pin 5"
 
-  - from: a16
-    to: pin8
-    color: "#795548"
-    label: "seg G — HERO XL Pin 8"
+  - from: a12
+    to: gnd
+    color: "#333333"
+    label: "common cathode (pin 3) — GND"
 
-  - from: a17
+  - from: a13
+    to: pin4
+    color: "#fdd835"
+    label: "seg C (pin 4) — HERO XL Pin 4"
+
+  - from: a14
     to: pin9
     color: "#607d8b"
-    label: "seg DP — HERO XL Pin 9"
+    label: "seg DP (pin 5) — HERO XL Pin 9"
+
+  # Right bank (f-side) — pins 10-6: B, A, Common(GND), F, G
+  - from: j10
+    to: pin3
+    color: "#ff6f00"
+    label: "seg B (pin 10) — HERO XL Pin 3"
+
+  - from: j11
+    to: pin2
+    color: "#e53935"
+    label: "seg A (pin 9) — HERO XL Pin 2"
+
+  - from: j12
+    to: gnd
+    color: "#333333"
+    label: "common cathode (pin 8) — GND"
+
+  - from: j13
+    to: pin7
+    color: "#7b1fa2"
+    label: "seg F (pin 7) — HERO XL Pin 7"
+
+  - from: j14
+    to: pin8
+    color: "#795548"
+    label: "seg G (pin 6) — HERO XL Pin 8"
