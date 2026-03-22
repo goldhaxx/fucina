@@ -4,55 +4,65 @@ board: hero-xl
 components:
   # Red LED (reuse from 001/002 — already on the breadboard)
   - type: resistor
+    model: axial-resistor-1/4W
     value: 220
     from: d7
     to: d10
 
   - type: led
+    model: led-5mm
     color: red
     anode: e10
     cathode: e11
 
   # Green LED
   - type: resistor
+    model: axial-resistor-1/4W
     value: 220
     from: d14
     to: d17
 
   - type: led
+    model: led-5mm
     color: green
     anode: e17
     cathode: e18
 
   # Blue LED
   - type: resistor
+    model: axial-resistor-1/4W
     value: 220
     from: d21
     to: d24
 
   - type: led
+    model: led-5mm
     color: blue
     anode: e24
     cathode: e25
 
   # White LED
   - type: resistor
+    model: axial-resistor-1/4W
     value: 220
     from: d28
     to: d31
 
   - type: led
+    model: led-5mm
     color: white
     anode: e31
     cathode: e32
 
   # Yellow LED
   - type: resistor
+    model: axial-resistor-1/4W
     value: 220
     from: d35
     to: d38
 
   - type: led
+    model: led-5mm
     color: yellow
     anode: e38
     cathode: e39

@@ -3,6 +3,7 @@ board: hero-xl
 
 components:
   - type: button
+    model: tact-switch-6mm
     from: e10
     to: f10
 

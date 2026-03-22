@@ -14,6 +14,7 @@ components:
         label: GND
 
   - type: resistor
+    model: axial-resistor-1/4W
     value: 10000
     from: d10
     to: d12

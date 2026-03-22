@@ -20,6 +20,7 @@ pio test                    # Run unit tests (native/desktop)
 python3 tools/breadboard.py sketches/NNN-name/wiring.yaml -o sketches/NNN-name/wiring.svg
 python3 tools/breadboard.py sketches/NNN-name/wiring.yaml --rows 1-63 -o full.svg  # show all rows
 python3 tools/test-renderers.py -o tools/test-renderers-output.svg  # visual regression test for renderers
+python3 tools/validate-wiring.py                                   # validate all wiring.yaml against specs
 ```
 
 ## Architecture
@@ -35,9 +36,11 @@ sketches/                   # One directory per project/experiment
 └── ...
 tools/
 ├── breadboard.py           # SVG breadboard diagram generator
-└── test-renderers.py       # Visual test fixture for all component renderers
+├── test-renderers.py       # Visual test fixture for all component renderers
+└── validate-wiring.py      # Validates wiring.yaml against component specs
 lib/                        # Shared helper libraries across sketches
 docs/
+├── component-specs.yaml    # Machine-readable physical dimensions (single source of truth)
 ├── inventory.md            # Full component list with specs and status
 ├── pinouts.md              # Board pin maps and breadboard reference
 ├── wiring-patterns.md      # Common circuit recipes
@@ -74,6 +77,9 @@ docs/
 ## Reference Documents
 ### Scaffold Guide — @GUIDE.md
 **Read when:** Adding or modifying scaffold commands, rules, agents, skills, hooks, or scripts. Update its diagrams and tables to reflect the change.
+
+### Component Specs Registry — @docs/component-specs.yaml
+**Read when:** Adding a new component or renderer. Machine-readable physical dimensions (body size, pin pitch, pin count) sourced from datasheets. Single source of truth for renderer sizing.
 
 ### Component Inventory — @docs/inventory.md
 **Read when:** Starting a new sketch, checking available parts, looking up specs or datasheets.

@@ -120,11 +120,11 @@ Create a machine-readable component specs file (`docs/component-specs.yaml`) as 
 
 ## Definition of Done
 
-- [ ] `docs/component-specs.yaml` exists with entries for all breadboard-sitting component types
-- [ ] `breadboard.py` loads specs and uses them for body sizing (seven_segment as proof of concept)
-- [ ] `model` key documented in wiring.yaml schema, used in all seven_segment entries
-- [ ] `tools/validate-wiring.py` validates all wiring.yaml files against specs
-- [ ] `/new-component` command updated to populate specs file
-- [ ] Rules and docs updated: `components.md`, `renderers.md`, `CLAUDE.md`, `GUIDE.md`
-- [ ] All existing SVGs unchanged (or intentionally improved with more accurate dimensions)
-- [ ] Validator passes on all existing sketches
+- [x] `docs/component-specs.yaml` exists with entries for all breadboard-sitting component types
+- [x] `breadboard.py` loads specs and uses them for body sizing (seven_segment as proof of concept)
+- [x] `model` key documented in wiring.yaml schema, used in all component entries across 17 sketches
+- [x] `tools/validate-wiring.py` validates all wiring.yaml files against specs
+- [x] `/new-component` command updated to populate specs file
+- [x] Rules and docs updated: `components.md`, `renderers.md`, `CLAUDE.md`, `GUIDE.md`, `sketches.md`
+- [x] All existing SVGs unchanged (or intentionally improved with more accurate dimensions)
+- [x] Validator passes on all existing sketches (35 files, 0 failures)

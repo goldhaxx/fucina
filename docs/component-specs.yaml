@@ -135,6 +135,18 @@ trimmer-pot-3386P:
   datasheet: "https://www.bourns.com/pdfs/3386.pdf"
   notes: "Blue or white square body. Single-turn cermet. Center pin is wiper."
 
+# ─── Photoresistors ───────────────────────────────────────────────
+
+ldr-5mm:
+  description: "5mm light-dependent resistor (photoresistor, GL5528 compatible)"
+  body_mm: [5.0, 4.0]  # head diameter × height
+  pins: 2
+  pin_pitch_mm: 3.4  # typical lead spacing
+  pin_diameter_mm: 0.5
+  renderer: sensor
+  datasheet: "https://www.kth.se/social/files/54ef17dbf27654753f437c56/GL5528.pdf"
+  notes: "Resistance decreases with light. Pair with 10K pull-down resistor for voltage divider."
+
 # ─── Sensor Modules ───────────────────────────────────────────────
 
 ky-037:

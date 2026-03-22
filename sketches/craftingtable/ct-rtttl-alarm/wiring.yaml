@@ -3,6 +3,7 @@ board: hero-xl
 
 components:
   - type: buzzer
+    model: buzzer-passive-12mm
     variant: passive
     positive: e10
     negative: e11

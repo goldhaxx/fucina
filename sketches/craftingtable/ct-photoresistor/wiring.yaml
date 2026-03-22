@@ -3,11 +3,13 @@ board: hero-xl
 
 components:
   - type: resistor
+    model: axial-resistor-1/4W
     value: 10000
     from: d12
     to: d14
 
   - type: sensor
+    model: ldr-5mm
     label: "LDR"
     pin1: e10
     pin2: e12

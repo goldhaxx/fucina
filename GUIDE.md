@@ -791,7 +791,7 @@ Every scaffold feature traces back to transformer architecture research. This ta
 
 | Command | What it does |
 |---------|-------------|
-| `/new-component` | Guided workflow for onboarding a new hardware component. Researches specs from official documentation, updates inventory and wiring patterns, checks for renderer support, creates a complete sketch with wiring diagram. |
+| `/new-component` | Guided workflow for onboarding a new hardware component. Researches specs from official documentation, populates `docs/component-specs.yaml` with physical dimensions, updates inventory and wiring patterns, checks for renderer support, creates a complete sketch with wiring diagram, and validates against specs. |
 
 ### Rules
 
@@ -804,6 +804,7 @@ Every scaffold feature traces back to transformer architecture research. This ta
 
 | Document | Purpose |
 |----------|---------|
+| `docs/component-specs.yaml` | Machine-readable physical dimensions for all breadboard components (single source of truth for renderers) |
 | `docs/renderers.md` | Maps component types to breadboard.py renderer names and wiring.yaml schema |
 | `docs/course-map.md` | Maps Crafting Table course lessons to local sketches with coverage stats |
 | `docs/inventory.md` | Full component list with specs, pinouts, libraries, and safety notes |

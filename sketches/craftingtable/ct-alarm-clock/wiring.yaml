@@ -3,11 +3,13 @@ board: hero-xl
 
 components:
   - type: seven_segment
+    model: 5641AS
     digits: 4
     row_start: 10
     pins: 12
 
   - type: buzzer
+    model: buzzer-active-12mm
     variant: active
     positive: e25
     negative: e26

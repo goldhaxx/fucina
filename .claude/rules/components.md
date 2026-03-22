@@ -3,11 +3,12 @@
 ## Before Writing Code for a Component
 
 1. Check `docs/inventory.md` for an existing entry. If missing, add one with full specs before proceeding.
-2. **Look up the datasheet** for the component's physical dimensions — pin count, pin pitch, row spacing (for DIPs), operating voltage, interface type. These are non-negotiable inputs to the wiring.yaml.
+2. Check `docs/component-specs.yaml` for a physical specs entry. If missing, **look up the datasheet** and add one with body dimensions, pin count, pin pitch, operating voltage, and datasheet URL. Operating voltage is non-negotiable — it determines whether a level converter is needed.
 3. Check `docs/wiring-patterns.md` for the circuit pattern this component uses. Add if missing.
 4. Check `docs/pinouts.md` for pin conflicts with other components in the same sketch.
 5. Check `docs/renderers.md` to know which `type:` value to use in `wiring.yaml`.
 6. For DIP packages or components with an asymmetric face, determine the correct `orientation` value (see Orientation Model in `docs/renderers.md`).
+7. After writing `wiring.yaml`, run `python3 tools/validate-wiring.py` to verify component specs match.
 
 ## When a New Component Enters the Project
 

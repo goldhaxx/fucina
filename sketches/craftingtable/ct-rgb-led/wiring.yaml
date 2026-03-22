@@ -3,21 +3,25 @@ board: hero-xl
 
 components:
   - type: resistor
+    model: axial-resistor-1/4W
     value: 220
     from: d7
     to: d10
 
   - type: resistor
+    model: axial-resistor-1/4W
     value: 220
     from: d8
     to: d12
 
   - type: resistor
+    model: axial-resistor-1/4W
     value: 220
     from: d9
     to: d14
 
   - type: rgb_led
+    model: rgb-led-5mm
     red: e10
     common: e11
     green: e12

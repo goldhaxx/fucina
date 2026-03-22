@@ -3,6 +3,7 @@ board: hero-xl
 
 components:
   - type: seven_segment
+    model: 5641AS
     digits: 4
     row_start: 10
     pins: 12

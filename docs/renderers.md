@@ -8,6 +8,7 @@ Reference for component types supported by `tools/breadboard.py`. Use these `typ
 
 ```yaml
 - type: resistor
+  model: axial-resistor-1/4W  # key in docs/component-specs.yaml
   value: 220          # ohms — determines color band pattern
   from: d7            # one lead
   to: d10             # other lead
@@ -21,6 +22,7 @@ Draws a tan body with 4 color bands (2 digits + multiplier + tolerance gold) and
 
 ```yaml
 - type: led
+  model: led-5mm       # key in docs/component-specs.yaml
   color: red           # red, green, yellow, blue, white, orange
   anode: e10           # long leg (+)
   cathode: e11         # short leg (-)
@@ -100,6 +102,7 @@ Draws a frosted dome with 3 colored channel dots (R/G/B) and a GND label on the 
 
 ```yaml
 - type: seven_segment
+  model: 5161AS        # key in docs/component-specs.yaml (or 5641AS for 4-digit)
   digits: 1            # 1 or 4
   row_start: 10        # first breadboard row
   pins: 10             # total pin count (10 for 1-digit, 12 for 4-digit)
@@ -179,7 +182,7 @@ When a new renderer is needed, add it to `tools/breadboard.py`: define a `render
 
 ### Creating a new renderer
 
-1. **Look up the datasheet.** Get the component's physical dimensions: body size, pin pitch, pin count, and row spacing (for DIPs).
+1. **Look up the datasheet** and add dimensions to `docs/component-specs.yaml`. This is the single source of truth — renderers read from it, not from hardcoded constants.
 2. **Choose a coordinate strategy:**
    - **Position-derived** (most components): renderer computes geometry from pin hole positions. No orientation needed. Examples: resistor, LED, button, buzzer, sensor.
    - **Orientation-based** (DIP packages, displays): renderer draws in natural (datasheet) coords centered at origin, wrapped in a `<g transform="translate(...) rotate(...)">`. Uses `parse_orientation(comp)` for the rotation angle. Example: seven_segment.

@@ -3,6 +3,7 @@ board: esp32
 
 components:
   - type: led
+    model: led-5mm
     color: green
     anode: e10
     cathode: e11

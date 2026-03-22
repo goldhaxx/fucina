@@ -27,11 +27,13 @@ board: hero-xl              # or esp32
 
 components:
   - type: resistor           # axial resistor with color bands
+    model: axial-resistor-1/4W  # key in docs/component-specs.yaml
     value: 220               # ohms
     from: d7                 # breadboard hole (column + row)
     to: d10
 
   - type: led                # standard 2-pin LED
+    model: led-5mm           # key in docs/component-specs.yaml
     color: red               # red, green, yellow, blue, white, orange
     anode: e10               # long leg (+)
     cathode: e11             # short leg (-)
