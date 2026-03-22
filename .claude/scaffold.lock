@@ -1,7 +1,7 @@
 {
   "scaffold_source": "~/projects/claude-code-scaffold",
-  "scaffold_version": "708fba9",
-  "synced_at": "2026-03-22T16:14:54Z",
+  "scaffold_version": "60af10e",
+  "synced_at": "2026-03-22T17:21:24Z",
   "files": {
     ".claude/agents/code-reviewer.md": {
       "origin": "scaffold",
@@ -41,9 +41,10 @@
     },
     ".claude/commands/review.md": {
       "origin": "scaffold",
-      "scaffold_hash": "ec77793015c45e926cbce1a5e7f203b331089283f027ba05e57c2aca2cd43c88",
-      "local_hash": "ec77793015c45e926cbce1a5e7f203b331089283f027ba05e57c2aca2cd43c88",
-      "status": "clean"
+      "scaffold_hash": "414238c85787cf1bd76b0d4498ec8841958277252ac1b1b300a0786e65535c7e",
+      "local_hash": "414238c85787cf1bd76b0d4498ec8841958277252ac1b1b300a0786e65535c7e",
+      "status": "clean",
+      "sync": "tracked"
     },
     ".claude/commands/scaffold-demote.md": {
       "origin": "scaffold",
@@ -146,15 +147,16 @@
     },
     "scripts/scaffold-sync.sh": {
       "origin": "scaffold",
-      "scaffold_hash": "4c8eaf5c92ef0ea95b5b1146a9927dfab29e96bbc8711de5400dfeea79bdae67",
-      "local_hash": "4c8eaf5c92ef0ea95b5b1146a9927dfab29e96bbc8711de5400dfeea79bdae67",
+      "scaffold_hash": "80d111175fbb993b6293a52864218349504e26062dae74bc6ed29206d6dc934e",
+      "local_hash": "80d111175fbb993b6293a52864218349504e26062dae74bc6ed29206d6dc934e",
       "status": "clean"
     },
     "GUIDE.md": {
       "origin": "scaffold",
-      "scaffold_hash": "936e83c2f6961891b399762fbd8aec2fa6d37e8f11fd8bf11dbc57c651cb3f0e",
-      "local_hash": "936e83c2f6961891b399762fbd8aec2fa6d37e8f11fd8bf11dbc57c651cb3f0e",
-      "status": "clean"
+      "scaffold_hash": "2784e106d8b09f7c6c7c29e2522da0d1a68063f48108bfe4cbd7adc781370bf5",
+      "local_hash": "2784e106d8b09f7c6c7c29e2522da0d1a68063f48108bfe4cbd7adc781370bf5",
+      "status": "clean",
+      "sync": "tracked"
     },
     "SCAFFOLD_FRAMEWORK.md": {
       "origin": "scaffold",
@@ -182,9 +184,10 @@
     },
     "CLAUDE.md": {
       "origin": "scaffold",
-      "scaffold_hash": "aceb4afbac3621556f5bc70b76a714432013f8313d4b30433cc6011a552fb7e8",
-      "local_hash": "aceb4afbac3621556f5bc70b76a714432013f8313d4b30433cc6011a552fb7e8",
-      "status": "clean"
+      "scaffold_hash": "af57b330caf2ce4604101fb8a2c490a7c9e646d7ea416cc1553bde1ef22f5ffd",
+      "local_hash": "af57b330caf2ce4604101fb8a2c490a7c9e646d7ea416cc1553bde1ef22f5ffd",
+      "status": "clean",
+      "sync": "tracked"
     },
     ".claude/hooks/protect-files.sh": {
       "scaffold_hash": "f4738ac6a12332ba19799ac47dcd335a0e729e3cb3817f6c7f64224ecec8af26",
@@ -192,9 +195,11 @@
       "status": "clean"
     },
     ".claude/hooks/format-on-write.sh": {
-      "scaffold_hash": "51733735cb176660ffaaa62faab670cff55b90331a8e3cb4df43460ec3c52f8c",
-      "local_hash": "51733735cb176660ffaaa62faab670cff55b90331a8e3cb4df43460ec3c52f8c",
-      "status": "clean"
+      "scaffold_hash": "a243b5842ccfb468196e1c6725d77d9f3ad9becb156a422697f9d0c63c5ef277",
+      "local_hash": "a243b5842ccfb468196e1c6725d77d9f3ad9becb156a422697f9d0c63c5ef277",
+      "status": "clean",
+      "origin": "scaffold",
+      "sync": "tracked"
     },
     ".claude/commands/scaffold-audit.md": {
       "origin": "scaffold",
@@ -206,6 +211,24 @@
       "origin": "scaffold",
       "scaffold_hash": "421bc459353f2db3dd1037360ca0959284f68ac847070b4303e43be39a0ac523",
       "local_hash": "421bc459353f2db3dd1037360ca0959284f68ac847070b4303e43be39a0ac523",
+      "status": "clean"
+    },
+    ".claude/commands/security-audit.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "942f45234793bddfe935ca790696defae80cf76b07e22950dd12b37ff144e6ab",
+      "local_hash": "942f45234793bddfe935ca790696defae80cf76b07e22950dd12b37ff144e6ab",
+      "status": "clean"
+    },
+    ".claude/hooks/lint-on-write.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "f32768aba5802f0496c7687583d5ea36c5aec0679d25c9f651cc28d6ecb6a44f",
+      "local_hash": "f32768aba5802f0496c7687583d5ea36c5aec0679d25c9f651cc28d6ecb6a44f",
+      "status": "clean"
+    },
+    "scripts/security-audit.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "b52128c6c7aa0eafed9f246b0b772a9554aa219e09a9ca0d0aff0b871ccd7c15",
+      "local_hash": "b52128c6c7aa0eafed9f246b0b772a9554aa219e09a9ca0d0aff0b871ccd7c15",
       "status": "clean"
     }
   }
