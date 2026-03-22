@@ -1,7 +1,7 @@
 {
   "scaffold_source": "/Users/zacharywright/projects/claude-code-scaffold",
-  "scaffold_version": "ef38ff4",
-  "synced_at": "2026-03-22T15:39:48Z",
+  "scaffold_version": "708fba9",
+  "synced_at": "2026-03-22T16:14:54Z",
   "files": {
     ".claude/agents/code-reviewer.md": {
       "origin": "scaffold",
@@ -23,8 +23,8 @@
     },
     ".claude/commands/catchup.md": {
       "origin": "scaffold",
-      "scaffold_hash": "002de65797e7ce528af273fa4124ccf0c3ecb1f4deb6218f34bdafa19702bcac",
-      "local_hash": "002de65797e7ce528af273fa4124ccf0c3ecb1f4deb6218f34bdafa19702bcac",
+      "scaffold_hash": "bab2409342877d73d407f295327cadc634ad4ce80cf6a928f6bafe7857161759",
+      "local_hash": "bab2409342877d73d407f295327cadc634ad4ce80cf6a928f6bafe7857161759",
       "status": "clean"
     },
     ".claude/commands/fix-certs.md": {
@@ -41,8 +41,8 @@
     },
     ".claude/commands/review.md": {
       "origin": "scaffold",
-      "scaffold_hash": "34c38edfd22e01fbd7b11076b14b056bd6be5e8de4a00e637771dce917d69c38",
-      "local_hash": "34c38edfd22e01fbd7b11076b14b056bd6be5e8de4a00e637771dce917d69c38",
+      "scaffold_hash": "ec77793015c45e926cbce1a5e7f203b331089283f027ba05e57c2aca2cd43c88",
+      "local_hash": "ec77793015c45e926cbce1a5e7f203b331089283f027ba05e57c2aca2cd43c88",
       "status": "clean"
     },
     ".claude/commands/scaffold-demote.md": {
@@ -59,8 +59,8 @@
     },
     ".claude/commands/scaffold-pull.md": {
       "origin": "scaffold",
-      "scaffold_hash": "dc53bf0a38634230448efee822062c8159046342bb41928002095658f3774acb",
-      "local_hash": "dc53bf0a38634230448efee822062c8159046342bb41928002095658f3774acb",
+      "scaffold_hash": "c018f769678495b890b2e4b55310a32b1be6958fb5d59260df212532b14c96e3",
+      "local_hash": "c018f769678495b890b2e4b55310a32b1be6958fb5d59260df212532b14c96e3",
       "status": "clean"
     },
     ".claude/commands/scaffold-push.md": {
@@ -146,14 +146,14 @@
     },
     "scripts/scaffold-sync.sh": {
       "origin": "scaffold",
-      "scaffold_hash": "e36693f6956f6ffa9839e8e6d8096b9f573c6bc739ed450396f458846a6f9be1",
-      "local_hash": "e36693f6956f6ffa9839e8e6d8096b9f573c6bc739ed450396f458846a6f9be1",
+      "scaffold_hash": "4c8eaf5c92ef0ea95b5b1146a9927dfab29e96bbc8711de5400dfeea79bdae67",
+      "local_hash": "4c8eaf5c92ef0ea95b5b1146a9927dfab29e96bbc8711de5400dfeea79bdae67",
       "status": "clean"
     },
     "GUIDE.md": {
       "origin": "scaffold",
-      "scaffold_hash": "f68fb84968781c478298b2ed790e4b48b484305578b82727e9242c57f4b198c1",
-      "local_hash": "f68fb84968781c478298b2ed790e4b48b484305578b82727e9242c57f4b198c1",
+      "scaffold_hash": "936e83c2f6961891b399762fbd8aec2fa6d37e8f11fd8bf11dbc57c651cb3f0e",
+      "local_hash": "936e83c2f6961891b399762fbd8aec2fa6d37e8f11fd8bf11dbc57c651cb3f0e",
       "status": "clean"
     },
     "SCAFFOLD_FRAMEWORK.md": {
@@ -194,6 +194,18 @@
     ".claude/hooks/format-on-write.sh": {
       "scaffold_hash": "51733735cb176660ffaaa62faab670cff55b90331a8e3cb4df43460ec3c52f8c",
       "local_hash": "51733735cb176660ffaaa62faab670cff55b90331a8e3cb4df43460ec3c52f8c",
+      "status": "clean"
+    },
+    ".claude/commands/scaffold-audit.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "0896372d740c25a8bdf2d1af605063cd499f80c5588827121d42107bed605e67",
+      "local_hash": "0896372d740c25a8bdf2d1af605063cd499f80c5588827121d42107bed605e67",
+      "status": "clean"
+    },
+    ".claude/rules/self-review.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "421bc459353f2db3dd1037360ca0959284f68ac847070b4303e43be39a0ac523",
+      "local_hash": "421bc459353f2db3dd1037360ca0959284f68ac847070b4303e43be39a0ac523",
       "status": "clean"
     }
   }

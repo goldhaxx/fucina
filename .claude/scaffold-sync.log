@@ -1,5 +1,14 @@
+## 2026-03-22 09:14 — pull from scaffold @ 708fba9
+
 ## 2026-03-22 08:39 — pull from scaffold @ ef38ff4
 
+- ADDED .claude/rules/self-review.md
+- ADDED .claude/commands/scaffold-audit.md
+- AUTO-UPDATED scripts/scaffold-sync.sh
+- AUTO-UPDATED GUIDE.md
+- AUTO-UPDATED .claude/commands/scaffold-pull.md
+- AUTO-UPDATED .claude/commands/review.md
+- AUTO-UPDATED .claude/commands/catchup.md
 ## 2026-03-21 20:08 — classify
 
 - OVERWRITTEN .claude/hooks/format-on-write.sh — took scaffold version
