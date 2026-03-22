@@ -1,7 +1,7 @@
 {
   "scaffold_source": "~/projects/claude-code-scaffold",
-  "scaffold_version": "60af10e",
-  "synced_at": "2026-03-22T17:21:24Z",
+  "scaffold_version": "819790b",
+  "synced_at": "2026-03-22T18:44:15Z",
   "files": {
     ".claude/agents/code-reviewer.md": {
       "origin": "scaffold",
@@ -153,8 +153,8 @@
     },
     "GUIDE.md": {
       "origin": "scaffold",
-      "scaffold_hash": "2784e106d8b09f7c6c7c29e2522da0d1a68063f48108bfe4cbd7adc781370bf5",
-      "local_hash": "2784e106d8b09f7c6c7c29e2522da0d1a68063f48108bfe4cbd7adc781370bf5",
+      "scaffold_hash": "ebccf5e3f146bff79b216cbe148f07f54f2c98669cca26d77a40c702817ce260",
+      "local_hash": "ebccf5e3f146bff79b216cbe148f07f54f2c98669cca26d77a40c702817ce260",
       "status": "clean",
       "sync": "tracked"
     },
@@ -229,6 +229,18 @@
       "origin": "scaffold",
       "scaffold_hash": "b52128c6c7aa0eafed9f246b0b772a9554aa219e09a9ca0d0aff0b871ccd7c15",
       "local_hash": "b52128c6c7aa0eafed9f246b0b772a9554aa219e09a9ca0d0aff0b871ccd7c15",
+      "status": "clean"
+    },
+    "scripts/fetch-license.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "157192855692eff1d05fc5285f7dfadf7f116a8d054c98f757cc7f0b47d6ee01",
+      "local_hash": "157192855692eff1d05fc5285f7dfadf7f116a8d054c98f757cc7f0b47d6ee01",
+      "status": "clean"
+    },
+    "scripts/manifest-check.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "2689119e6af904c624cddbb5513dae61c7e0afcecfddaacaf39704df04b6b040",
+      "local_hash": "2689119e6af904c624cddbb5513dae61c7e0afcecfddaacaf39704df04b6b040",
       "status": "clean"
     }
   }
