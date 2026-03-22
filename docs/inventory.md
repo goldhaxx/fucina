@@ -182,12 +182,19 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 - **Library:** `BasicEncoder`
 - **Notes:** Not a potentiometer — it outputs pulses for rotation direction and clicks. Requires debouncing in software or hardware. Good for menu navigation and value adjustment. Uses interrupts — connect CLK and DT to interrupt-capable pins (2, 3, 18 on Mega). SW requires `INPUT_PULLUP`.
 
-### KY-023 Joystick Module
-- **Status:** `[ ]`
-- **Interface:** 2× analog (X, Y axes) + 1 digital (button)
+### HW-504 Joystick Module
+- **Status:** `[x]`
+- **Model:** HW-504 (electrically identical to KY-023)
+- **Interface:** 2× analog (X, Y axes) + 1 digital (push button)
 - **Operating Voltage:** 5V
-- **Pins:** VRx (analog), VRy (analog), SW (digital button)
-- **Notes:** Each axis outputs 0–1023 via `analogRead()`. Center position reads ~512. Button is active LOW — use `INPUT_PULLUP`.
+- **PCB Size:** ~34mm × 26mm (approximate)
+- **Pin count:** 5, single-row male header on left side of PCB
+- **Pin order (top to bottom):** GND, +5V, VRx, VRy, SW
+- **Analog range:** 0–1023 via `analogRead()`, center resting ~512
+- **Button:** Active LOW — use `INPUT_PULLUP`. No onboard pull-up.
+- **Library:** None — built-in `analogRead()` / `digitalRead()`
+- **Specs entry:** `hw-504` in `docs/component-specs.yaml`
+- **Notes:** Pins are on the left side of the module when the joystick knob faces you. The KY-023 listed in the original kit inventory is the same electrically — this is the actual module in hand. Each axis is a potentiometer wiper; safe with both 5V and 3.3V MCUs.
 
 ### 4×4 Membrane Keypad
 - **Status:** `[ ]`

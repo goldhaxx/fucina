@@ -169,6 +169,17 @@ ky-038:
   datasheet: "https://arduinomodules.info/ky-038-microphone-sound-sensor-module/"
   notes: "Similar to KY-037 but slightly smaller. Same pinout."
 
+hw-504:
+  description: "HW-504 dual-axis analog joystick module with push button"
+  body_mm: [34.0, 26.0, 32.0]  # length × width × total height (PCB to knob top, approximate)
+  pins: 5
+  pin_pitch_mm: 2.54
+  pin_order: [GND, "+5V", VRx, VRy, SW]
+  knob_cap_diameter_mm: 17.0
+  renderer: module
+  datasheet: "https://components101.com/modules/joystick-module"
+  notes: "Electrically identical to KY-023. Pins on left side, top-to-bottom. SW is active LOW, needs INPUT_PULLUP. Dimensions are approximate."
+
 ky-006:
   description: "KY-006 passive buzzer module (PCB-mounted)"
   body_mm: [18.5, 15.0, 14.0]

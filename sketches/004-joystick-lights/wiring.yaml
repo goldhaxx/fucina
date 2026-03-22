@@ -1,0 +1,165 @@
+name: "004 — Joystick Lights"
+board: hero-xl
+
+components:
+  # ─── LEDs (same layout as 003-patterns) ────────────────────────
+
+  # Red LED — rows 7–11
+  - type: resistor
+    model: axial-resistor-1/4W
+    value: 220
+    from: d7
+    to: d10
+
+  - type: led
+    model: led-5mm
+    color: red
+    anode: e10
+    cathode: e11
+
+  # Green LED — rows 14–18
+  - type: resistor
+    model: axial-resistor-1/4W
+    value: 220
+    from: d14
+    to: d17
+
+  - type: led
+    model: led-5mm
+    color: green
+    anode: e17
+    cathode: e18
+
+  # Blue LED — rows 21–25
+  - type: resistor
+    model: axial-resistor-1/4W
+    value: 220
+    from: d21
+    to: d24
+
+  - type: led
+    model: led-5mm
+    color: blue
+    anode: e24
+    cathode: e25
+
+  # White LED — rows 28–32
+  - type: resistor
+    model: axial-resistor-1/4W
+    value: 220
+    from: d28
+    to: d31
+
+  - type: led
+    model: led-5mm
+    color: white
+    anode: e31
+    cathode: e32
+
+  # Yellow LED — rows 35–39
+  - type: resistor
+    model: axial-resistor-1/4W
+    value: 220
+    from: d35
+    to: d38
+
+  - type: led
+    model: led-5mm
+    color: yellow
+    anode: e38
+    cathode: e39
+
+  # ─── Joystick (HW-504) ────────────────────────────────────────
+  # Direct wiring: each pin connects straight to its destination.
+  # No intermediate breadboard holes — jumper wires go from the
+  # joystick header directly to HERO XL pins or breadboard power rails.
+
+  - type: module
+    name: "HW-504 Joystick"
+    color: "#6a1b9a"
+    row: 45
+    pins:
+      - label: GND
+        to: -L37
+        color: "#333333"
+      - label: "+5V"
+        to: +L37
+        color: "#e53935"
+      - label: VRx
+        to: pin_a0
+        color: "#43a047"
+      - label: VRy
+        to: pin_a1
+        color: "#1565c0"
+      - label: SW
+        to: pin2
+        color: "#7b1fa2"
+
+wires:
+  # ─── Power rails ──────────────────────────────────────────────
+
+  # GND bus: HERO XL GND to breadboard negative rail
+  - from: gnd
+    to: -L1
+    color: "#333333"
+    label: "GND bus — HERO XL GND to - rail"
+
+  # 5V bus: HERO XL 5V to breadboard positive rail
+  - from: 5v
+    to: +L1
+    color: "#e53935"
+    label: "5V bus — HERO XL 5V to + rail"
+
+  # ─── LED signal wires (PWM pins) ─────────────────────────────
+
+  - from: a7
+    to: pin9
+    color: "#e53935"
+    label: "red signal — Pin 9 (PWM)"
+
+  - from: a14
+    to: pin10
+    color: "#2e7d32"
+    label: "green signal — Pin 10 (PWM)"
+
+  - from: a21
+    to: pin11
+    color: "#1565c0"
+    label: "blue signal — Pin 11 (PWM)"
+
+  - from: a28
+    to: pin5
+    color: "#757575"
+    label: "white signal — Pin 5 (PWM)"
+
+  - from: a35
+    to: pin6
+    color: "#f9a825"
+    label: "yellow signal — Pin 6 (PWM)"
+
+  # ─── LED ground jumpers (cathode rows to - rail) ─────────────
+
+  - from: a11
+    to: -L8
+    color: "#333333"
+    label: "red GND to - rail"
+
+  - from: a18
+    to: -L14
+    color: "#333333"
+    label: "green GND to - rail"
+
+  - from: a25
+    to: -L20
+    color: "#333333"
+    label: "blue GND to - rail"
+
+  - from: a32
+    to: -L26
+    color: "#333333"
+    label: "white GND to - rail"
+
+  - from: a39
+    to: -L31
+    color: "#333333"
+    label: "yellow GND to - rail"

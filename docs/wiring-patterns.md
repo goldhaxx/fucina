@@ -259,19 +259,21 @@ GPIO 11 ──── S (signal)
 
 ---
 
-## Joystick Module (KY-023)
+## Joystick Module (HW-504 / KY-023)
 
 ```
-  5V ──── 5V
+HW-504 pin header (top to bottom, pins on left side):
  GND ──── GND
-  A0 ──── VRx (X axis)
-  A1 ──── VRy (Y axis)
-   2 ──── SW  (button)
+ +5V ──── 5V
+ VRx ──── A0  (X axis)
+ VRy ──── A1  (Y axis)
+  SW ──── D2  (button)
 ```
 
 - Two analog axes (0-1023, center ~512) + one digital button.
-- Button is active LOW — use `INPUT_PULLUP` and `digitalWrite(pin, HIGH)`.
+- Button is active LOW — use `INPUT_PULLUP` and `digitalRead(pin)`.
 - Same analog read pattern as a potentiometer on each axis.
+- HW-504 and KY-023 are electrically identical — pin order may differ by manufacturer, always check the silkscreen.
 
 ---
 

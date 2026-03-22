@@ -109,3 +109,29 @@ Key learnings documented in checkpoint:
 3. Physical component dimensions should come from datasheets, not guesswork
 4. wiring.yaml must reflect physical breadboard positions (both banks for DIPs)
 5. PlatformIO library names need a reference mapping document
+
+## 2026-03-22 — 004-joystick-lights
+
+**Component(s):** HW-504 joystick, 5× LEDs (red, green, blue, white, yellow), 5× 220Ω resistors
+**Board:** HERO XL (Mega 2560)
+**Result:** worked
+
+First multi-component original sketch. Joystick position selects LED animation effects in real time:
+- Center: sync pulse (all LEDs breathe together)
+- Left/Right: sequential chase in that direction, speed scales with deflection
+- Up: random twinkle, cubic intensity curve — goes chaotic at full throw
+- Down: ripple wave expanding outward from center LED
+
+Gotchas and fixes:
+- **Joystick calibration is mandatory.** Hardcoded center of 512 was completely wrong — the HW-504 read X=0, Y=0 at rest because the 5V bus wire was missing. After adding 5V, it calibrated to X=509, Y=518. Auto-calibration at startup (32 samples averaged) is the right approach for any analog joystick.
+- **X-axis was inverted.** Physical right = high analog on this unit. Swapped in code. Would vary by manufacturer — could add a serial command to flip axes.
+- **Zone flicker at axis boundaries.** Without hysteresis, the joystick flickered between UP and LEFT when near a diagonal. Fixed with 20-unit hysteresis (need more deflection to enter a zone than to stay in it).
+- **Forgot the 5V bus wire.** Sketch 003 only used GND bus. Adding the joystick required a new wire from HERO XL 5V to the + rail. Without it, potentiometers have no reference voltage and read 0.
+- **Cubic intensity curve feels right.** Linear deflection-to-speed mapping felt flat. `deflection³` makes small movements gentle and full throw severe — much more satisfying on twinkle and ripple.
+
+Also overhauled the module renderer in breadboard.py:
+- New `to:` pin format for direct module-to-destination wiring (no intermediate breadboard holes)
+- Module cards now render fully separated from the breadboard
+- Onboarded HW-504 through `/new-component` workflow (specs, inventory, wiring patterns)
+
+**Sketch count: 33** (4 original + 29 craftingtable)

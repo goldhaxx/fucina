@@ -3,13 +3,13 @@ board: hero-xl
 
 components:
   - type: module
-    name: "KY-023 Joystick"
+    name: "HW-504 Joystick"
     color: "#6a1b9a"
     pins:
       - hole: a10
-        label: VCC
-      - hole: a11
         label: GND
+      - hole: a11
+        label: "+5V"
       - hole: a12
         label: VRx
       - hole: a13
@@ -19,14 +19,14 @@ components:
 
 wires:
   - from: a10
-    to: 5v
-    color: "#e53935"
-    label: "power — HERO XL 5V"
-
-  - from: a11
     to: gnd
     color: "#333333"
     label: "ground — HERO XL GND"
+
+  - from: a11
+    to: 5v
+    color: "#e53935"
+    label: "power — HERO XL 5V"
 
   - from: a12
     to: pin_a0
