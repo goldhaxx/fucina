@@ -33,6 +33,5 @@ docs/checkpoint.md
 # Course archive — cloned external repo (large, not our code)
 course-archive/github-repo/
 
-# Scaffold sync state (machine-generated)
-.claude/scaffold.lock
-.claude/scaffold-sync.log
+# Scaffold sync state — tracked in git for provenance.
+# Listed in .claudeignore so Claude uses the script to access them, not raw reads.
