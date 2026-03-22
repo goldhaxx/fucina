@@ -982,16 +982,24 @@
 <circle cx="236.0" cy="668.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
 <circle cx="236.0" cy="682.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
 <circle cx="236.0" cy="696.0" r="1.5" fill="#999" stroke="#777" stroke-width="0.3"/>
-<rect x="4.0" y="731.0" width="60.0" height="56.0" rx="4" fill="#1565c0" stroke="#263238" stroke-width="0.8" opacity="0.92"/>
-<text x="34.0" y="742.0" font-size="8" fill="white" font-weight="600" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">HC-SR04</text>
-<text x="10.0" y="752.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">VCC</text>
-<line x1="64.0" y1="749.0" x2="110.0" y2="738.0" stroke="#1565c0" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
-<text x="10.0" y="764.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">TRIG</text>
-<line x1="64.0" y1="761.0" x2="110.0" y2="752.0" stroke="#1565c0" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
-<text x="10.0" y="776.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">ECHO</text>
-<line x1="64.0" y1="773.0" x2="110.0" y2="766.0" stroke="#1565c0" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
-<text x="10.0" y="788.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">GND</text>
-<line x1="64.0" y1="785.0" x2="110.0" y2="780.0" stroke="#1565c0" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
+<rect x="-8.0" y="723.0" width="60.0" height="72.0" rx="5" fill="#1565c0" stroke="#263238" stroke-width="1" opacity="0.95"/>
+<text x="22.0" y="736.0" font-size="8" fill="white" font-weight="700" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">HC-SR04</text>
+<circle cx="52.0" cy="743.0" r="2.5" fill="white" stroke="#1565c0" stroke-width="0.8"/>
+<text x="44.0" y="746.0" font-size="6" fill="#ddd" font-weight="600" text-anchor="end" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">VCC</text>
+<line x1="52.0" y1="743.0" x2="110.0" y2="743.0" stroke="#e53935" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="110.0" y1="743.0" x2="110.0" y2="738.0" stroke="#e53935" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<circle cx="52.0" cy="757.0" r="2.5" fill="white" stroke="#1565c0" stroke-width="0.8"/>
+<text x="44.0" y="760.0" font-size="6" fill="#ddd" font-weight="600" text-anchor="end" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">TRIG</text>
+<line x1="52.0" y1="757.0" x2="110.0" y2="757.0" stroke="#1565c0" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="110.0" y1="757.0" x2="110.0" y2="752.0" stroke="#1565c0" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<circle cx="52.0" cy="771.0" r="2.5" fill="white" stroke="#1565c0" stroke-width="0.8"/>
+<text x="44.0" y="774.0" font-size="6" fill="#ddd" font-weight="600" text-anchor="end" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">ECHO</text>
+<line x1="52.0" y1="771.0" x2="110.0" y2="771.0" stroke="#1565c0" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="110.0" y1="771.0" x2="110.0" y2="766.0" stroke="#1565c0" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<circle cx="52.0" cy="785.0" r="2.5" fill="white" stroke="#1565c0" stroke-width="0.8"/>
+<text x="44.0" y="788.0" font-size="6" fill="#ddd" font-weight="600" text-anchor="end" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">GND</text>
+<line x1="52.0" y1="785.0" x2="110.0" y2="785.0" stroke="#333333" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="110.0" y1="785.0" x2="110.0" y2="780.0" stroke="#333333" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
 <line x1="39.5" y1="80.0" x2="110.0" y2="80.0" stroke="#e53935" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
 <rect x="4.0" y="74.0" width="35.5" height="12.0" rx="4" fill="#e53935" opacity="0.92"/>
 <text x="8.0" y="83.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 9</text>

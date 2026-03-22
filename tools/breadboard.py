@@ -291,14 +291,19 @@ def detect_row_range(circuit: dict, padding: int = 3) -> tuple[int, int]:
                 body_hi = int(pin_center + body_rows / 2) + 1
                 for i in range(max(1, body_lo), min(TERMINAL_ROWS + 1, body_hi)):
                     rows_used.add(i)
-        # module uses pins list
+        # module uses pins list (hole: or to: format)
         pins_val = comp.get("pins", [])
         if isinstance(pins_val, list):
             for pin in pins_val:
-                if isinstance(pin, dict) and "hole" in pin:
-                    r = _extract_row(str(pin["hole"]))
-                    if r:
-                        rows_used.add(r)
+                if isinstance(pin, dict):
+                    for k in ("hole", "to"):
+                        if k in pin:
+                            r = _extract_row(str(pin[k]))
+                            if r:
+                                rows_used.add(r)
+        # module row: key for vertical positioning
+        if comp.get("type") == "module" and comp.get("row"):
+            rows_used.add(int(comp["row"]))
 
     for wire in circuit.get("wires", []):
         for key in ("from", "to"):
@@ -322,17 +327,19 @@ class Board:
     Supports rendering a subset of rows (row_lo to row_hi) for focused diagrams.
     """
 
-    def __init__(self, row_lo: int = 1, row_hi: int = TERMINAL_ROWS):
+    def __init__(self, row_lo: int = 1, row_hi: int = TERMINAL_ROWS,
+                 margin_left: float = MARGIN_LEFT):
         self.row_lo = row_lo
         self.row_hi = row_hi
         self.visible_rows = row_hi - row_lo + 1
+        self.margin_left = margin_left
         self._col_x: dict[str, float] = {}
         self._setup_columns()
         self.occupied: set[str] = set()
         self.specs: dict = {}  # populated by generate() from component-specs.yaml
 
     def _setup_columns(self):
-        x = MARGIN_LEFT
+        x = self.margin_left
         self._col_x["+L"] = x
         x += RAIL_GAP
         self._col_x["-L"] = x
@@ -930,11 +937,32 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
     return els
 
 
-def render_module(board: Board, comp: dict) -> list[str]:
-    """Render an off-board module as a labeled box at the left margin.
+def _module_box_width(name: str) -> float:
+    """Compute the rendered width of a module box from its name."""
+    return max(len(name) * 6 + 16, 60)
 
-    The box is positioned at the average y-coordinate of its connected holes,
-    with lead lines going to each hole.
+
+def _module_wire_color(label: str, default_color: str) -> str:
+    """Pick a wire color based on a module pin label."""
+    lbl = label.lower().strip().strip('"').strip("'")
+    if lbl in ("gnd", "ground", "-"):
+        return "#333333"
+    if lbl in ("+5v", "5v", "vcc", "vin", "+3v3", "3v3", "+"):
+        return "#e53935"
+    return default_color
+
+
+def render_module(board: Board, comp: dict) -> list[str]:
+    """Render an off-board module as a labeled card left of the breadboard.
+
+    Supports two pin formats:
+      hole: (legacy) — pin maps to a breadboard hole, wire drawn to it
+      to:   (direct) — pin connects directly to a destination (board pin,
+             power rail, or breadboard hole). No intermediate holes needed.
+
+    The card is positioned entirely outside the breadboard area. Pin anchors
+    sit on the right edge of the card (facing the breadboard). Each pin's
+    wire routes to its destination without overlapping other wires.
     """
     name = comp.get("name", "Module")
     color = comp.get("color", "#37474f")
@@ -943,47 +971,114 @@ def render_module(board: Board, comp: dict) -> list[str]:
     if not pins_list:
         return []
 
-    # Collect hole coordinates
-    hole_coords = []
-    for pin in pins_list:
-        hole = str(pin.get("hole", ""))
-        if hole and not _is_board_pin(hole):
-            board.mark_occupied(hole)
-            hole_coords.append((board.hole_xy(hole), pin.get("label", "")))
+    # Detect format: any pin with 'to:' → direct routing
+    use_direct = any(isinstance(p, dict) and p.get("to") for p in pins_list)
 
-    if not hole_coords:
+    # Resolve vertical anchor and pin data
+    pin_data = []  # list of (label, wire_color, dest_xy_or_none, dest_id)
+    y_samples = []
+
+    for pin in pins_list:
+        if not isinstance(pin, dict):
+            continue
+        label = pin.get("label", "")
+        wire_color = pin.get("color", _module_wire_color(label, color))
+
+        if use_direct:
+            dest = str(pin.get("to", ""))
+            if dest and not _is_board_pin(dest):
+                # Breadboard hole or power rail — has coordinates
+                board.mark_occupied(dest)
+                dx, dy = board.hole_xy(dest)
+                y_samples.append(dy)
+                pin_data.append((label, wire_color, (dx, dy), dest))
+            else:
+                # Board pin — no breadboard position
+                pin_data.append((label, wire_color, None, dest))
+        else:
+            hole = str(pin.get("hole", ""))
+            if hole and not _is_board_pin(hole):
+                board.mark_occupied(hole)
+                hx, hy = board.hole_xy(hole)
+                y_samples.append(hy)
+                pin_data.append((label, wire_color, (hx, hy), hole))
+
+    if not pin_data:
         return []
 
-    # Position the module box at the left margin
-    avg_y = sum(c[0][1] for c in hole_coords) / len(hole_coords)
-    box_h = max(len(hole_coords) * 12 + 8, 24)
-    box_w = max(len(name) * 6 + 16, 60)
-    box_x = 4
-    box_y = avg_y - box_h / 2
-    box_right = box_x + box_w
+    # Vertical positioning: use 'row' key, or average of resolved destinations
+    row_key = comp.get("row")
+    if row_key is not None:
+        anchor_y = board._terminal_row_y(int(row_key))
+    elif y_samples:
+        anchor_y = sum(y_samples) / len(y_samples)
+    else:
+        anchor_y = (board.board_top + board.board_bottom) / 2
+
+    # Card dimensions and position
+    gap = 16
+    pin_spacing = 14
+    box_h = max(len(pin_data) * pin_spacing + 16, 32)
+    box_w = _module_box_width(name)
+    box_right = board.board_left - gap
+    box_x = box_right - box_w
+    box_y = anchor_y - box_h / 2
+    pin_block_top = box_y + 20
 
     els = []
 
-    # Module box
-    els.append(_rect(box_x, box_y, box_w, box_h, rx="4",
-                     fill=color, stroke="#263238", stroke_width="0.8", opacity="0.92"))
+    # Card body
+    els.append(_rect(box_x, box_y, box_w, box_h, rx="5",
+                     fill=color, stroke="#263238", stroke_width="1", opacity="0.95"))
 
     # Module name
-    els.append(_text(box_x + box_w / 2, box_y + 11, name,
-                     font_size="8", fill="white", font_weight="600",
+    els.append(_text(box_x + box_w / 2, box_y + 13, name,
+                     font_size="8", fill="white", font_weight="700",
                      text_anchor="middle", font_family=FONT))
 
-    # Pin labels and lead lines
-    for i, ((hx, hy), label) in enumerate(hole_coords):
-        pin_y = box_y + 18 + i * 12
+    # Render each pin: anchor dot, label, wire to destination
+    for i, (label, wire_color, dest_xy, dest_id) in enumerate(pin_data):
+        pin_y = pin_block_top + i * pin_spacing
+        anchor_x = box_right
+
+        # Pin anchor dot
+        els.append(_circle(anchor_x, pin_y, 2.5,
+                           fill="white", stroke=color, stroke_width="0.8"))
+
+        # Pin label inside card
         if label:
-            els.append(_text(box_x + 6, pin_y + 3, label,
-                             font_size="6", fill="#ccc", font_family=FONT_MONO))
-        # Lead line from box edge to hole
-        els.append(_line(box_right, pin_y, hx, hy,
-                         stroke=color, stroke_width="1.5",
-                         stroke_linecap="round", opacity="0.5",
-                         stroke_dasharray="3,3"))
+            els.append(_text(anchor_x - 8, pin_y + 3, label,
+                             font_size="6", fill="#ddd", font_weight="600",
+                             text_anchor="end", font_family=FONT_MONO))
+
+        if use_direct and dest_id and _is_board_pin(dest_id):
+            # Board pin → wire across diagram to a labeled pill on the right
+            pill_label = _pin_label(dest_id)
+            pill_h = 12
+            text_w = max(len(pill_label) * 5.5 + 8, 32)
+            pill_right = board.svg_width - 4
+            pill_x = pill_right - text_w
+
+            els.append(_line(anchor_x, pin_y, pill_x, pin_y,
+                             stroke=wire_color, stroke_width="2",
+                             stroke_linecap="round", opacity="0.8"))
+            els.append(_rect(pill_x, pin_y - pill_h / 2, text_w, pill_h,
+                             rx="4", fill=wire_color, opacity="0.92"))
+            els.append(_text(pill_x + 4, pin_y + 3, pill_label,
+                             font_size="8", fill="white", font_weight="600",
+                             font_family=FONT))
+
+        elif dest_xy:
+            # Breadboard hole or power rail — wire to that position
+            dx, dy = dest_xy
+            # L-shaped route: horizontal to the destination's x, then vertical
+            els.append(_line(anchor_x, pin_y, dx, pin_y,
+                             stroke=wire_color, stroke_width="2",
+                             stroke_linecap="round", opacity="0.8"))
+            if abs(dy - pin_y) > 1:
+                els.append(_line(dx, pin_y, dx, dy,
+                                 stroke=wire_color, stroke_width="2",
+                                 stroke_linecap="round", opacity="0.8"))
 
     return els
 
@@ -996,7 +1091,8 @@ def _is_board_pin(s: str) -> bool:
 def _pin_label(s: str) -> str:
     s = s.strip()
     if s.lower().startswith("pin"):
-        return f"Pin {s[3:]}"
+        rest = s[3:].lstrip("_")  # handle pin9 and pin_a0
+        return f"Pin {rest.upper()}"
     return s.upper()
 
 
@@ -1304,7 +1400,16 @@ def generate(circuit: dict, rows: tuple[int, int] | None = None,
     else:
         row_lo, row_hi = detect_row_range(circuit, padding=3)
 
-    board = Board(row_lo, row_hi)
+    # Compute left margin — widen when module cards need space
+    margin_left = MARGIN_LEFT
+    for comp in circuit.get("components", []):
+        if comp.get("type") == "module":
+            card_w = _module_box_width(comp.get("name", "Module"))
+            # card needs: 4px left pad + card_w + 16px gap + BOARD_PAD_X
+            needed = 4 + card_w + 16 + BOARD_PAD_X
+            margin_left = max(margin_left, needed)
+
+    board = Board(row_lo, row_hi, margin_left=margin_left)
     board.specs = specs if specs is not None else load_component_specs()
 
     # Mark occupied holes
@@ -1316,10 +1421,12 @@ def generate(circuit: dict, rows: tuple[int, int] | None = None,
         pins_val = comp.get("pins", [])
         if isinstance(pins_val, list):
             for pin in pins_val:
-                if isinstance(pin, dict) and "hole" in pin:
-                    h = str(pin["hole"])
-                    if not _is_board_pin(h):
-                        board.mark_occupied(h)
+                if isinstance(pin, dict):
+                    for k in ("hole", "to"):
+                        if k in pin:
+                            h = str(pin[k])
+                            if not _is_board_pin(h):
+                                board.mark_occupied(h)
     for wire in circuit.get("wires", []):
         for key in ("from", "to"):
             if not _is_board_pin(str(wire[key])):

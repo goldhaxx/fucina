@@ -1,248 +1,258 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 372 358"
-     width="372" height="358"
+     viewBox="0 0 424 358"
+     width="424" height="358"
      style="background:#fff">
-<rect x="70.0" y="42.0" width="224.0" height="164.0" rx="8" fill="#00000015"/>
-<rect x="68.0" y="40.0" width="224.0" height="164.0" rx="8" fill="#e8dcc8" stroke="#b8a88a" stroke-width="1.2"/>
-<rect x="173.0" y="44.0" width="14.0" height="156.0" rx="2" fill="#d4c8b0" stroke="#c4b898" stroke-width="0.4"/>
-<line x1="80.0" y1="44.0" x2="80.0" y2="200.0" stroke="#d32f2f" stroke-width="1.2" opacity="0.2" stroke-dasharray="3,5"/>
-<line x1="90.0" y1="44.0" x2="90.0" y2="200.0" stroke="#1565c0" stroke-width="1.2" opacity="0.2" stroke-dasharray="3,5"/>
-<line x1="270.0" y1="44.0" x2="270.0" y2="200.0" stroke="#d32f2f" stroke-width="1.2" opacity="0.2" stroke-dasharray="3,5"/>
-<line x1="280.0" y1="44.0" x2="280.0" y2="200.0" stroke="#1565c0" stroke-width="1.2" opacity="0.2" stroke-dasharray="3,5"/>
-<rect x="105.0" y="89.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="189.0" y="89.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="105.0" y="103.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="189.0" y="103.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="105.0" y="117.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="189.0" y="117.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="105.0" y="131.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="189.0" y="131.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="105.0" y="145.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="189.0" y="145.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<circle cx="110.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="110.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="110.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="110.0" cy="94.0" r="3.0" fill="#666"/>
-<circle cx="110.0" cy="108.0" r="3.0" fill="#666"/>
-<circle cx="110.0" cy="122.0" r="3.0" fill="#666"/>
-<circle cx="110.0" cy="136.0" r="3.0" fill="#666"/>
-<circle cx="110.0" cy="150.0" r="3.0" fill="#666"/>
-<circle cx="110.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="110.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="110.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="124.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="124.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="124.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="124.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="124.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="124.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="124.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="124.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="124.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="124.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="124.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="138.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="138.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="138.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="138.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="138.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="138.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="138.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="138.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="138.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="138.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="138.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="152.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="152.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="152.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="152.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="152.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="152.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="152.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="152.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="152.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="152.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="152.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="166.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="194.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="194.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="194.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="194.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="194.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="194.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="194.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="194.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="194.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="194.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="194.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="208.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="208.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="208.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="208.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="208.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="208.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="208.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="208.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="208.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="208.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="208.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="222.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="222.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="222.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="222.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="222.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="222.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="222.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="222.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="222.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="222.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="222.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="236.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="236.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="236.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="236.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="236.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="236.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="236.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="236.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="236.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="236.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="236.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="250.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="250.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="250.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="250.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="250.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="250.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="250.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="250.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="250.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="250.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="250.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
-<circle cx="80.0" cy="52.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="80.0" cy="80.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="80.0" cy="94.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="80.0" cy="108.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="80.0" cy="122.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="80.0" cy="136.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="80.0" cy="164.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="80.0" cy="178.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="80.0" cy="192.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="90.0" cy="52.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="90.0" cy="80.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="90.0" cy="94.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="90.0" cy="108.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="90.0" cy="122.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="90.0" cy="136.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="90.0" cy="164.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="90.0" cy="178.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="90.0" cy="192.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="270.0" cy="52.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="270.0" cy="80.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="270.0" cy="94.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="270.0" cy="108.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="270.0" cy="122.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="270.0" cy="136.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="270.0" cy="164.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="270.0" cy="178.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="270.0" cy="192.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="280.0" cy="52.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="280.0" cy="80.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="280.0" cy="94.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="280.0" cy="108.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="280.0" cy="122.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="280.0" cy="136.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="280.0" cy="164.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="280.0" cy="178.0" r="2.5" fill="#2a2a2a"/>
-<circle cx="280.0" cy="192.0" r="2.5" fill="#2a2a2a"/>
-<text x="110.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">a</text>
-<text x="124.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">b</text>
-<text x="138.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">c</text>
-<text x="152.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">d</text>
-<text x="166.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">e</text>
-<text x="194.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">f</text>
-<text x="208.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">g</text>
-<text x="222.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">h</text>
-<text x="236.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">i</text>
-<text x="250.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">j</text>
-<text x="80.0" y="36.0" font-size="10" fill="#d32f2f" font-weight="bold" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">+</text>
-<text x="90.0" y="36.0" font-size="10" fill="#1565c0" font-weight="bold" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">–</text>
-<text x="270.0" y="36.0" font-size="10" fill="#d32f2f" font-weight="bold" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">+</text>
-<text x="280.0" y="36.0" font-size="10" fill="#1565c0" font-weight="bold" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">–</text>
-<text x="100.0" y="55.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">7</text>
-<text x="260.0" y="55.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">7</text>
-<text x="100.0" y="69.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">8</text>
-<text x="260.0" y="69.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">8</text>
-<text x="100.0" y="83.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">9</text>
-<text x="260.0" y="83.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">9</text>
-<text x="100.0" y="97.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">10</text>
-<text x="260.0" y="97.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">10</text>
-<text x="100.0" y="111.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">11</text>
-<text x="260.0" y="111.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">11</text>
-<text x="100.0" y="125.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">12</text>
-<text x="260.0" y="125.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">12</text>
-<text x="100.0" y="139.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">13</text>
-<text x="260.0" y="139.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">13</text>
-<text x="100.0" y="153.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">14</text>
-<text x="260.0" y="153.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">14</text>
-<text x="100.0" y="167.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">15</text>
-<text x="260.0" y="167.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">15</text>
-<text x="100.0" y="181.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">16</text>
-<text x="260.0" y="181.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">16</text>
-<text x="100.0" y="195.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">17</text>
-<text x="260.0" y="195.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">17</text>
-<rect x="4.0" y="88.0" width="100.0" height="68.0" rx="4" fill="#2e7d32" stroke="#263238" stroke-width="0.8" opacity="0.92"/>
-<text x="54.0" y="99.0" font-size="8" fill="white" font-weight="600" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ULN2003 Driver</text>
-<text x="10.0" y="109.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">IN1</text>
-<line x1="104.0" y1="106.0" x2="110.0" y2="94.0" stroke="#2e7d32" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
-<text x="10.0" y="121.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">IN3</text>
-<line x1="104.0" y1="118.0" x2="110.0" y2="108.0" stroke="#2e7d32" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
-<text x="10.0" y="133.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">IN2</text>
-<line x1="104.0" y1="130.0" x2="110.0" y2="122.0" stroke="#2e7d32" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
-<text x="10.0" y="145.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">IN4</text>
-<line x1="104.0" y1="142.0" x2="110.0" y2="136.0" stroke="#2e7d32" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
-<text x="10.0" y="157.0" font-size="6" fill="#ccc" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">GND</text>
-<line x1="104.0" y1="154.0" x2="110.0" y2="150.0" stroke="#2e7d32" stroke-width="1.5" stroke-linecap="round" opacity="0.5" stroke-dasharray="3,3"/>
-<line x1="39.5" y1="94.0" x2="110.0" y2="94.0" stroke="#e53935" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="122.0" y="42.0" width="224.0" height="164.0" rx="8" fill="#00000015"/>
+<rect x="120.0" y="40.0" width="224.0" height="164.0" rx="8" fill="#e8dcc8" stroke="#b8a88a" stroke-width="1.2"/>
+<rect x="225.0" y="44.0" width="14.0" height="156.0" rx="2" fill="#d4c8b0" stroke="#c4b898" stroke-width="0.4"/>
+<line x1="132.0" y1="44.0" x2="132.0" y2="200.0" stroke="#d32f2f" stroke-width="1.2" opacity="0.2" stroke-dasharray="3,5"/>
+<line x1="142.0" y1="44.0" x2="142.0" y2="200.0" stroke="#1565c0" stroke-width="1.2" opacity="0.2" stroke-dasharray="3,5"/>
+<line x1="322.0" y1="44.0" x2="322.0" y2="200.0" stroke="#d32f2f" stroke-width="1.2" opacity="0.2" stroke-dasharray="3,5"/>
+<line x1="332.0" y1="44.0" x2="332.0" y2="200.0" stroke="#1565c0" stroke-width="1.2" opacity="0.2" stroke-dasharray="3,5"/>
+<rect x="157.0" y="89.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="241.0" y="89.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="157.0" y="103.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="241.0" y="103.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="157.0" y="117.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="241.0" y="117.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="157.0" y="131.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="241.0" y="131.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="157.0" y="145.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="241.0" y="145.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<circle cx="162.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="162.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="162.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="162.0" cy="94.0" r="3.0" fill="#666"/>
+<circle cx="162.0" cy="108.0" r="3.0" fill="#666"/>
+<circle cx="162.0" cy="122.0" r="3.0" fill="#666"/>
+<circle cx="162.0" cy="136.0" r="3.0" fill="#666"/>
+<circle cx="162.0" cy="150.0" r="3.0" fill="#666"/>
+<circle cx="162.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="162.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="162.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="176.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="176.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="176.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="176.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="176.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="176.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="176.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="176.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="176.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="176.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="176.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="190.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="190.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="190.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="190.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="190.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="190.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="190.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="190.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="190.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="190.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="190.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="204.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="204.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="204.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="204.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="204.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="204.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="204.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="204.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="204.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="204.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="204.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="218.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="218.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="218.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="218.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="218.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="218.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="218.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="218.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="218.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="218.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="218.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="246.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="246.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="246.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="246.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="246.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="246.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="246.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="246.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="246.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="246.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="246.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="260.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="260.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="260.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="260.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="260.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="260.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="260.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="260.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="260.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="260.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="260.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="274.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="274.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="274.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="274.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="274.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="274.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="274.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="274.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="274.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="274.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="274.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="288.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="288.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="288.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="288.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="288.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="288.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="288.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="288.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="288.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="288.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="288.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="302.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="302.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="302.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="302.0" cy="94.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="302.0" cy="108.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="302.0" cy="122.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="302.0" cy="136.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="302.0" cy="150.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="302.0" cy="164.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="302.0" cy="178.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="302.0" cy="192.0" r="3.0" fill="#2a2a2a"/>
+<circle cx="132.0" cy="52.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="132.0" cy="80.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="132.0" cy="94.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="132.0" cy="108.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="132.0" cy="122.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="132.0" cy="136.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="132.0" cy="164.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="132.0" cy="178.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="132.0" cy="192.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="142.0" cy="52.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="142.0" cy="80.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="142.0" cy="94.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="142.0" cy="108.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="142.0" cy="122.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="142.0" cy="136.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="142.0" cy="164.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="142.0" cy="178.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="142.0" cy="192.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="322.0" cy="52.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="322.0" cy="80.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="322.0" cy="94.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="322.0" cy="108.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="322.0" cy="122.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="322.0" cy="136.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="322.0" cy="164.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="322.0" cy="178.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="322.0" cy="192.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="332.0" cy="52.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="332.0" cy="80.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="332.0" cy="94.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="332.0" cy="108.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="332.0" cy="122.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="332.0" cy="136.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="332.0" cy="164.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="332.0" cy="178.0" r="2.5" fill="#2a2a2a"/>
+<circle cx="332.0" cy="192.0" r="2.5" fill="#2a2a2a"/>
+<text x="162.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">a</text>
+<text x="176.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">b</text>
+<text x="190.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">c</text>
+<text x="204.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">d</text>
+<text x="218.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">e</text>
+<text x="246.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">f</text>
+<text x="260.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">g</text>
+<text x="274.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">h</text>
+<text x="288.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">i</text>
+<text x="302.0" y="36.0" font-size="9" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">j</text>
+<text x="132.0" y="36.0" font-size="10" fill="#d32f2f" font-weight="bold" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">+</text>
+<text x="142.0" y="36.0" font-size="10" fill="#1565c0" font-weight="bold" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">–</text>
+<text x="322.0" y="36.0" font-size="10" fill="#d32f2f" font-weight="bold" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">+</text>
+<text x="332.0" y="36.0" font-size="10" fill="#1565c0" font-weight="bold" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">–</text>
+<text x="152.0" y="55.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">7</text>
+<text x="312.0" y="55.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">7</text>
+<text x="152.0" y="69.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">8</text>
+<text x="312.0" y="69.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">8</text>
+<text x="152.0" y="83.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">9</text>
+<text x="312.0" y="83.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">9</text>
+<text x="152.0" y="97.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">10</text>
+<text x="312.0" y="97.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">10</text>
+<text x="152.0" y="111.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">11</text>
+<text x="312.0" y="111.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">11</text>
+<text x="152.0" y="125.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">12</text>
+<text x="312.0" y="125.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">12</text>
+<text x="152.0" y="139.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">13</text>
+<text x="312.0" y="139.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">13</text>
+<text x="152.0" y="153.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">14</text>
+<text x="312.0" y="153.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">14</text>
+<text x="152.0" y="167.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">15</text>
+<text x="312.0" y="167.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">15</text>
+<text x="152.0" y="181.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">16</text>
+<text x="312.0" y="181.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">16</text>
+<text x="152.0" y="195.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">17</text>
+<text x="312.0" y="195.5" font-size="8" fill="#666" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">17</text>
+<rect x="4.0" y="79.0" width="100.0" height="86.0" rx="5" fill="#2e7d32" stroke="#263238" stroke-width="1" opacity="0.95"/>
+<text x="54.0" y="92.0" font-size="8" fill="white" font-weight="700" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ULN2003 Driver</text>
+<circle cx="104.0" cy="99.0" r="2.5" fill="white" stroke="#2e7d32" stroke-width="0.8"/>
+<text x="96.0" y="102.0" font-size="6" fill="#ddd" font-weight="600" text-anchor="end" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">IN1</text>
+<line x1="104.0" y1="99.0" x2="162.0" y2="99.0" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="162.0" y1="99.0" x2="162.0" y2="94.0" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<circle cx="104.0" cy="113.0" r="2.5" fill="white" stroke="#2e7d32" stroke-width="0.8"/>
+<text x="96.0" y="116.0" font-size="6" fill="#ddd" font-weight="600" text-anchor="end" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">IN3</text>
+<line x1="104.0" y1="113.0" x2="162.0" y2="113.0" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="162.0" y1="113.0" x2="162.0" y2="108.0" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<circle cx="104.0" cy="127.0" r="2.5" fill="white" stroke="#2e7d32" stroke-width="0.8"/>
+<text x="96.0" y="130.0" font-size="6" fill="#ddd" font-weight="600" text-anchor="end" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">IN2</text>
+<line x1="104.0" y1="127.0" x2="162.0" y2="127.0" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="162.0" y1="127.0" x2="162.0" y2="122.0" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<circle cx="104.0" cy="141.0" r="2.5" fill="white" stroke="#2e7d32" stroke-width="0.8"/>
+<text x="96.0" y="144.0" font-size="6" fill="#ddd" font-weight="600" text-anchor="end" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">IN4</text>
+<line x1="104.0" y1="141.0" x2="162.0" y2="141.0" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="162.0" y1="141.0" x2="162.0" y2="136.0" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<circle cx="104.0" cy="155.0" r="2.5" fill="white" stroke="#2e7d32" stroke-width="0.8"/>
+<text x="96.0" y="158.0" font-size="6" fill="#ddd" font-weight="600" text-anchor="end" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">GND</text>
+<line x1="104.0" y1="155.0" x2="162.0" y2="155.0" stroke="#333333" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="162.0" y1="155.0" x2="162.0" y2="150.0" stroke="#333333" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="39.5" y1="94.0" x2="162.0" y2="94.0" stroke="#e53935" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
 <rect x="4.0" y="88.0" width="35.5" height="12.0" rx="4" fill="#e53935" opacity="0.92"/>
 <text x="8.0" y="97.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 8</text>
-<line x1="45.0" y1="108.0" x2="110.0" y2="108.0" stroke="#ff6f00" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="45.0" y1="108.0" x2="162.0" y2="108.0" stroke="#ff6f00" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
 <rect x="4.0" y="102.0" width="41.0" height="12.0" rx="4" fill="#ff6f00" opacity="0.92"/>
 <text x="8.0" y="111.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 10</text>
-<line x1="39.5" y1="122.0" x2="110.0" y2="122.0" stroke="#43a047" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="39.5" y1="122.0" x2="162.0" y2="122.0" stroke="#43a047" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
 <rect x="4.0" y="116.0" width="35.5" height="12.0" rx="4" fill="#43a047" opacity="0.92"/>
 <text x="8.0" y="125.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 9</text>
-<line x1="45.0" y1="136.0" x2="110.0" y2="136.0" stroke="#1565c0" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="45.0" y1="136.0" x2="162.0" y2="136.0" stroke="#1565c0" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
 <rect x="4.0" y="130.0" width="41.0" height="12.0" rx="4" fill="#1565c0" opacity="0.92"/>
 <text x="8.0" y="139.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin 11</text>
-<line x1="36.0" y1="150.0" x2="110.0" y2="150.0" stroke="#333333" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<line x1="36.0" y1="150.0" x2="162.0" y2="150.0" stroke="#333333" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
 <rect x="4.0" y="144.0" width="32.0" height="12.0" rx="4" fill="#333333" opacity="0.92"/>
 <text x="8.0" y="153.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">GND</text>
-<text x="68.0" y="224.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">COMPONENTS</text>
-<circle cx="73.0" cy="235.0" r="4.0" fill="#2e7d32" stroke="#0002" stroke-width="0.5"/>
-<text x="82.0" y="238.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ULN2003 Driver</text>
-<text x="68.0" y="259.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">WIRES</text>
-<line x1="69.0" y1="270.0" x2="78.0" y2="270.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="273.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">IN1 — HERO XL Pin 8</text>
-<line x1="69.0" y1="285.0" x2="78.0" y2="285.0" stroke="#ff6f00" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="288.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">IN3 — HERO XL Pin 10</text>
-<line x1="69.0" y1="300.0" x2="78.0" y2="300.0" stroke="#43a047" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="303.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">IN2 — HERO XL Pin 9</text>
-<line x1="69.0" y1="315.0" x2="78.0" y2="315.0" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="318.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">IN4 — HERO XL Pin 11</text>
-<line x1="69.0" y1="330.0" x2="78.0" y2="330.0" stroke="#333333" stroke-width="3" stroke-linecap="round"/>
-<text x="84.0" y="333.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ground — HERO XL GND</text>
-<text x="180.0" y="18.0" font-size="13" fill="#222" font-weight="700" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Stepper Motor — 28BYJ-48</text>
-<text x="180.0" y="30.0" font-size="9" fill="#999" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">rows 7–17 of 63</text>
+<text x="120.0" y="224.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">COMPONENTS</text>
+<circle cx="125.0" cy="235.0" r="4.0" fill="#2e7d32" stroke="#0002" stroke-width="0.5"/>
+<text x="134.0" y="238.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ULN2003 Driver</text>
+<text x="120.0" y="259.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">WIRES</text>
+<line x1="121.0" y1="270.0" x2="130.0" y2="270.0" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
+<text x="136.0" y="273.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">IN1 — HERO XL Pin 8</text>
+<line x1="121.0" y1="285.0" x2="130.0" y2="285.0" stroke="#ff6f00" stroke-width="3" stroke-linecap="round"/>
+<text x="136.0" y="288.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">IN3 — HERO XL Pin 10</text>
+<line x1="121.0" y1="300.0" x2="130.0" y2="300.0" stroke="#43a047" stroke-width="3" stroke-linecap="round"/>
+<text x="136.0" y="303.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">IN2 — HERO XL Pin 9</text>
+<line x1="121.0" y1="315.0" x2="130.0" y2="315.0" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
+<text x="136.0" y="318.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">IN4 — HERO XL Pin 11</text>
+<line x1="121.0" y1="330.0" x2="130.0" y2="330.0" stroke="#333333" stroke-width="3" stroke-linecap="round"/>
+<text x="136.0" y="333.0" font-size="9" fill="#444" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ground — HERO XL GND</text>
+<text x="232.0" y="18.0" font-size="13" fill="#222" font-weight="700" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Stepper Motor — 28BYJ-48</text>
+<text x="232.0" y="30.0" font-size="9" fill="#999" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">rows 7–17 of 63</text>
 </svg>
