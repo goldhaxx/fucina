@@ -2,6 +2,14 @@ Pull updates from the scaffold hub into this project.
 
 All deterministic operations (copy, hash, lockfile, logging) are handled by the script. Claude's role is LIMITED to judgment calls: conflict resolution and merge proposals.
 
+## Step 0: Bootstrap check (deterministic)
+
+If `scripts/scaffold-sync.sh` itself has changed in the hub (check with `diff`), copy the new version first — the old script may lack commands needed by the pull:
+```bash
+scaffold_source=$(jq -r '.scaffold_source' .claude/scaffold.lock | sed "s|^~|$HOME|")
+diff -q scripts/scaffold-sync.sh "$scaffold_source/scripts/scaffold-sync.sh" || cp "$scaffold_source/scripts/scaffold-sync.sh" scripts/scaffold-sync.sh
+```
+
 ## Step 1: Pre-check and plan (deterministic)
 
 ```bash
@@ -68,3 +76,7 @@ Report what happened: N auto-updated, N section-merged, N conflicts resolved, N 
 - NEVER auto-update a file that has local changes — the script enforces this.
 - ALWAYS show the user what will change before writing.
 - For merge conflicts, Claude proposes the merge but the user must approve.
+
+<!-- NODE-SPECIFIC-START -->
+<!-- Add project-specific content below this line. -->
+<!-- Hub content above is updated via /scaffold-pull. -->

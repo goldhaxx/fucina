@@ -1,5 +1,35 @@
+## 2026-03-22 08:39 — pull from scaffold @ ef38ff4
+
 ## 2026-03-21 20:08 — classify
 
+- OVERWRITTEN .claude/hooks/format-on-write.sh — took scaffold version
+- OVERWRITTEN .claude/hooks/protect-files.sh — took scaffold version
+- OVERWRITTEN scripts/scaffold-sync.sh — took scaffold version
+- AUTO-UPDATED docs/templates/spec.md
+- AUTO-UPDATED docs/templates/plan.md
+- AUTO-UPDATED docs/templates/hooks-reference.md
+- AUTO-UPDATED docs/templates/checkpoint.md
+- AUTO-UPDATED GUIDE.md
+- AUTO-UPDATED CLAUDE.md
+- AUTO-UPDATED .claude/skills/tdd/SKILL.md
+- AUTO-UPDATED .claude/rules/workflow.md
+- AUTO-UPDATED .claude/rules/tls-troubleshooting.md
+- AUTO-UPDATED .claude/rules/tdd.md
+- AUTO-UPDATED .claude/rules/deterministic-first.md
+- AUTO-UPDATED .claude/rules/code-quality.md
+- AUTO-UPDATED .claude/commands/scaffold-status.md
+- AUTO-UPDATED .claude/commands/scaffold-push.md
+- AUTO-UPDATED .claude/commands/scaffold-pull.md
+- AUTO-UPDATED .claude/commands/scaffold-promote.md
+- AUTO-UPDATED .claude/commands/scaffold-ignore.md
+- AUTO-UPDATED .claude/commands/scaffold-demote.md
+- AUTO-UPDATED .claude/commands/review.md
+- AUTO-UPDATED .claude/commands/plan.md
+- AUTO-UPDATED .claude/commands/fix-certs.md
+- AUTO-UPDATED .claude/commands/catchup.md
+- AUTO-UPDATED .claude/agents/spec-writer.md
+- AUTO-UPDATED .claude/agents/scaffold-differ.md
+- AUTO-UPDATED .claude/agents/code-reviewer.md
 - OVERWRITTEN .claude/skills/tdd/SKILL.md — took scaffold version
 - TRACKED .claude/skills/tdd/SKILL.md — re-included in sync
 ## 2026-03-21 19:52 — classify

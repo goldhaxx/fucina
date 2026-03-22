@@ -389,6 +389,11 @@ stateDiagram-v2
     [*] --> scaffold_only: New file added to scaffold hub
     scaffold_only --> clean: /scaffold-pull → Accept
 
+    clean --> node_only: /scaffold-ignore
+    modified --> node_only: /scaffold-ignore
+    local_only --> node_only: /scaffold-ignore
+    node_only --> clean: scaffold-sync.sh track
+
     state clean {
         [*]: Auto-updated on pull
     }
@@ -403,6 +408,9 @@ stateDiagram-v2
     }
     state scaffold_only {
         [*]: Not yet in project
+    }
+    state node_only {
+        [*]: Permanently excluded from sync
     }
 ```
 
@@ -465,6 +473,8 @@ flowchart TD
     style USER fill:#e3f2fd,stroke:#333,stroke-width:2px
 ```
 
+**Bootstrap requirement:** The pull process uses `scaffold-sync.sh` itself. If the hub has a newer version of the script with new commands, the node's old script won't know them. When this happens, manually copy the new script first: `cp <hub>/scripts/scaffold-sync.sh scripts/scaffold-sync.sh`, then run `/scaffold-pull`.
+
 ### Push Flow (Project → Hub)
 
 Every step is handled by a script command except change classification, which requires Claude's semantic understanding.
@@ -525,52 +535,77 @@ flowchart LR
     style D1 fill:#c8e6c9
 ```
 
-### Document Inheritance (Section-Merge)
+### Universal Delimiters (Section-Merge)
 
-Three root-level documents are tracked by the sync system with special merge behavior:
+**Principle:** Every synced markdown file ships with a `<!-- NODE-SPECIFIC-START -->` delimiter. Hub content lives above the delimiter, node-specific customizations live below. This enables section-merge on pull — hub updates flow automatically without overwriting project customizations.
 
-| File | Sync behavior | Hub content | Node content |
-|------|--------------|-------------|--------------|
-| `SCAFFOLD_FRAMEWORK.md` | Standard auto-update | Entire file (research source material) | None — identical everywhere |
-| `GUIDE.md` | Section-merge | Documentation, diagrams, tables (above delimiter) | Project-specific features (below delimiter) |
-| `CLAUDE.md` | Section-merge | Workflow, conventions, reference docs, do-not rules (below delimiter) | Project name, tech stack, commands, architecture (above delimiter) |
+#### Which files have delimiters
 
-**How section-merge works:**
+| Component type | Files | Delimiter | Hub section | Node section |
+|----------------|-------|-----------|-------------|--------------|
+| Rules | `.claude/rules/*.md` (5 files) | `NODE-SPECIFIC-START` | Universal principles, anti-patterns | Project-specific exceptions, local conventions |
+| Commands | `.claude/commands/*.md` (10 files) | `NODE-SPECIFIC-START` | Workflow steps, script calls, universal rules | Project-specific paths, tools, additional steps |
+| Agents | `.claude/agents/*.md` (3 files) | `NODE-SPECIFIC-START` | Role definition, output format, universal rules | Project-specific context, domain knowledge |
+| Skills | `.claude/skills/*/SKILL.md` (1 file) | `NODE-SPECIFIC-START` | Methodology, phases, rules | Project test command, framework config |
+| Templates | `docs/templates/*.md` (4 files) | `NODE-SPECIFIC-START` | Document structure, required sections | Project-specific fields, custom sections |
+| GUIDE.md | `GUIDE.md` | `NODE-SPECIFIC-START` | Documentation, diagrams, tables | Project-specific features |
+| CLAUDE.md | `CLAUDE.md` | `HUB-MANAGED-START` | Workflow, conventions, do-not rules | Project name, tech stack, commands, architecture |
+
+**What does NOT get delimiters (and why):**
+
+| Component type | Why not | Alternative |
+|----------------|---------|-------------|
+| Scripts (`*.sh`) | Can't splice bash — functions depend on each other. HTML comments aren't valid bash. | Whole-file tracked. Node customization via separate scripts or node-only fork. |
+| Hooks (`*.sh`) | Same as scripts. | Stack hooks: hub provides universal hooks, node adds additional hook entries in settings.json. |
+| `settings.json` | JSON has no comments. | Node-only. Hub hook scripts sync; settings.json references are node-managed. |
+| `SCAFFOLD_FRAMEWORK.md` | Research source material — identical everywhere, no node content. | Whole-file auto-update. |
+
+#### How section-merge works
 
 Files with delimiters have a hub-managed section and a node-specific section. During `/scaffold-pull`, the hub section is updated from the scaffold while the node section is preserved intact.
 
 ```mermaid
 flowchart LR
-    subgraph "GUIDE.md"
-        G_HUB["Hub documentation<br/><i>diagrams, tables, references</i>"]
-        G_DELIM["&lt;!-- NODE-SPECIFIC-START --&gt;"]
-        G_NODE["Node features<br/><i>local commands, rules, workflows</i>"]
-        G_HUB --> G_DELIM --> G_NODE
+    subgraph "Most files (rules, commands, agents, skills, templates, GUIDE.md)"
+        M_HUB["Hub content<br/><i>universal methodology</i>"]
+        M_DELIM["&lt;!-- NODE-SPECIFIC-START --&gt;"]
+        M_NODE["Node content<br/><i>project customizations</i>"]
+        M_HUB --> M_DELIM --> M_NODE
     end
 
-    subgraph "CLAUDE.md"
+    subgraph "CLAUDE.md (inverted)"
         C_NODE["Node identity<br/><i>name, stack, commands, architecture</i>"]
         C_DELIM["&lt;!-- HUB-MANAGED-START --&gt;"]
         C_HUB["Hub methodology<br/><i>workflow, conventions, do-not</i>"]
         C_NODE --> C_DELIM --> C_HUB
     end
 
-    style G_HUB fill:#e8f4e8
-    style G_NODE fill:#e3f2fd
-    style G_DELIM fill:#fffde7
+    style M_HUB fill:#e8f4e8
+    style M_NODE fill:#e3f2fd
+    style M_DELIM fill:#fffde7
     style C_NODE fill:#e3f2fd
     style C_HUB fill:#e8f4e8
     style C_DELIM fill:#fffde7
 ```
 
 **During `/scaffold-pull`:**
-- **GUIDE.md:** Hub section (above delimiter) is replaced with scaffold's version. Node section (below) is untouched.
-- **CLAUDE.md:** Node section (above delimiter) is untouched. Hub section (below) is replaced with scaffold's version.
+- **Files with `NODE-SPECIFIC-START`:** Hub section (above delimiter) is replaced with scaffold's version. Node section (below) is untouched.
+- **CLAUDE.md** (`HUB-MANAGED-START`): Node section (above delimiter) is untouched. Hub section (below) is replaced with scaffold's version.
 - **SCAFFOLD_FRAMEWORK.md:** Auto-updated as a whole file (no delimiter, no node content).
 
 **During `/scaffold-push`:** Node sections are always classified as project-specific and never pushed upstream.
 
 **Legacy projects without delimiters:** The `section-merge` command gracefully handles files that don't have a delimiter yet — it treats the entire local file as node content and adds the hub section from the scaffold.
+
+#### Creating new markdown components
+
+When adding a new rule, command, agent, skill, or template to the scaffold, **always** include the delimiter at the end:
+
+```
+&lt;!-- NODE-SPECIFIC-START --&gt;
+&lt;!-- Add project-specific content below this line. --&gt;
+&lt;!-- Hub content above is updated via /scaffold-pull. --&gt;
+```
 
 ---
 
@@ -604,6 +639,7 @@ flowchart LR
 | `/scaffold-push` | Project → Hub | Pushes generalizable changes upstream |
 | `/scaffold-promote <file>` | Project → Hub | Promotes a local file to the scaffold |
 | `/scaffold-demote <file>` | Local | Marks a scaffold file as local override |
+| `/scaffold-ignore <file>` | Local | Marks file as node-only (permanently excluded from sync) |
 
 ### Utility Commands
 
@@ -828,12 +864,14 @@ flowchart TD
     Q -->|"Created a useful<br/>new rule/command/agent"| PROMOTE["/scaffold-promote file<br/><i>Share with all projects</i>"]
     Q -->|"Want to check for<br/>scaffold updates"| STATUS["/scaffold-status<br/><i>then /scaffold-pull if updates exist</i>"]
     Q -->|"Customized a scaffold file<br/>and want to keep my version"| DEMOTE["/scaffold-demote file<br/><i>Prevents auto-update on pull</i>"]
+    Q -->|"File is permanently<br/>project-specific"| IGNORE["/scaffold-ignore file<br/><i>Excluded from all future sync</i>"]
     Q -->|"Made improvements to<br/>a modified scaffold file"| PUSH["/scaffold-push<br/><i>Claude extracts generalizable parts</i>"]
     Q -->|"Starting a new project"| PULL["Pull latest into current project first<br/>then /init in new project"]
 
     style PROMOTE fill:#c8e6c9
     style STATUS fill:#e3f2fd
     style DEMOTE fill:#fff3e0
+    style IGNORE fill:#ffcdd2
     style PUSH fill:#c8e6c9
     style PULL fill:#e3f2fd
 ```
@@ -849,6 +887,7 @@ Every scaffold feature traces back to transformer architecture research. This ta
 | Deterministic-first principle | Every token Claude spends on a deterministic operation (cp, diff, hash, lockfile update) is a token stolen from judgment calls that need a transformer. Computable operations must be scripts/hooks. |
 | Hooks over rules for binary checks | Hooks run outside the context window at zero cost. Rules consume instruction slots and can be forgotten under context pressure. Hooks enforce unconditionally. |
 | Compound script commands | One `pull-auto` call replaces 4-6 manual commands per file (cp + hash + lock-update ×3 + log). Reduces context burn by ~70% during sync operations. |
+| Node-only classification | Separates sync intent from sync state. Project-specific files (custom permissions, domain rules) are permanently excluded from pull/push — zero context burned evaluating files that will never move. |
 | CLAUDE.md under 80 lines | U-shaped attention: models attend to beginning/end, lose the middle. ~150-200 effective instruction slots. |
 | TDD verification loops | Without tests, 80% accuracy per decision × 20 decisions = 1.2% overall success. Tests provide external oracle. |
 | Spec before code | "Instruction loss" is the primary bottleneck — models lose track of earlier requirements when multiple features specified together. |
@@ -859,7 +898,7 @@ Every scaffold feature traces back to transformer architecture research. This ta
 | Progressive disclosure (`@path`) | Loading detailed docs on-demand prevents attention dilution. Every token competes; don't load what isn't needed now. |
 | Templates separate from active docs | Format guides persist as scaffold resources; active docs are overwritten freely. Agents always have the format reference available. |
 | Scaffold sync with lockfile | Configuration inheritance with provenance tracking. Enables knowledge reuse across projects while respecting local customization. |
-| Section-merge for CLAUDE.md/GUIDE.md | Hub methodology and documentation sync to nodes without overwriting project-specific identity and local features. |
+| Universal delimiters for all markdown | Every synced markdown file has a section delimiter. Hub updates flow via section-merge without overwriting node customizations. Eliminates manual conflict resolution for the most common sync case: hub improves a rule/command while node has project-specific additions. |
 | SCAFFOLD_FRAMEWORK.md protection | Research source material is foundational — changes only under paradigm shifts, preserving the reasoning behind every design decision. |
 
 <!-- NODE-SPECIFIC-START -->
@@ -868,24 +907,4 @@ Every scaffold feature traces back to transformer architecture research. This ta
 
 ## Project-Specific Features
 
-### Commands
-
-| Command | What it does |
-|---------|-------------|
-| `/new-component` | Guided workflow for onboarding a new hardware component. Researches specs from official documentation, populates `docs/component-specs.yaml` with physical dimensions, updates inventory and wiring patterns, checks for renderer support, creates a complete sketch with wiring diagram, and validates against specs. |
-
-### Rules
-
-| Rule file | Concern | Key behaviors |
-|-----------|---------|---------------|
-| `components.md` | Component integration | Check inventory before coding, add missing entries, verify pin conflicts, use correct renderer types in wiring.yaml |
-| `sketches.md` | Sketch creation | Every sketch needs 5 files (wiring.yaml, wiring.svg, platformio.ini, src/main.cpp, README.md), write wiring.yaml first, pins must match between yaml and code |
-
-### Reference Documents
-
-| Document | Purpose |
-|----------|---------|
-| `docs/component-specs.yaml` | Machine-readable physical dimensions for all breadboard components (single source of truth for renderers) |
-| `docs/renderers.md` | Maps component types to breadboard.py renderer names and wiring.yaml schema |
-| `docs/course-map.md` | Maps Crafting Table course lessons to local sketches with coverage stats |
-| `docs/inventory.md` | Full component list with specs, pinouts, libraries, and safety notes |
+_No project-specific features yet. As you add local commands, rules, agents, or skills, document them here._
