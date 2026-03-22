@@ -154,6 +154,38 @@ def load_circuit(path: str) -> dict:
     return _parse_yaml_simple(text)
 
 
+_SPECS_CACHE: dict | None = None
+
+
+def load_component_specs(path: str | None = None) -> dict:
+    """Load the component specs registry (docs/component-specs.yaml).
+
+    Searches for the file by walking up from the given path (or CWD) until
+    it finds docs/component-specs.yaml. Returns an empty dict if not found
+    or if PyYAML is unavailable. Caches the result for the process lifetime.
+    """
+    global _SPECS_CACHE
+    if _SPECS_CACHE is not None:
+        return _SPECS_CACHE
+
+    if yaml is None:
+        _SPECS_CACHE = {}
+        return _SPECS_CACHE
+
+    # Search upward for docs/component-specs.yaml
+    search = Path(path).resolve() if path else Path.cwd()
+    if search.is_file():
+        search = search.parent
+    for ancestor in [search, *search.parents]:
+        candidate = ancestor / "docs" / "component-specs.yaml"
+        if candidate.is_file():
+            _SPECS_CACHE = yaml.safe_load(candidate.read_text(encoding="utf-8")) or {}
+            return _SPECS_CACHE
+
+    _SPECS_CACHE = {}
+    return _SPECS_CACHE
+
+
 def _parse_yaml_simple(text: str) -> dict:
     result = {}
     current_list = None
@@ -254,7 +286,7 @@ def detect_row_range(circuit: dict, padding: int = 3) -> tuple[int, int]:
             np = int(comp.get("pins", 10 if nd == 1 else 12)) // 2
             if rs:
                 pin_center = rs + (np - 1) / 2
-                body_rows = _seven_segment_body_rows(nd)
+                body_rows = _seven_segment_body_rows(comp, load_component_specs())
                 body_lo = int(pin_center - body_rows / 2)
                 body_hi = int(pin_center + body_rows / 2) + 1
                 for i in range(max(1, body_lo), min(TERMINAL_ROWS + 1, body_hi)):
@@ -297,6 +329,7 @@ class Board:
         self._col_x: dict[str, float] = {}
         self._setup_columns()
         self.occupied: set[str] = set()
+        self.specs: dict = {}  # populated by generate() from component-specs.yaml
 
     def _setup_columns(self):
         x = MARGIN_LEFT
@@ -737,15 +770,20 @@ def _seven_segment_digit(digit_w: float, digit_h: float, sw: float,
     return els
 
 
-def _seven_segment_body_rows(digits: int) -> float:
-    """Return the body length in breadboard rows from datasheet dimensions.
+def _seven_segment_body_rows(comp: dict, specs: dict) -> float:
+    """Return the body length in breadboard rows from component specs.
 
-    Datasheet body widths (the long axis, which maps to rows on the board):
-    - 5161AS (1-digit): 12.60mm → 12.60 / 2.54 ≈ 5.0 rows
-    - 5641AS (4-digit): 50.30mm → 50.30 / 2.54 ≈ 19.8 rows
-
-    General formula: ~12.7mm per digit (≈ digit pitch from datasheet).
+    Prefers the model lookup in component-specs.yaml. Falls back to
+    hardcoded datasheet values if no model is specified.
     """
+    model = comp.get("model", "")
+    if model and model in specs:
+        body_mm_val = specs[model].get("body_mm", [])
+        if body_mm_val:
+            return body_mm_val[0] / 2.54
+
+    # Fallback: hardcoded datasheet dimensions
+    digits = comp.get("digits", 1)
     BODY_MM = {1: 12.60, 4: 50.30}
     body_mm = BODY_MM.get(digits, digits * 12.70)
     return body_mm / 2.54
@@ -791,7 +829,7 @@ def render_seven_segment(board: Board, comp: dict) -> list[str]:
     # Body dimensions — derived from datasheet, NOT from pin span.
     # The body length (along rows) is much larger than the pin span for
     # multi-digit displays. Pins are centered on the body.
-    body_rows = _seven_segment_body_rows(digits)
+    body_rows = _seven_segment_body_rows(comp, board.specs)
     body_h = body_rows * HOLE_PITCH
     pad_x = 6
     body_w = (x_right - x_left) + pad_x * 2
@@ -1252,7 +1290,8 @@ def render_legend(board: Board, circuit: dict) -> tuple[list[str], float]:
 
 # ─── Main Generation ─────────────────────────────────────────────
 
-def generate(circuit: dict, rows: tuple[int, int] | None = None) -> str:
+def generate(circuit: dict, rows: tuple[int, int] | None = None,
+             specs: dict | None = None) -> str:
     # Determine visible row range
     if rows:
         row_lo, row_hi = rows
@@ -1266,6 +1305,7 @@ def generate(circuit: dict, rows: tuple[int, int] | None = None) -> str:
         row_lo, row_hi = detect_row_range(circuit, padding=3)
 
     board = Board(row_lo, row_hi)
+    board.specs = specs if specs is not None else load_component_specs()
 
     # Mark occupied holes
     for comp in circuit.get("components", []):

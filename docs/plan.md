@@ -1,112 +1,130 @@
-# Implementation Plan: Component Orientation & Rendering System
+# Implementation Plan: Component Specs Registry with Validation
 
 > Created: 2026-03-21
-> Based on: 7-segment fix session learnings + user feedback
+> Based on: Option C discussion — specs registry + validation
 
 ## Objective
 
-Introduce a first-principles component rendering architecture where components are defined in their natural (datasheet) coordinate system, transformed automatically for breadboard placement, and verifiable via visual test fixtures — eliminating multi-hour debugging sessions per component.
+Create a machine-readable component specs file (`docs/component-specs.yaml`) as the single source of truth for physical dimensions, wire renderers to read from it via a `model` key in wiring.yaml, update `/new-component` to populate it, and add validation that catches dimension mismatches before they become wrong diagrams.
 
 ## Core Concepts
 
-**Natural orientation:** How the component looks face-on per its datasheet. Width, height, aspect ratio, feature positions (DP, labels, pins) are all defined in this space. This never changes.
+**Why this exists:** Physical dimensions are properties of a *part number*, not a *sketch*. A 5641AS is 50.3mm wide whether it's in the alarm clock or the counter. Hardcoding dimensions in renderer logic (like `BODY_MM = {1: 12.60, 4: 50.30}`) breaks this — the renderer "knows" about specific parts instead of reading from data.
 
-**Board orientation:** How the component sits on the breadboard after rotation. Derived automatically from the natural orientation + a rotation angle. The renderer builds in natural space, then applies one transform.
-
-**The contract:** Every renderer draws its content in a local coordinate system centered at (0, 0), sized by datasheet-derived dimensions. The framework handles translation to the board position and rotation for breadboard placement. The renderer never needs to know where it is on the board or which way it faces.
+**The flow:**
+1. `/new-component` researches a datasheet → writes structured specs to `docs/component-specs.yaml`
+2. `wiring.yaml` references the part via `model: 5641AS`
+3. `breadboard.py` loads the specs file, looks up the model, uses exact dimensions
+4. `validate-wiring.py` cross-checks every wiring.yaml against the specs file and flags problems
 
 ## Sequence
 
-### Step 1: Create visual test fixture script
+### Step 1: Create `docs/component-specs.yaml` and seed with existing components
 
-- **Test:** Run `python3 tools/test-renderers.py` — generates a single SVG with every component type rendered at multiple sizes with red bounding boxes showing expected containment.
-- **Implement:** Create `tools/test-renderers.py` that builds a synthetic `circuit` dict containing one of each component type, calls `generate()`, and writes a test SVG. Include red outline rects at each component's expected bounds for visual regression.
-- **Files:** `tools/test-renderers.py` (new)
-- **Verify:** Open the output SVG — every component should be visible, within its red bounds, with no clipping or overflow.
+- **Test:** The file parses as valid YAML. Every component that has a dedicated renderer type has an entry with at minimum `body_mm`, `pins`, and `pin_pitch_mm`.
+- **Implement:**
+  1. Create `docs/component-specs.yaml` with a clear schema comment header.
+  2. Seed entries for the two components we already have datasheet dimensions for: `5161AS` (1-digit 7-seg) and `5641AS` (4-digit 7-seg).
+  3. Research datasheets and add entries for ALL other components currently in `docs/inventory.md` that sit on the breadboard: resistors (generic axial), LEDs (5mm), tactile buttons (6mm), buzzers (12mm cylinder), potentiometers (vertical trimmer), RGB LEDs (5mm), KY-series sensor modules. Off-board modules (`type: module`) don't need physical specs since they render as labeled boxes.
+  4. Each entry includes: `body_mm` (dimensions), `pins`, `pin_pitch_mm`, `datasheet` URL where available, and renderer-specific fields (e.g., `digit_face_mm`, `slant_deg` for 7-segment displays).
+- **Files:** `docs/component-specs.yaml` (new)
+- **Verify:** `python3 -c "import yaml; yaml.safe_load(open('docs/component-specs.yaml'))"` succeeds. Spot-check 3-4 entries against their datasheets.
 
-### Step 2: Extract renderer registry and dispatch cleanup
+### Step 2: Add `load_component_specs()` to breadboard.py
 
-- **Test:** Existing `generate()` dispatch still works — all 32 sketch SVGs produce identical output.
-- **Implement:** In `breadboard.py`:
-  1. Create a `RENDERERS` dict mapping type strings to `(render_fn, legend_fn)` tuples, replacing the if-elif chains in `generate()` and `render_legend()`.
-  2. Each render function signature stays `(board, comp) -> list[str]`.
-  3. Adding a new component type becomes: define the function + add one entry to `RENDERERS`.
+- **Test:** `load_component_specs()` returns a dict keyed by model string. When the file is missing, returns empty dict (graceful fallback). When the file exists, all seeded entries are present.
+- **Implement:**
+  1. Add `load_component_specs(path=None) -> dict` to `breadboard.py`. Default path is `docs/component-specs.yaml` relative to the YAML input file's location (walk up to find it), or relative to CWD.
+  2. The function caches its result (module-level `_SPECS_CACHE`) so it's only loaded once per process.
+  3. Add a `specs` parameter to `generate()` that accepts a pre-loaded specs dict (for testing) or loads on demand.
 - **Files:** `tools/breadboard.py`
-- **Verify:** Regenerate all 32 SVGs, diff against previous — zero visual changes.
+- **Verify:** Unit test in `tools/test-renderers.py` — call `load_component_specs()` and assert expected keys exist.
 
-### Step 3: Add `orientation` key to wiring.yaml schema
+### Step 3: Add `model` key to wiring.yaml schema and update seven_segment renderer
 
-- **Test:** Existing wiring.yaml files without `orientation` still parse and render correctly (default = component-specific).
+- **Test:** A wiring.yaml with `model: 5641AS` on a seven_segment component produces the same SVG as the current hardcoded behavior. A wiring.yaml *without* `model` still works (backward compatible).
 - **Implement:**
-  1. Add optional `orientation` key to the component schema. Values: `top-left`, `top-right`, `bottom-left`, `bottom-right` — indicating which direction the component's natural "top" faces in the diagram. Default varies by type (e.g., `top-left` for DIP packages = top faces toward column a).
-  2. Parse `orientation` in `generate()` and pass it through to renderers.
-  3. Document the orientation model and defaults in `docs/renderers.md`.
-- **Files:** `tools/breadboard.py`, `docs/renderers.md`, `.claude/rules/sketches.md`
-- **Verify:** All sketches still generate identical SVGs (no orientation keys added yet, defaults match current behavior).
+  1. In `render_seven_segment()`, if `comp` has a `model` key, look up the model in the specs dict to get `body_mm[0]` (body length). Replace `_seven_segment_body_rows(digits)` with a lookup that prefers specs data, falls back to the hardcoded dict.
+  2. Thread the `specs` dict through from `generate()` to renderer calls — either via a new parameter on render functions, or by storing it on the `Board` object.
+  3. Update `sketches.md` schema to document the `model` key.
+- **Files:** `tools/breadboard.py`, `.claude/rules/sketches.md`
+- **Verify:** Update the 3 seven_segment wiring.yaml files to add `model: 5641AS` / `model: 5161AS`. Regenerate SVGs — output must be identical to current.
 
-### Step 4: Refactor seven_segment to use the orientation model
+### Step 4: Update wiring.yaml files with model keys
 
-- **Test:** `ct-7seg-1digit`, `ct-7seg-4digit`, and `ct-alarm-clock` produce identical SVGs before and after refactor.
+- **Test:** All wiring.yaml files that reference components with known part numbers have `model` keys. All SVGs regenerate identically.
 - **Implement:**
-  1. Factor `render_seven_segment` into two parts:
-     - `_seven_segment_natural(digits, digit_w, digit_h, sw)` → returns SVG elements in natural (upright) coords, centered at origin. Pure geometry — no board awareness.
-     - `render_seven_segment(board, comp)` → computes bounds, calls the natural renderer, wraps output in a `<g transform="translate(...) rotate(...)">` based on `orientation`.
-  2. The natural renderer draws the digit face, segments, and DP — exactly what the current code does inside the `for d in range(digits)` loop.
-  3. Move the sizing constraint math (aspect ratio, skew budget, stroke cap) into a `_seven_segment_size(body_w, body_h, digits, rotation)` helper that returns `(digit_w, digit_h, sw)`.
-- **Files:** `tools/breadboard.py`
-- **Verify:** Regenerate the 3 seven-segment SVGs — identical output. Run `tools/test-renderers.py` — seven_segment shows within bounds.
+  1. Audit all `wiring.yaml` files. For every component entry where we know the exact part number (from inventory), add the `model` key.
+  2. For generic components (e.g., "220Ω resistor" where no specific part number exists), use a generic model identifier like `axial-resistor` or `led-5mm` that maps to the generic specs in `component-specs.yaml`.
+- **Files:** All `wiring.yaml` files across `sketches/`
+- **Verify:** Regenerate all SVGs — no visual changes.
 
-### Step 5: Generalize the sizing framework for future components
+### Step 5: Create `tools/validate-wiring.py`
 
-- **Test:** A new hypothetical component using the framework renders correctly with different orientations.
+- **Test:** Run against the current sketches — all pass. Introduce a deliberate error (wrong pin count) — validation catches it.
 - **Implement:**
-  1. Create a `compute_rotated_fit(natural_w, natural_h, container_w, container_h, rotation_deg, fill=0.90)` utility that returns the max scale factor for a natural-orientation rectangle to fit inside a container after rotation. This generalizes the constraint math from seven_segment.
-  2. Document the sizing framework in `docs/renderers.md` under a new "Renderer Development Guide" section: how to derive natural dimensions from a datasheet, how fill/rotation/containment interact.
-- **Files:** `tools/breadboard.py`, `docs/renderers.md`
-- **Verify:** The seven_segment renderer uses `compute_rotated_fit()` and produces identical output. The test fixture exercises the utility with multiple rotations.
+  1. Create `tools/validate-wiring.py` that:
+     - Scans `sketches/` for all `wiring.yaml` files
+     - Loads `docs/component-specs.yaml`
+     - For each component with a `model` key, cross-checks:
+       - `pins` count matches specs
+       - `row_start` + pin span doesn't exceed breadboard rows
+       - Component type in wiring.yaml matches expected renderer type in specs (if specified)
+     - For each component *without* a `model` key, warns: "No model specified — physical dimensions not validated"
+     - Prints PASS/WARN/FAIL per sketch with a summary
+  2. Exit code 0 if all pass, 1 if any fail (for CI use).
+- **Files:** `tools/validate-wiring.py` (new)
+- **Verify:** Run against all sketches — clean pass. Temporarily corrupt one wiring.yaml, confirm failure is caught, restore.
 
-### Step 6: Add datasheet dimension comments to all existing renderers
+### Step 6: Update `/new-component` to populate specs file
 
-- **Test:** All 32 sketch SVGs still produce identical output.
-- **Implement:** For each renderer that currently uses hardcoded sizes (button, buzzer, sensor, potentiometer, rgb_led), add comments documenting:
-  1. What the natural dimensions should be (from datasheet or measurement)
-  2. What the current hardcoded values are and why
-  3. Whether the component needs orientation support (most don't — symmetric or always placed the same way)
-- **Files:** `tools/breadboard.py`
-- **Verify:** No functional changes — comments only. Run test fixture to confirm.
-
-### Step 7: Update documentation and rules
-
-- **Test:** N/A (docs only)
+- **Test:** N/A (command prompt, not code).
 - **Implement:**
-  1. Update `docs/renderers.md`:
-     - Add "Orientation Model" section explaining natural vs board orientation
-     - Add "Renderer Development Guide" section with the process for creating a new renderer
-     - Update the `seven_segment` entry with the new `orientation` key
-     - Add standard DIP widths table (0.3", 0.5", 0.6")
-  2. Update `.claude/rules/sketches.md`:
-     - Add `orientation` to the wiring.yaml schema section
-     - Document defaults per component type
-  3. Update `.claude/rules/components.md`:
-     - Add "Orientation" to the checklist for new components
-  4. Update `CLAUDE.md` architecture tree to include `tools/test-renderers.py`
-  5. Update `GUIDE.md` node-specific section if any commands changed
-- **Files:** `docs/renderers.md`, `.claude/rules/sketches.md`, `.claude/rules/components.md`, `CLAUDE.md`
-- **Verify:** Read through docs for consistency. Run test fixture as final smoke test.
+  1. Add a new **Phase 1.5: Physical Specs** to `.claude/commands/new-component.md` between Research and Inventory:
+     - After researching the component, extract physical dimensions from the datasheet
+     - Write a structured entry to `docs/component-specs.yaml` with all measured dimensions
+     - This is mandatory for components that sit on the breadboard (DIP, through-hole, on-board modules)
+     - Optional for off-board modules (servos, LCDs connected via jumper wires)
+  2. Update Phase 4 (Sketch Creation) to require `model` key in wiring.yaml, referencing the specs entry.
+  3. Add a validation step to Phase 5: run `python3 tools/validate-wiring.py sketches/NNN-name/wiring.yaml` before compiling.
+- **Files:** `.claude/commands/new-component.md`
+- **Verify:** Read through the updated command and trace the flow mentally — specs file gets populated, model key gets used, validation runs.
+
+### Step 7: Update rules and documentation
+
+- **Test:** N/A (docs only).
+- **Implement:**
+  1. Update `.claude/rules/components.md`:
+     - Add "Check `docs/component-specs.yaml` for an existing physical specs entry" to the pre-code checklist
+     - Add "If missing, add specs entry with datasheet dimensions" to the new-component section
+     - Add "After writing wiring.yaml, run `python3 tools/validate-wiring.py` to verify" to the physical accuracy section
+  2. Update `docs/renderers.md` Renderer Development Guide:
+     - Step 1 now says "Add dimensions to `docs/component-specs.yaml`" not just "look up the datasheet"
+     - Add note that renderers should read from specs dict, not hardcode dimensions
+  3. Update `CLAUDE.md`:
+     - Add `docs/component-specs.yaml` to the architecture tree
+     - Add `validate-wiring.py` to the tools tree and commands section
+  4. Update node-specific section of `GUIDE.md`:
+     - Add `validate-wiring.py` to the utility commands table
+     - Update the `/new-component` description to mention specs population
+
+- **Files:** `.claude/rules/components.md`, `docs/renderers.md`, `CLAUDE.md`, `GUIDE.md`
+- **Verify:** Read through all updated docs for consistency. Run test fixture and validator as final smoke test.
 
 ## Risks
 
-- **Regression in existing SVGs:** Every step that touches `breadboard.py` must regenerate all 32 SVGs and diff. The test fixture catches visual regressions early.
-- **Over-engineering:** Most components (resistor, LED, button) are symmetric or pin-position-derived — they don't need orientation support. The plan explicitly scopes orientation to DIP/module types that benefit from it.
-- **Naming confusion:** "natural" vs "board" orientation could confuse. The docs must be clear with concrete examples (e.g., "The 5161AS is 12.6mm wide × 19mm tall in natural orientation. On the breadboard, it rotates -90° so the 19mm dimension runs horizontally.").
+- **Specs file scope creep:** Not every component needs mm-level physical specs. Off-board modules (servo, LCD, RFID reader) render as labeled boxes — their physical size doesn't matter for the diagram. The specs file should only contain entries for components that physically sit on the breadboard.
+- **Backward compatibility:** Existing wiring.yaml files without `model` keys must continue to work. The specs lookup must be optional with graceful fallback to current behavior.
+- **Research effort for Step 1:** Seeding specs for all existing components requires finding datasheets for ~8 component types. Some (generic resistors, LEDs) may not have a single canonical datasheet — use typical/standard dimensions.
+- **Specs dict threading:** Passing the specs dict to every renderer call is a design choice. Storing on `Board` or using a module global are alternatives — pick the simplest that doesn't pollute the API.
 
 ## Definition of Done
 
-- [x] `tools/test-renderers.py` generates a visual test SVG with all 9 component types
-- [x] `RENDERERS` registry replaces if-elif dispatch in `generate()` and `render_legend()`
-- [x] `orientation` key documented in wiring.yaml schema with per-type defaults
-- [x] `render_seven_segment` factored into natural renderer + orientation transform
-- [x] `compute_rotated_fit()` utility available for future renderer development
-- [x] `docs/renderers.md` has Orientation Model and Renderer Development Guide sections
-- [x] All 32 existing sketch SVGs are unchanged (visual regression check)
-- [x] Rules updated: `sketches.md`, `components.md`
+- [ ] `docs/component-specs.yaml` exists with entries for all breadboard-sitting component types
+- [ ] `breadboard.py` loads specs and uses them for body sizing (seven_segment as proof of concept)
+- [ ] `model` key documented in wiring.yaml schema, used in all seven_segment entries
+- [ ] `tools/validate-wiring.py` validates all wiring.yaml files against specs
+- [ ] `/new-component` command updated to populate specs file
+- [ ] Rules and docs updated: `components.md`, `renderers.md`, `CLAUDE.md`, `GUIDE.md`
+- [ ] All existing SVGs unchanged (or intentionally improved with more accurate dimensions)
+- [ ] Validator passes on all existing sketches

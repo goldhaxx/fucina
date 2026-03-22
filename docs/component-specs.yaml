@@ -1,0 +1,178 @@
+# Component Physical Specs Registry
+#
+# Single source of truth for physical dimensions of breadboard-sitting components.
+# Renderers in tools/breadboard.py read from this file via the `model` key in wiring.yaml.
+# The /new-component workflow populates this file during onboarding.
+#
+# Schema per entry:
+#   body_mm:       [width, height] or [width, height, depth] in mm
+#   pins:          total pin count
+#   pin_pitch_mm:  distance between adjacent pins (mm)
+#   pin_diameter_mm: lead diameter (mm)
+#   row_spacing_mm:  distance between two DIP pin rows (mm), omit for single-row
+#   pin_span_mm:   total span of pins on one side (mm), omit for single-row
+#   renderer:      which breadboard.py renderer type this maps to
+#   datasheet:     URL to the reference datasheet or source
+#   notes:         any clarifications
+#   (type-specific fields as needed)
+
+# ─── 7-Segment Displays ──────────────────────────────────────────
+
+5161AS:
+  description: "1-digit 7-segment LED display, common cathode, 0.56 inch"
+  body_mm: [12.6, 19.0, 8.0]
+  pins: 10
+  pin_pitch_mm: 2.54
+  pin_diameter_mm: 0.51
+  row_spacing_mm: 15.24
+  pin_span_mm: 10.16
+  digit_face_mm: [8.1, 14.2]
+  digits: 1
+  slant_deg: 8
+  renderer: seven_segment
+  datasheet: "http://www.xlitx.com/datasheet/5161AS.pdf"
+
+5641AS:
+  description: "4-digit 7-segment LED display, common cathode, 0.56 inch"
+  body_mm: [50.3, 19.0, 8.0]
+  pins: 12
+  pin_pitch_mm: 2.54
+  pin_diameter_mm: 0.51
+  row_spacing_mm: 15.24
+  pin_span_mm: 12.7
+  digit_face_mm: [8.1, 14.2]
+  digit_pitch_mm: 12.7
+  digits: 4
+  slant_deg: 8
+  renderer: seven_segment
+  datasheet: "http://www.xlitx.com/datasheet/5641AS.pdf"
+
+# ─── Resistors ────────────────────────────────────────────────────
+
+axial-resistor-1/4W:
+  description: "1/4W axial through-hole resistor (carbon or metal film)"
+  body_mm: [6.5, 2.5]
+  pins: 2
+  pin_pitch_mm: 7.62  # typical; varies by PCB layout (7.62–12.7)
+  pin_diameter_mm: 0.6
+  renderer: resistor
+  datasheet: "https://eepower.com/resistor-guide/resistor-standards-and-codes/resistor-sizes-and-packages/"
+  notes: "Body 6.5×2.5mm is typical for 1/4W. Lead pitch varies by placement — 3-5 breadboard rows."
+
+# ─── LEDs ─────────────────────────────────────────────────────────
+
+led-5mm:
+  description: "5mm T-1 3/4 through-hole LED"
+  body_mm: [5.0, 8.7]  # diameter × total height (base to dome top)
+  flange_diameter_mm: 5.8
+  pins: 2
+  pin_pitch_mm: 2.54
+  pin_diameter_mm: 0.5
+  renderer: led
+  datasheet: "https://www.jameco.com/z/UT1871-81-M1-R-Jameco-ValuePro-LED-Red-Diffused-5mm-T-1-3-4-643nm-75mcd-30VA_333973.html"
+  notes: "Anode = long leg, cathode = short leg with flat on flange. 1 row pitch between leads."
+
+rgb-led-5mm:
+  description: "5mm T-1 3/4 common-cathode RGB LED"
+  body_mm: [5.0, 8.7]  # same dome as standard 5mm LED
+  flange_diameter_mm: 5.8
+  pins: 4
+  pin_pitch_mm: 2.54
+  pin_diameter_mm: 0.5
+  pin_span_mm: 7.62  # 3 × 2.54 = 4 holes in line
+  pin_order: [red, common_cathode, green, blue]
+  renderer: rgb_led
+  datasheet: "https://soldered.com/product/5mm-rgb-led-diode-common-cathode/"
+  notes: "Common cathode = longest pin. Same dome as 2-pin 5mm LED. 4 consecutive breadboard holes."
+
+# ─── Switches ─────────────────────────────────────────────────────
+
+tact-switch-6mm:
+  description: "6×6mm momentary tactile push button (4-pin, through-hole)"
+  body_mm: [6.0, 6.0, 4.3]  # width × depth × height (shortest variant)
+  pins: 4
+  pin_pitch_x_mm: 6.5  # between columns (across center channel)
+  pin_pitch_y_mm: 4.5  # between rows (along breadboard)
+  pin_diameter_mm: 0.5
+  renderer: button
+  datasheet: "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3f.pdf"
+  notes: "Omron B3F-1000 compatible. Pins 1&2 connected internally, pins 3&4 connected. Spans breadboard center channel."
+
+# ─── Buzzers ──────────────────────────────────────────────────────
+
+buzzer-active-12mm:
+  description: "12mm electromagnetic active buzzer (sealed, fixed tone)"
+  body_mm: [12.0, 9.5]  # diameter × height
+  pins: 2
+  pin_pitch_mm: 7.6  # ~3 breadboard rows
+  pin_diameter_mm: 0.5
+  renderer: buzzer
+  variant: active
+  datasheet: "https://circuitcomps.com/products/buzzer-5v-12mm-hydz-pcb-mountable"
+  notes: "HYD-1205 type. Sealed top, makes continuous tone when powered. White '+' mark on top."
+
+buzzer-passive-12mm:
+  description: "12mm piezo passive buzzer (open bottom, frequency-driven)"
+  body_mm: [12.0, 5.5]  # diameter × height (shorter than active)
+  pins: 2
+  pin_pitch_mm: 6.5  # ~2.5 breadboard rows
+  pin_diameter_mm: 0.5
+  renderer: buzzer
+  variant: passive
+  datasheet: "https://www.electrokit.com/en/piezoelement-12x5.5mm"
+  notes: "Open bottom, requires tone() for sound. Shorter than active buzzer. PS1240 compatible."
+
+# ─── Potentiometers ───────────────────────────────────────────────
+
+trimmer-pot-3386P:
+  description: "3/8 inch square single-turn trimmer potentiometer (Bourns 3386P)"
+  body_mm: [9.53, 9.53, 4.83]  # width × depth × height
+  pins: 3
+  pin_pitch_mm: 2.54  # in-line, 3 consecutive breadboard holes
+  pin_diameter_mm: 0.51
+  shaft_diameter_mm: 3.15
+  renderer: potentiometer
+  datasheet: "https://www.bourns.com/pdfs/3386.pdf"
+  notes: "Blue or white square body. Single-turn cermet. Center pin is wiper."
+
+# ─── Sensor Modules ───────────────────────────────────────────────
+
+ky-037:
+  description: "KY-037 high-sensitivity sound sensor module"
+  body_mm: [36.0, 15.0, 14.0]  # length × width × height
+  pins: 4
+  pin_pitch_mm: 2.54
+  pin_order: [AO, DO, GND, VCC]
+  renderer: sensor
+  datasheet: "https://www.espboards.dev/sensors/ky-037/"
+  notes: "Blue PCB, single-row male header. Has analog and digital outputs."
+
+ky-038:
+  description: "KY-038 microphone sound sensor module"
+  body_mm: [32.0, 15.0, 14.0]
+  pins: 4
+  pin_pitch_mm: 2.54
+  pin_order: [AO, DO, GND, VCC]
+  renderer: sensor
+  datasheet: "https://arduinomodules.info/ky-038-microphone-sound-sensor-module/"
+  notes: "Similar to KY-037 but slightly smaller. Same pinout."
+
+ky-006:
+  description: "KY-006 passive buzzer module (PCB-mounted)"
+  body_mm: [18.5, 15.0, 14.0]
+  pins: 3
+  pin_pitch_mm: 2.54
+  pin_order: [S, NC, "-"]
+  renderer: sensor
+  datasheet: "https://arduinomodules.info/ky-006-passive-buzzer-module/"
+  notes: "Middle pin not connected on most units."
+
+ky-012:
+  description: "KY-012 active buzzer module (PCB-mounted)"
+  body_mm: [18.5, 15.0, 14.0]
+  pins: 3
+  pin_pitch_mm: 2.54
+  pin_order: [S, NC, "-"]
+  renderer: sensor
+  datasheet: "https://arduinomodules.info/ky-012-active-buzzer-module/"
+  notes: "Middle pin not connected on most units."
