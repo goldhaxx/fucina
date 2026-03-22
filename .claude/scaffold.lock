@@ -116,9 +116,9 @@
     ".claude/skills/tdd/SKILL.md": {
       "origin": "scaffold",
       "scaffold_hash": "cc84bd521f051d5496da182267a8d85b1811ae9085df642afa7fc096c1898de0",
-      "local_hash": "544d5aeeae91efdd556553ff26bd5704528abcbec730a6bf57b612a5d2224710",
-      "status": "modified",
-      "sync": "node-only"
+      "local_hash": "cc84bd521f051d5496da182267a8d85b1811ae9085df642afa7fc096c1898de0",
+      "status": "clean",
+      "sync": "tracked"
     },
     "docs/templates/checkpoint.md": {
       "origin": "scaffold",

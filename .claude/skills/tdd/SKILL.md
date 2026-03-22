@@ -39,7 +39,7 @@ Repeat phases 2-4 for each remaining acceptance criterion.
 
 ## Environment Variables
 Replace these with your project's actual commands:
-- `$TEST_COMMAND` = the command to run your test suite (e.g., `pio test`)
+- `$TEST_COMMAND` = the command to run your test suite (e.g., `pnpm test`, `pytest`, `go test ./...`)
 
 ## Rules
 - NEVER skip the red phase. If you can't make a test fail first, you don't understand the requirement.
