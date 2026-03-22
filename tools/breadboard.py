@@ -779,7 +779,7 @@ def _seven_segment_body_rows(comp: dict, specs: dict) -> float:
     model = comp.get("model", "")
     if model and model in specs:
         body_mm_val = specs[model].get("body_mm", [])
-        if body_mm_val:
+        if isinstance(body_mm_val, list) and body_mm_val:
             return body_mm_val[0] / 2.54
 
     # Fallback: hardcoded datasheet dimensions
@@ -1386,13 +1386,14 @@ def main():
     args = parser.parse_args()
 
     circuit = load_circuit(args.input)
+    specs = load_component_specs(args.input)
 
     rows = None
     if args.rows:
         lo, hi = args.rows.split("-")
         rows = (int(lo), int(hi))
 
-    svg_str = generate(circuit, rows=rows)
+    svg_str = generate(circuit, rows=rows, specs=specs)
 
     if args.output:
         Path(args.output).write_text(svg_str, encoding="utf-8")

@@ -161,7 +161,7 @@ def add_bounding_boxes(board: bb.Board, circuit: dict) -> list[str]:
         if not coords:
             continue
 
-        # Seven segment gets a tighter box from its body dimensions
+        # Seven segment: use datasheet body dimensions, not pin span
         if t == "seven_segment":
             row_start = int(comp.get("row_start", 10))
             pins_count = int(comp.get("pins", 10))
@@ -169,15 +169,19 @@ def add_bounding_boxes(board: bb.Board, circuit: dict) -> list[str]:
             left_col = comp.get("left_col", "e")
             right_col = comp.get("right_col", "i")
 
-            x_left, y_top = board.hole_xy(f"{left_col}{row_start}")
+            x_left, _ = board.hole_xy(f"{left_col}{row_start}")
             x_right, _ = board.hole_xy(f"{right_col}{row_start}")
-            _, y_bot = board.hole_xy(f"{left_col}{row_start + pins_per_side - 1}")
+            _, y_pin_top = board.hole_xy(f"{left_col}{row_start}")
+            _, y_pin_bot = board.hole_xy(f"{left_col}{row_start + pins_per_side - 1}")
+            pin_span_cy = (y_pin_top + y_pin_bot) / 2
+            body_rows = bb._seven_segment_body_rows(comp, board.specs)
+            body_h = body_rows * bb.HOLE_PITCH
 
-            pad = 8
+            pad = 4
             els.append(bb._rect(
-                x_left - pad, y_top - pad,
+                x_left - pad, pin_span_cy - body_h / 2 - pad,
                 (x_right - x_left) + pad * 2,
-                (y_bot - y_top) + pad * 2,
+                body_h + pad * 2,
                 rx="2", fill="none", stroke="#ff0000",
                 stroke_width="1", stroke_dasharray="3,2", opacity="0.6",
             ))
@@ -204,6 +208,7 @@ def generate_test_svg(circuit: dict) -> str:
     # Use full board height to show all components
     row_lo, row_hi = bb.detect_row_range(circuit, padding=2)
     board = bb.Board(row_lo, row_hi)
+    board.specs = bb.load_component_specs()
 
     # Mark all occupied holes (same as generate())
     for comp in circuit.get("components", []):
