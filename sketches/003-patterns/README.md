@@ -2,7 +2,7 @@
 
 **Board:** HERO XL (Mega 2560)
 
-Five LEDs with four selectable patterns, switchable live via Serial Monitor.
+Five LEDs with seven selectable patterns, switchable live via Serial Monitor.
 
 ## Wiring Diagram
 
@@ -51,12 +51,15 @@ pio device monitor
 
 Open the Serial Monitor (9600 baud) after uploading. Send a number to switch patterns:
 
-| Key | Pattern           | Description                                    |
-|-----|-------------------|------------------------------------------------|
-| 1   | Sequential Chase  | One LED at a time, sweeps back and forth        |
-| 2   | All Blink         | All 5 LEDs blink on and off together            |
-| 3   | Random Twinkle    | Random LEDs flicker like stars                  |
-| 4   | Pattern Cycle     | Rotates through patterns 1-3, 5 seconds each   |
+| Key | Pattern           | Description                                       |
+|-----|-------------------|---------------------------------------------------|
+| 1   | Sequential Chase  | One LED at a time, sweeps back and forth           |
+| 2   | All Blink         | All 5 LEDs blink on and off together               |
+| 3   | Random Twinkle    | Random LEDs flicker like stars                     |
+| 4   | Pattern Cycle     | Rotates through patterns 1-3, 5 seconds each      |
+| 5   | Pulse (sync)      | All LEDs fade in and out together smoothly         |
+| 6   | Pulse Random      | Each LED pulses independently at random speeds     |
+| 7   | Off               | All LEDs off — idle until another pattern selected |
 
 Starts in Chase mode (1) by default.
 
@@ -65,7 +68,10 @@ Starts in Chase mode (1) by default.
 - Each LED has its own 220 ohm current-limiting resistor wired identically to the 001-blink circuit.
 - `checkSerial()` runs between every pattern step so input is responsive even mid-animation.
 - Pattern Cycle mode uses `millis()` timing to run each sub-pattern for 5 seconds before rotating.
-- `randomSeed(analogRead(A0))` seeds the RNG from a floating analog pin for varied twinkle behavior.
+- Pulse uses `analogWrite()` PWM on all 5 pins — smooth sine-like fading from 0 to 255 and back.
+- Pulse Random tracks per-LED brightness, direction, and speed independently using `millis()` timing — each LED bounces between 0-255 at its own random pace, re-randomizing speed at each reversal.
+- Off mode calls `allOff()` once and then idles in a tight serial-check loop.
+- `randomSeed(analogRead(A0))` seeds the RNG from a floating analog pin for varied twinkle and pulse behavior.
 
 ## What to Try Next
 
