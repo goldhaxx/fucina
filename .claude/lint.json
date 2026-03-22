@@ -1,0 +1,11 @@
+{
+  "_comment": "Project-specific linters and formatters for Claude Code hooks.",
+  "_docs_linters": "Each key is a glob pattern. 'check' is the command (file path appended). 'name' is for error messages. Linters block writes on failure (exit 2).",
+  "_docs_formatters": "Each key is a glob pattern. 'format' is the command (file path appended). 'name' is for logging. Formatters never block writes.",
+  "linters": {
+    "*.cpp|*.h|*.ino": { "check": "cppcheck --error-exitcode=1 --quiet", "name": "cppcheck" }
+  },
+  "formatters": {
+    "*.cpp|*.h|*.ino": { "format": "clang-format -i", "name": "clang-format" }
+  }
+}
