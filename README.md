@@ -212,4 +212,4 @@ Kit: [Crafting Table Adventure Kit: Pandora's Box](https://inventr.io/)
 
 ## Acknowledgments
 
-The 32 sketches in `sketches/craftingtable/` are derived from the [inventrdotio/AdventureKit2](https://github.com/inventrdotio/AdventureKit2) repository by [Crafting Table](https://inventr.io/). Their open-source curriculum and the Adventure Kit: Pandora's Box hardware kit provided the foundation for much of the course material in this project. Thank you for making quality Arduino education accessible.
+The 32 sketches in `sketches/craftingtable/` are derived from the [inventrdotio/AdventureKit2](https://github.com/inventrdotio/AdventureKit2) repository by [Crafting Table](https://craftingtable.com/). Their open-source curriculum and the Adventure Kit: Pandora's Box hardware kit provided the foundation for much of the course material in this project. Thank you for making quality Arduino education accessible.
