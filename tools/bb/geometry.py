@@ -156,6 +156,18 @@ def _is_board_pin(s: str) -> bool:
     return s.startswith("pin") or s in ("gnd", "5v", "3v3", "vin")
 
 
+def _normalize_pin_id(s: str) -> str:
+    """Normalize a board pin identifier from wiring.yaml format to lookup key.
+
+    Strips 'pin' or 'pin_' prefix and lowercases.
+    Examples: 'pin9' → '9', 'pin_a0' → 'a0', 'gnd' → 'gnd', '5v' → '5v'.
+    """
+    s = s.strip().lower()
+    if s.startswith("pin"):
+        s = s[3:].lstrip("_")
+    return s
+
+
 def _pin_label(s: str) -> str:
     s = s.strip()
     if s.lower().startswith("pin"):

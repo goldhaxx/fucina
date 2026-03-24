@@ -214,3 +214,58 @@ digit_h = natural_h * scale
 | 0.3" (7.62mm) | `e` to `f` | Standard ICs (spans center channel only) |
 | 0.5" (12.7mm) | `d` to `g` | Wider ICs |
 | 0.6" (15.24mm) | `e` to `i` | 7-segment displays, wide DIP packages |
+
+---
+
+## MCU Board Renderer
+
+When a `wiring.yaml` file specifies `board: hero-xl`, a visual representation of the HERO XL (Arduino Mega 2560 Rev3) board is rendered alongside the breadboard. All pin headers are shown with labeled pins, and wires connecting breadboard holes to board pins are smart-routed with orthogonal paths.
+
+### Configuration
+
+```yaml
+name: "001 — Blink"
+board: hero-xl              # renders the board graphic
+board_position: left        # optional: "left" (default) or "right"
+```
+
+CLI override: `--board-position right`
+
+### Board Graphic
+
+The board is drawn rotated 90° CW from its natural orientation, so the digital pins (0-13, GND, AREF, SDA, SCL) face the breadboard for short wire routes. Features:
+
+- **Dark green PCB** rectangle with USB-B and DC barrel jack connectors
+- **All 86 pins** labeled: digital 0-53, analog A0-A15, power (3V3, 5V, GND, VIN), AREF, SDA, SCL, TX/RX pairs
+- **Wired pins** are highlighted in gold; unused pins are dim gray
+
+### Wire Routing
+
+Wires connecting breadboard holes to board pins are routed through a gap between the board graphic and the breadboard:
+
+1. Wire exits the board pin **horizontally** into the routing gap
+2. Wire runs **vertically** along an assigned channel to align with the destination row
+3. Wire enters the breadboard hole **horizontally**
+
+Routing features:
+- **Orthogonal paths** with smooth rounded corners at 90° bends
+- **Channel assignment** spaces parallel wires apart to prevent overlap
+- **Crossing minimization** sorts wires by destination row to reduce intersections
+- **Module integration** — module `to: pin9` wires route to the board graphic instead of margin pills
+
+### Fallback Behavior
+
+When `board:` is absent or set to an unrecognized board name, wires to board pins render as horizontal lines to colored pill labels on the diagram margins (the pre-existing behavior). The pill-label code path is preserved as a fallback.
+
+### Adding New Boards
+
+Board pin layouts are defined in YAML data files at `tools/bb/boards/<name>.yaml`. Each file specifies board dimensions, pin headers with positions, and connector locations. See `hero-xl.yaml` for the reference format. Adding a new board requires only creating the YAML file — no Python code changes.
+
+### Source Files
+
+| File | Purpose |
+|------|---------|
+| `tools/bb/boards/hero-xl.yaml` | HERO XL pin layout data (from KiCad footprint) |
+| `tools/bb/boards/__init__.py` | Board data loader |
+| `tools/bb/mcu.py` | Board coordinate mapper and SVG renderer |
+| `tools/bb/router.py` | Smart wire routing engine |
