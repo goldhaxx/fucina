@@ -116,7 +116,7 @@ def render_row_connections(board: Board) -> list[str]:
         if r:
             occupied_rows.add(r)
 
-    for row in occupied_rows:
+    for row in sorted(occupied_rows):
         if row < board.row_lo or row > board.row_hi:
             continue
         y = board._terminal_row_y(row)

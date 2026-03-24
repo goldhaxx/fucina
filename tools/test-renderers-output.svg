@@ -879,9 +879,9 @@
 <line x1="254.0" y1="255.0" x2="250.0" y2="262.0" stroke="#999" stroke-width="1.2"/>
 <rect x="101.0" y="298.0" width="18.0" height="40.0" rx="2" fill="#1a6b3c" stroke="#0d4025" stroke-width="0.8"/>
 <text x="110.0" y="321.0" font-size="6" fill="#cfc" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">LDR</text>
-<circle cx="110.0" cy="304.0" r="1.5" fill="#silver" stroke="#999" stroke-width="0.3"/>
-<circle cx="110.0" cy="318.0" r="1.5" fill="#silver" stroke="#999" stroke-width="0.3"/>
-<circle cx="110.0" cy="332.0" r="1.5" fill="#silver" stroke="#999" stroke-width="0.3"/>
+<circle cx="110.0" cy="304.0" r="1.5" fill="silver" stroke="#999" stroke-width="0.3"/>
+<circle cx="110.0" cy="318.0" r="1.5" fill="silver" stroke="#999" stroke-width="0.3"/>
+<circle cx="110.0" cy="332.0" r="1.5" fill="silver" stroke="#999" stroke-width="0.3"/>
 <circle cx="110.0" cy="388.0" r="10.0" fill="#555" stroke="#333" stroke-width="1"/>
 <line x1="110.0" y1="388.0" x2="110.0" y2="380.0" stroke="#ccc" stroke-width="1.5" stroke-linecap="round"/>
 <circle cx="110.0" cy="388.0" r="2.5" fill="#888" stroke="#666" stroke-width="0.5"/>

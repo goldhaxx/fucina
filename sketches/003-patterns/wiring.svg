@@ -10,14 +10,6 @@
 <line x1="90.0" y1="44.0" x2="90.0" y2="634.0" stroke="#1565c0" stroke-width="1.2" opacity="0.2" stroke-dasharray="3,5"/>
 <line x1="270.0" y1="44.0" x2="270.0" y2="634.0" stroke="#d32f2f" stroke-width="1.2" opacity="0.2" stroke-dasharray="3,5"/>
 <line x1="280.0" y1="44.0" x2="280.0" y2="634.0" stroke="#1565c0" stroke-width="1.2" opacity="0.2" stroke-dasharray="3,5"/>
-<rect x="105.0" y="481.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="189.0" y="481.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="105.0" y="523.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="189.0" y="523.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="105.0" y="565.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="189.0" y="565.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="105.0" y="579.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
-<rect x="189.0" y="579.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
 <rect x="105.0" y="131.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
 <rect x="189.0" y="131.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
 <rect x="105.0" y="173.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
@@ -40,6 +32,14 @@
 <rect x="189.0" y="425.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
 <rect x="105.0" y="467.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
 <rect x="189.0" y="467.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="105.0" y="481.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="189.0" y="481.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="105.0" y="523.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="189.0" y="523.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="105.0" y="565.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="189.0" y="565.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="105.0" y="579.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
+<rect x="189.0" y="579.0" width="66.0" height="10.0" rx="3" fill="#ffeaa7" opacity="0.25"/>
 <circle cx="110.0" cy="52.0" r="3.0" fill="#2a2a2a"/>
 <circle cx="110.0" cy="66.0" r="3.0" fill="#2a2a2a"/>
 <circle cx="110.0" cy="80.0" r="3.0" fill="#2a2a2a"/>
