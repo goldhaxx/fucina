@@ -1,73 +1,51 @@
 # Checkpoint
 
-> Last updated: 2026-03-23
-> Session objective: Deterministic SVG fix, README, backlog triage
+> Feature: board-renderer
+> Last updated: 1774327598
+> Plan hash: 76f8ec90
 
 ## Accomplished
 
-### Session 8 (2026-03-23)
+### Session 9 (2026-03-21)
 
-**Deterministic SVG output:**
-- Sorted `occupied_rows` set iteration in `render_row_connections` (`tools/bb/chrome.py:119`)
-- Regenerated all 4 sketch SVGs — confirmed byte-identical across repeated runs
-- Regenerated `ct-photoresistor/wiring.svg` to fix stale `fill="#silver"` (invalid SVG, rendered as black)
-- Code review PASS, security audit PASS
+**HERO XL Board Renderer with Smart Wire Routing:**
+- Created data-driven board definition system (`tools/bb/boards/hero-xl.yaml`) with all 86 pins from KiCad footprint data
+- Built MCU board graphic renderer (`tools/bb/mcu.py`) — dark green PCB, USB-B, barrel jack, labeled pins with wired-pin highlighting
+- Built channel-based orthogonal wire router (`tools/bb/router.py`) — H-V-H paths, crossing minimization via Y-sort, smooth arc bends
+- Integrated into `generate()` — board graphic layer, wire partitioning (board-pin vs hole-to-hole), module-to-board-pin wire routing
+- Configurable position (left/right) via `board_position:` YAML key or `--board-position` CLI arg
+- Pill-label fallback preserved for unknown/absent boards
+- All 20 acceptance criteria pass
+- Code review: 6 concerns, 0 blocking — fixed 5 (docstring, type annotations, normalization helper, spacing guard, docs), backlogged 1 (obstacle avoidance)
+- Security audit: PASS
+- `_normalize_pin_id()` helper extracted to `bb/geometry.py` to eliminate triple normalization
+- `docs/renderers.md` updated with board renderer documentation
+- All 4 sketch SVGs regenerated, 36 wiring files validate
 
-**Project README:**
-- Created `README.md` with inline SVG breadboard diagrams, progressive sketch table, tooling docs, quick start guide, project structure, and hardware table
-- Acknowledgments section crediting inventrdotio/AdventureKit2 and Crafting Table
-- Clone URL verified against `git remote` (goldhaxx/fucina)
-
-### Session 7 (2026-03-23)
-
-**breadboard.py modular split:**
-- Split 1513-line monolith (48k chars) into 8 modules under `tools/bb/`
-- `constants.py` (88 lines), `svg.py` (43), `loaders.py` (101), `geometry.py` (164), `board.py` (114), `renderers.py` (614), `chrome.py` (134), `legend.py` (190)
-- `breadboard.py` remains as thin CLI entry + re-exports (186 lines)
-- All SVGs verified byte-identical after split
-- CLI (`python3 tools/breadboard.py`) and library API (`import breadboard as bb`) unchanged
-- `test-renderers.py` backward compatibility preserved
-- Fixed pre-existing bug: `#silver` → `silver` in render_sensor
-- Fixed namespace leak: `_r`/`_i` loop vars → list comprehension in constants
-- Updated `docs/renderers.md` to reference new module paths
-- Code review PASS, security audit PASS, self-review PASS
-
-### Session 6 (2026-03-22)
-
-**Sketch 004 — Joystick Lights:**
-- 5 LEDs + HW-504 joystick on HERO XL, 5 effects controlled by joystick position
-- Effects: sync pulse (center), chase left/right (X-axis), random twinkle (up), ripple from center (down)
-- Auto-calibration at startup, cubic intensity curves, hysteresis on zone transitions
-- Compiled, uploaded, tested on hardware — all effects working
-
-**HW-504 Joystick Onboarding + Module Renderer Overhaul:**
-- Full HW-504 component onboarding (specs, inventory, wiring patterns)
-- New `to:` pin format for modules, dynamic left margin, board pin pills
-- All 23 module-containing SVGs regenerated
+**Backlog specs created (4 total in `docs/specs/`):**
+- `new-board-skill` — `/new-board` command for repeatable board onboarding with validation
+- `regenerate-svgs` — Extract manual SVG regeneration loop into deterministic script
+- `obstacle-avoidance` — Enforce wire routing around board body (collect_obstacles unused)
+- `wire-routing-polish` — Wire spacing enforcement, inline pill labels for long runs, crossing visualization
 
 ## Current State
 
-- **Branch:** main, clean (5 commits ahead of origin)
-- **Build status:** all sketches compile
-- **Validation:** all wiring.yaml files pass
+- **Branch:** main, clean (4 commits ahead of origin)
+- **Build status:** all sketches compile, all SVGs regenerate
+- **Validation:** 36 wiring files pass, test-renderers.py works
 - **No failing tests**
 - **No uncommitted changes**
 
 ## Next Steps
 
-1. Add HERO XL board renderer to breadboard.py (Zach asked about this)
-2. Next sketch ideas: button to cycle effects, combine joystick with buzzer for sound+light
-3. Code reviewer flagged: no automated determinism regression test (generate twice, assert identical) — consider adding
-
-## Context Notes
-
-- Largest module is `tools/bb/renderers.py` at 614 lines / 22k chars — well under 40k threshold
-- `_seven_segment_body_rows` lives in `geometry.py` (not renderers) to avoid circular imports
-- Import graph is strictly one-directional: constants → svg → loaders → geometry → board → renderers/chrome → legend
-- Set-ordering nondeterminism (item 3 from session 7) is now resolved
+1. **Wire routing polish** (`wire-routing-polish` spec) — highest visual impact. The 004-joystick-lights diagram has wires bunched together and overlapping. Needs spacing enforcement and inline labels.
+2. **Obstacle avoidance** (`obstacle-avoidance` spec) — wires to far-side pins clip through board body.
+3. **Regenerate SVGs script** (`regenerate-svgs` spec) — quick deterministic win, extract the repeated for-loop.
+4. **/new-board skill** (`new-board-skill` spec) — repeatable board onboarding process.
 
 ## Determinism Review
 
-- **operations_reviewed:** 4
-- **candidates_found:** 0
-- No candidates this session. The sorted() fix itself was the determinism improvement. README creation is inherently stochastic (content generation).
+- **operations_reviewed:** 8
+- **candidates_found:** 2
+- **`for sketch in sketches/*/wiring.yaml` regeneration loop:** Claude ran this 3 times during the session. Should be `scripts/regenerate-svgs.sh`. Backlogged as `regenerate-svgs` spec. Impact: **high** (recurs every session that touches rendering).
+- **Pin layout research via agent:** Used a general-purpose agent to look up Arduino Mega 2560 pin positions from KiCad footprint. Could become a deterministic script that parses `.kicad_mod` files into YAML. Backlogged as part of `new-board-skill` spec. Impact: **medium** (only recurs when onboarding new boards).
