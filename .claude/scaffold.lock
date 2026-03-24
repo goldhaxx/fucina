@@ -154,8 +154,8 @@
     },
     "scripts/scaffold-sync.sh": {
       "origin": "scaffold",
-      "scaffold_hash": "80d111175fbb993b6293a52864218349504e26062dae74bc6ed29206d6dc934e",
-      "local_hash": "80d111175fbb993b6293a52864218349504e26062dae74bc6ed29206d6dc934e",
+      "scaffold_hash": "04c996432454d2d5d2015b78019d318d081348936c12885abf2ce6b168050f48  scripts/scaffold-sync.sh",
+      "local_hash": "04c996432454d2d5d2015b78019d318d081348936c12885abf2ce6b168050f48  scripts/scaffold-sync.sh",
       "status": "clean"
     },
     "GUIDE.md": {
