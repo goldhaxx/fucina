@@ -1,9 +1,22 @@
 # Checkpoint
 
 > Last updated: 2026-03-23
-> Session objective: Split breadboard.py monolith into modular bb/ package
+> Session objective: Deterministic SVG fix, README, backlog triage
 
 ## Accomplished
+
+### Session 8 (2026-03-23)
+
+**Deterministic SVG output:**
+- Sorted `occupied_rows` set iteration in `render_row_connections` (`tools/bb/chrome.py:119`)
+- Regenerated all 4 sketch SVGs — confirmed byte-identical across repeated runs
+- Regenerated `ct-photoresistor/wiring.svg` to fix stale `fill="#silver"` (invalid SVG, rendered as black)
+- Code review PASS, security audit PASS
+
+**Project README:**
+- Created `README.md` with inline SVG breadboard diagrams, progressive sketch table, tooling docs, quick start guide, project structure, and hardware table
+- Acknowledgments section crediting inventrdotio/AdventureKit2 and Crafting Table
+- Clone URL verified against `git remote` (goldhaxx/fucina)
 
 ### Session 7 (2026-03-23)
 
@@ -34,19 +47,27 @@
 
 ## Current State
 
-- **Branch:** main, clean (1 commit ahead of origin)
+- **Branch:** main, clean (5 commits ahead of origin)
 - **Build status:** all sketches compile
 - **Validation:** all wiring.yaml files pass
 - **No failing tests**
+- **No uncommitted changes**
 
 ## Next Steps
 
-1. Consider adding HERO XL board renderer to breadboard.py (Zach asked about this)
+1. Add HERO XL board renderer to breadboard.py (Zach asked about this)
 2. Next sketch ideas: button to cycle effects, combine joystick with buzzer for sound+light
-3. Consider sorting `board.occupied` set in `render_row_connections` for deterministic SVG output (observed set-ordering nondeterminism during regression testing)
+3. Code reviewer flagged: no automated determinism regression test (generate twice, assert identical) — consider adding
 
 ## Context Notes
 
 - Largest module is `tools/bb/renderers.py` at 614 lines / 22k chars — well under 40k threshold
 - `_seven_segment_body_rows` lives in `geometry.py` (not renderers) to avoid circular imports
 - Import graph is strictly one-directional: constants → svg → loaders → geometry → board → renderers/chrome → legend
+- Set-ordering nondeterminism (item 3 from session 7) is now resolved
+
+## Determinism Review
+
+- **operations_reviewed:** 4
+- **candidates_found:** 0
+- No candidates this session. The sorted() fix itself was the determinism improvement. README creation is inherently stochastic (content generation).
