@@ -207,11 +207,11 @@
 <rect x="3.3" y="-3.5" width="2.6" height="7.0" rx="0.3" fill="#CFB53B" transform="translate(152.0,136.0) rotate(90.0)"/>
 <rect x="157.0" y="88.0" width="18.0" height="40.0" rx="2" fill="#1a6b3c" stroke="#0d4025" stroke-width="0.8"/>
 <text x="166.0" y="111.0" font-size="6" fill="#cfc" text-anchor="middle" font-family="'SF Mono', 'Cascadia Code', 'Fira Code', monospace">LDR</text>
-<circle cx="166.0" cy="94.0" r="1.5" fill="#silver" stroke="#999" stroke-width="0.3"/>
-<circle cx="166.0" cy="122.0" r="1.5" fill="#silver" stroke="#999" stroke-width="0.3"/>
-<line x1="50.5" y1="122.0" x2="110.0" y2="122.0" stroke="#43a047" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
-<rect x="4.0" y="116.0" width="46.5" height="12.0" rx="4" fill="#43a047" opacity="0.92"/>
-<text x="8.0" y="125.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin _a0</text>
+<circle cx="166.0" cy="94.0" r="1.5" fill="silver" stroke="#999" stroke-width="0.3"/>
+<circle cx="166.0" cy="122.0" r="1.5" fill="silver" stroke="#999" stroke-width="0.3"/>
+<line x1="45.0" y1="122.0" x2="110.0" y2="122.0" stroke="#43a047" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+<rect x="4.0" y="116.0" width="41.0" height="12.0" rx="4" fill="#43a047" opacity="0.92"/>
+<text x="8.0" y="125.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Pin A0</text>
 <line x1="36.0" y1="94.0" x2="110.0" y2="94.0" stroke="#e53935" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
 <rect x="4.0" y="88.0" width="32.0" height="12.0" rx="4" fill="#e53935" opacity="0.92"/>
 <text x="8.0" y="97.0" font-size="8" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">5V</text>
