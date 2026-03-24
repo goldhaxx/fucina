@@ -174,7 +174,7 @@ If no renderer exists for a component, use one of these:
 2. **`module`** — for anything that connects via jumper wires from off-board
 3. **Omit from `components:`** — the wires still render, just no component body shown
 
-When a new renderer is needed, add it to `tools/breadboard.py`: define a `render_*` function and a `_legend_*` function, then add one entry to the `RENDERERS` dict. Update this document with the new type.
+When a new renderer is needed, add a `render_*` function in `tools/bb/renderers.py` and a `_legend_*` function in `tools/bb/legend.py`, then add one entry to the `RENDERERS` dict in `legend.py`. Update this document with the new type.
 
 ---
 

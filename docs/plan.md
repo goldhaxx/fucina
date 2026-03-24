@@ -1,108 +1,134 @@
-# Implementation Plan: 004 — Joystick Lights
+# Implementation Plan: Split breadboard.py into modular package
 
-> Created: 2026-03-21
-> Based on: conversation (no formal spec)
+> Created: 2026-03-23
+> Based on: Discussion — Option A (flat `tools/bb/` package)
 
 ## Objective
 
-Create sketch 004 that combines 5 LEDs with a KY-023 joystick, where joystick position selects and controls LED animation effects in real time.
+Refactor the monolithic `tools/breadboard.py` (1513 lines, 48.1k chars) into a `tools/bb/` package with 8 focused modules, keeping `tools/breadboard.py` as a thin CLI entry point — so no single file exceeds the 40k char context threshold.
 
-## Effects Matrix
+## Constraints
 
-| Joystick Position | Effect | Speed Control |
-|---|---|---|
-| Center (rest) | Sync pulse — all LEDs breathe together | Fixed ~2s cycle |
-| X-axis right | Sequential chase right (1→2→3→4→5) | Faster with more deflection |
-| X-axis left | Sequential chase left (5→4→3→2→1) | Faster with more deflection |
-| Y-axis up | Random twinkle — LEDs flicker randomly | Faster with more deflection |
-| Y-axis down | Ripple — wave expands outward from center LED | Faster with more deflection |
-
-## Hardware
-
-- **LEDs:** Same 5 LEDs from sketch 003 (pins 9, 10, 11, 5, 6 — all PWM-capable)
-- **Joystick:** KY-023 — VRx→A0, VRy→A1, SW→Pin 2, powered from 5V/GND
-- **Board:** HERO XL (Mega 2560)
-- **Joystick placement:** Below the LED array on the breadboard (rows 45+), using right bank (f-j) to keep wiring clean
+- **CLI unchanged:** `python3 tools/breadboard.py <input> -o <output>` must keep working.
+- **Library API unchanged:** `test-renderers.py` imports `breadboard as bb` and uses `bb.Board`, `bb.RENDERERS`, `bb._is_board_pin`, `bb.render_*`, `bb._text`, `bb._rect`, `bb.FONT`, `bb.HOLE_PITCH`, `bb.detect_row_range`, `bb.load_component_specs`, `bb._seven_segment_body_rows`. All must remain accessible via `import breadboard as bb`.
+- **Zero behavior change:** Every SVG generated before and after must be byte-identical.
 
 ## Sequence
 
-### Step 1: Create sketch directory and wiring.yaml
+### Step 1: Capture baselines for regression testing
 
-- **Test:** `python3 tools/validate-wiring.py` passes; SVG generates without error
-- **Implement:** Create `sketches/004-joystick-lights/wiring.yaml` combining the 5-LED layout from 003 with the joystick module. Place joystick in right bank below the LEDs. Add all signal, power, and ground wires.
-- **Files:** `sketches/004-joystick-lights/wiring.yaml`, `sketches/004-joystick-lights/wiring.svg`
-- **Verify:** SVG renders correctly with all components visible; `validate-wiring.py` clean
+- **Test:** N/A (setup step)
+- **Implement:** Generate SVGs from 3 representative sketches (simple, module, 7-segment) into `/tmp/baseline-*.svg`. These are the regression targets for all subsequent steps.
+- **Files:** None (temp files only)
+- **Verify:** Baselines exist and are valid SVGs
 
-### Step 2: Scaffold the sketch (platformio.ini + minimal main.cpp)
+### Step 2: Create `bb/constants.py` — layout constants and color palettes
 
-- **Test:** `pio run -e mega` compiles clean
-- **Implement:** Create `platformio.ini` (same as 003 — no external libs needed). Create `src/main.cpp` with pin constants, `setup()` initializing LED outputs and joystick input, and an empty `loop()`. Pin assignments must match wiring.yaml exactly.
-- **Files:** `sketches/004-joystick-lights/platformio.ini`, `sketches/004-joystick-lights/src/main.cpp`
-- **Verify:** Compiles with zero warnings
+- **Test:** Import check from `tools/` directory.
+- **Implement:** Extract layout constants (lines 21–79), band colors (lines 125–136), LED palette (lines 138–145), buzzer palette (lines 555–558) into `tools/bb/constants.py`. Create `tools/bb/__init__.py` (empty).
+- **Files:** Create `tools/bb/__init__.py`, `tools/bb/constants.py`
+- **Verify:** `python3 -c "from bb.constants import HOLE_PITCH, LED_PALETTE, BUZZER_PALETTE; print('OK')"`
 
-### Step 3: Joystick input reading with dead zone
+### Step 3: Create `bb/svg.py` — SVG primitives and resistor bands
 
-- **Test:** Upload to board, verify serial output shows X/Y values and correct zone detection
-- **Implement:** Add joystick reading logic: `analogRead(A0)` for X, `analogRead(A1)` for Y, `digitalRead(2)` for button. Define a dead zone around center (~512 ± 80). Map joystick position to one of 5 zones: center, left, right, up, down. Calculate deflection magnitude (0.0–1.0) for speed control. Print zone + magnitude to serial for debugging.
-- **Files:** `src/main.cpp`
-- **Verify:** Serial monitor shows zone transitions as joystick moves; center dead zone is stable
+- **Test:** Import check.
+- **Implement:** Extract `_attr`, `_circle`, `_rect`, `_line`, `_text`, `resistor_bands` (lines 422–461) into `tools/bb/svg.py`. Imports `BAND_DIGIT`, `BAND_MULTIPLIER`, `BAND_TOLERANCE_GOLD` from `bb.constants` and `escape` from `xml.sax.saxutils`.
+- **Files:** Create `tools/bb/svg.py`
+- **Verify:** `python3 -c "from bb.svg import _circle, _rect, _text, resistor_bands; print('OK')"`
 
-### Step 4: Sync pulse effect (center/rest position)
+### Step 4: Create `bb/loaders.py` — YAML loading and specs cache
 
-- **Test:** Upload, leave joystick centered — all 5 LEDs should breathe in unison
-- **Implement:** Non-blocking pulse using `millis()` — no `delay()` calls so the loop can read joystick every iteration. Use sine-wave or triangle-wave brightness curve. All LEDs get the same PWM value each frame.
-- **Files:** `src/main.cpp`
-- **Verify:** Smooth ~2-second pulse cycle; releasing joystick from any direction returns to pulse
+- **Test:** Import check.
+- **Implement:** Extract `load_circuit`, `load_component_specs`, `_SPECS_CACHE`, `_parse_yaml_simple`, `_coerce` (lines 148–240) into `tools/bb/loaders.py`. The `try: import yaml` block moves here. No dependencies on other `bb` modules.
+- **Files:** Create `tools/bb/loaders.py`
+- **Verify:** `python3 -c "from bb.loaders import load_circuit, load_component_specs; print('OK')"`
 
-### Step 5: Sequential chase effects (X-axis left/right)
+### Step 5: Create `bb/geometry.py` — orientation, row detection, pin utilities
 
-- **Test:** Upload, push joystick right → LEDs chase 1→5; push left → LEDs chase 5→1
-- **Implement:** Non-blocking chase: track current LED index and last-step timestamp. Step interval = `map(deflection, 0, 1, 200, 40)` — slow when barely tilted, fast when fully tilted. On each step, light current LED, dim previous. Direction determined by X-axis sign.
-- **Files:** `src/main.cpp`
-- **Verify:** Chase direction matches joystick; speed visibly changes with deflection amount
+- **Test:** Import check.
+- **Implement:** Extract `parse_orientation`, `compute_rotated_fit` (lines 82–122), `_extract_row`, `detect_row_range` (lines 243–319), `_is_board_pin`, `_pin_label` (lines 1086–1097) into `tools/bb/geometry.py`. Also move `_seven_segment_body_rows` here (it's a dimension calculation, not a renderer — lines 780–796). Imports from `bb.constants` and `bb.loaders`.
+- **Files:** Create `tools/bb/geometry.py`
+- **Verify:** `python3 -c "from bb.geometry import detect_row_range, _is_board_pin, parse_orientation; print('OK')"`
 
-### Step 6: Random twinkle effect (Y-axis up)
+### Step 6: Create `bb/board.py` — Board class
 
-- **Test:** Upload, push joystick up → LEDs twinkle randomly; speed increases with deflection
-- **Implement:** Non-blocking: on each tick, randomly toggle one LED on or off using `analogWrite()` with random brightness. Tick interval = `map(deflection, 0, 1, 150, 20)`. More deflection = more frenetic flashing.
-- **Files:** `src/main.cpp`
-- **Verify:** Twinkle is random-feeling; gentle push = slow shimmer, full push = rapid flicker
+- **Test:** Import check.
+- **Implement:** Extract class `Board` (lines 324–420) into `tools/bb/board.py`. Imports layout constants from `bb.constants`.
+- **Files:** Create `tools/bb/board.py`
+- **Verify:** `python3 -c "from bb.board import Board; b = Board(); print(b.hole_xy('a1'))"`
 
-### Step 7: Ripple/wave effect (Y-axis down)
+### Step 7: Create `bb/renderers.py` — component render functions
 
-- **Test:** Upload, push joystick down → wave expands outward from center LED (LED 3)
-- **Implement:** Non-blocking ripple: center LED (index 2) lights first, then indices 1+3, then 0+4 — expanding outward. Use PWM for smooth fade: each ring fades up then down as the wave passes. After the wave reaches the edges, restart. Step interval controlled by Y-axis deflection magnitude.
-- **Files:** `src/main.cpp`
-- **Verify:** Wave clearly radiates from center; speed responds to joystick push amount
+- **Test:** Import check.
+- **Implement:** Extract all `render_*` component functions and their helpers: `render_resistor`, `render_led`, `render_button`, `render_buzzer`, `render_sensor`, `render_potentiometer`, `render_rgb_led`, `render_seven_segment`, `render_module`, `_seven_segment_digit`, `_module_box_width`, `_module_wire_color` (lines 464–1083, minus `_seven_segment_body_rows` which went to geometry). Imports from `bb.constants`, `bb.svg`, `bb.geometry`, `bb.board`.
+- **Files:** Create `tools/bb/renderers.py`
+- **Verify:** `python3 -c "from bb.renderers import render_resistor, render_led, render_module; print('OK')"`
 
-### Step 8: Smooth transitions between effects
+### Step 8: Create `bb/chrome.py` — board background, rails, holes, labels
 
-- **Test:** Upload, sweep joystick between zones — transitions should be clean, no stuck LEDs
-- **Implement:** When zone changes, call `allOff()` to reset LED state, then reinitialize the new effect's state variables. Add a brief transition: quick fade-out of current effect before starting new one (optional, skip if it feels responsive enough without it).
-- **Files:** `src/main.cpp`
-- **Verify:** No ghost LEDs when switching effects; snappy response to zone changes
+- **Test:** Import check.
+- **Implement:** Extract `render_background`, `render_power_rails`, `render_holes`, `render_labels`, `render_row_connections` (lines 1232–1347) into `tools/bb/chrome.py`. Imports from `bb.constants`, `bb.svg`, `bb.geometry` (`_extract_row`).
+- **Files:** Create `tools/bb/chrome.py`
+- **Verify:** `python3 -c "from bb.chrome import render_background, render_holes; print('OK')"`
 
-### Step 9: Write README.md
+### Step 9: Create `bb/legend.py` — legend rendering, registry, wire rendering
 
-- **Test:** N/A (documentation)
-- **Implement:** Document the sketch: what it does, parts list, wiring reference, build commands, effect descriptions. Reference `wiring.svg` for the visual diagram.
-- **Files:** `sketches/004-joystick-lights/README.md`
-- **Verify:** README accurately describes behavior and wiring
+- **Test:** Import check.
+- **Implement:** Extract `RENDERERS` dict, all `_legend_*` functions, `render_wire`, `render_legend` (lines 1099–1228, 1349–1384) into `tools/bb/legend.py`. `RENDERERS` references render functions from `bb.renderers` and legend functions defined locally. Imports from `bb.constants`, `bb.svg`, `bb.geometry`.
+- **Files:** Create `tools/bb/legend.py`
+- **Verify:** `python3 -c "from bb.legend import RENDERERS, render_wire, render_legend; print('OK')"`
+
+### Step 10: Rewrite `breadboard.py` as thin entry point + re-exports
+
+- **Test:** Byte-diff SVGs against baselines from Step 1.
+- **Implement:** Replace the 1513-line file with ~80 lines that: (1) re-exports all public names from `bb.*` so `import breadboard as bb` still exposes everything `test-renderers.py` needs, (2) defines `generate()` which orchestrates render layers (the current lines 1389–1482), (3) defines `main()` CLI (lines 1487–1513).
+- **Files:** Rewrite `tools/breadboard.py`
+- **Verify:** `python3 tools/breadboard.py sketches/001-blink/wiring.yaml -o /tmp/after.svg && diff /tmp/baseline-blink.svg /tmp/after.svg` (empty diff). Also: `python3 tools/test-renderers.py -o /tmp/test.svg` works.
+
+### Step 11: Full regression — regenerate all SVGs and diff
+
+- **Test:** Regenerate every wiring.svg in the project.
+- **Implement:** Loop over all `wiring.yaml` files, regenerate SVGs, compare with `git diff`.
+- **Files:** None (verification only)
+- **Verify:** `git diff --stat` shows zero changes to `.svg` files. `python3 tools/test-renderers.py` also works.
+
+### Step 12: Update documentation references
+
+- **Test:** N/A (docs only)
+- **Implement:** Update `docs/renderers.md` line 177 — currently says "add it to `tools/breadboard.py`", update to reference `tools/bb/renderers.py`. Grep for any other stale references that tell developers to edit the monolith.
+- **Files:** `docs/renderers.md`
+- **Verify:** No docs reference editing `tools/breadboard.py` for adding renderers.
+
+## Circular Import Strategy
+
+`detect_row_range` (geometry) calls `_seven_segment_body_rows`. Moving `_seven_segment_body_rows` to `bb/geometry.py` (it's a pure dimension lookup, not a renderer) eliminates the only potential circular dependency.
+
+Import graph (all edges point one direction — no cycles):
+```
+constants ← svg ← board
+    ↑        ↑      ↑
+    └── loaders  geometry
+              ↑      ↑
+           renderers  chrome
+              ↑        ↑
+             legend ───┘
+                ↑
+           breadboard.py (generate + main + re-exports)
+```
 
 ## Risks
 
-- **Joystick center drift:** Analog joysticks rarely read exactly 512 at rest. The dead zone in Step 3 (±80) should handle this, but may need tuning on the actual hardware.
-- **PWM flicker during fast reads:** Reading analog pins takes ~100μs each. With 2 reads + LED updates per loop iteration, the loop should still run >1kHz — fast enough for smooth PWM. No risk here.
-- **Pin conflict:** A0 is used as `randomSeed()` source in 003 — in 004 it's the joystick X-axis. Use A2 (floating) for randomSeed instead.
-- **Non-blocking timing:** All effects must use `millis()`-based timing, not `delay()`. This is critical for responsive joystick reading. Sketch 003's `pulseRandom()` already demonstrates this pattern.
+- **`_seven_segment_body_rows` in geometry:** It reads `specs` dict. This is conceptually a geometry/dimension concern, not rendering, so the move is natural. But if future renderers need similar spec lookups, we'd want a shared pattern. Low risk — cross that bridge later.
+- **test-renderers.py private name access:** It uses `bb._is_board_pin`, `bb._rect`, `bb._text`, etc. Re-exporting these from `breadboard.py` maintains compatibility. If we ever make `bb/` a public API, we'd formalize these — but that's out of scope.
+- **sys.path resolution:** `test-renderers.py` inserts `tools/` into sys.path and imports `breadboard`. The `bb/` package lives in `tools/`, so `from bb.X` resolves correctly through the same sys.path entry.
 
 ## Definition of Done
 
-- [ ] All 5 effects work and respond to joystick position
-- [ ] Speed scales with deflection magnitude for chase, twinkle, and ripple
-- [ ] Transitions between effects are clean (no stuck LEDs)
-- [ ] Dead zone keeps pulse stable when joystick is at rest
-- [ ] Compiles with zero warnings
-- [ ] wiring.yaml validates clean; wiring.svg is generated
-- [ ] README.md documents all effects and wiring
-- [ ] Code reviewed (run /review)
+- [ ] All 8 `bb/` modules created with correct imports
+- [ ] `tools/breadboard.py` is <200 lines and under 10k chars
+- [ ] No single file in `bb/` exceeds 40k chars (~1200 lines)
+- [ ] `python3 tools/breadboard.py` CLI works identically
+- [ ] `python3 tools/test-renderers.py` works identically
+- [ ] All SVGs regenerated with zero byte-level diff
+- [ ] `python3 tools/validate-wiring.py` still works
+- [ ] Stale doc references updated
