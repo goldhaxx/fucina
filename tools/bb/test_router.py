@@ -6,7 +6,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from bb.router import WireSpec, _assign_channels, WIRE_SPACING
+from bb.router import WireSpec, _assign_channels, WIRE_SPACING, compute_mcu_gap
+from bb.mcu import MCU_GAP
 
 
 def _make_spec(board_y: float, hole_y: float,
@@ -110,6 +111,36 @@ def test_single_wire():
     assert abs(channels[0] - expected_center) < 1.0, (
         f"Single wire at {channels[0]:.1f}, expected near center {expected_center:.1f}"
     )
+
+
+# ─── Step 2: Dynamic MCU gap (AC-2) ─────────────────────────────────
+
+
+def test_dynamic_gap_returns_default_for_few_wires():
+    """Small wire count fits in default MCU_GAP — no expansion needed."""
+    gap = compute_mcu_gap(2)
+    assert gap == MCU_GAP, f"Expected default gap {MCU_GAP}, got {gap}"
+
+
+def test_dynamic_gap_widens_for_many_wires():
+    """When wire count exceeds what fits at WIRE_SPACING, gap must widen."""
+    # 10 all-overlapping wires need 10 channels at 5px = 45px between outermost
+    # channels + padding on both sides. Default MCU_GAP (40) is too small.
+    gap = compute_mcu_gap(10)
+    min_needed = (10 - 1) * WIRE_SPACING + 2 * WIRE_SPACING  # 45 + 10 = 55
+    assert gap >= min_needed, (
+        f"Gap {gap} too small for 10 wires — need at least {min_needed}"
+    )
+    assert gap > MCU_GAP, f"Gap should exceed default {MCU_GAP}, got {gap}"
+
+
+def test_dynamic_gap_grows_monotonically():
+    """More wires should never produce a smaller gap."""
+    prev = compute_mcu_gap(1)
+    for n in range(2, 20):
+        curr = compute_mcu_gap(n)
+        assert curr >= prev, f"Gap shrank from {prev} (n={n-1}) to {curr} (n={n})"
+        prev = curr
 
 
 if __name__ == "__main__":

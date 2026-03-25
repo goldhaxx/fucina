@@ -37,6 +37,22 @@ BEND_RADIUS = 4.0      # px radius for rounded corners
 WIRE_WIDTH = 2.0
 WIRE_OPACITY = 0.85
 
+# Default gap imported for compute_mcu_gap baseline
+from bb.mcu import MCU_GAP as _MCU_GAP_DEFAULT
+
+
+def compute_mcu_gap(wire_count: int) -> float:
+    """Compute the routing gap needed for the given number of board-pin wires.
+
+    Returns at least MCU_GAP (the default). When more wires need channels
+    than fit at WIRE_SPACING in the default gap, the gap widens.
+    """
+    if wire_count <= 1:
+        return _MCU_GAP_DEFAULT
+    # Need (wire_count - 1) inter-channel spaces + padding on both edges
+    needed = (wire_count - 1) * WIRE_SPACING + 2 * WIRE_SPACING
+    return max(_MCU_GAP_DEFAULT, needed)
+
 
 def collect_obstacles(mcu: McuBoard | None, board: Board) -> list[Rect]:
     """Collect obstacle bounding boxes for routing avoidance."""

@@ -63,6 +63,7 @@ from bb.mcu import (  # noqa: F401
     render_board_pins,
     MCU_GAP,
 )
+from bb.router import compute_mcu_gap  # noqa: F401
 
 
 # ─── Main Generation ─────────────────────────────────────────────
@@ -100,11 +101,29 @@ def generate(circuit: dict, rows: tuple[int, int] | None = None,
             card_w = _module_box_width(comp.get("name", "Module"))
             module_card_w = max(module_card_w, card_w)
 
+    # Count board-pin wires to compute dynamic routing gap
+    mcu_gap = MCU_GAP
+    if board_data is not None:
+        board_pin_count = 0
+        for wire in circuit.get("wires", []):
+            from_id, to_id = str(wire["from"]), str(wire["to"])
+            if _is_board_pin(from_id) or _is_board_pin(to_id):
+                board_pin_count += 1
+        # Also count module pins that route to board pins
+        for comp in circuit.get("components", []):
+            if comp.get("type") == "module":
+                for pin in comp.get("pins", []):
+                    if isinstance(pin, dict):
+                        dest = str(pin.get("to", ""))
+                        if dest and _is_board_pin(dest):
+                            board_pin_count += 1
+        mcu_gap = compute_mcu_gap(board_pin_count)
+
     if board_data is not None:
         # MCU board graphic needs space
         from bb.mcu import MM_TO_PX
         mcu_w = board_data["dimensions_mm"]["height"] * MM_TO_PX  # rotated
-        mcu_space = mcu_w + MCU_GAP + BOARD_PAD_X
+        mcu_space = mcu_w + mcu_gap + BOARD_PAD_X
         if module_card_w > 0:
             # Module cards go to the left of the MCU board
             mcu_space += module_card_w + 20  # card + gap
@@ -127,7 +146,8 @@ def generate(circuit: dict, rows: tuple[int, int] | None = None,
                        breadboard_left=board.board_left,
                        breadboard_right=board.board_right,
                        breadboard_top=board.board_top,
-                       breadboard_bottom=board.board_bottom)
+                       breadboard_bottom=board.board_bottom,
+                       gap=mcu_gap)
 
     # Collect wired pin IDs for MCU highlighting
     if mcu is not None:

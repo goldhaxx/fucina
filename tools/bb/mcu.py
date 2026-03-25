@@ -42,9 +42,11 @@ class McuBoard:
 
     def __init__(self, board_data: dict, position: str,
                  breadboard_left: float, breadboard_right: float,
-                 breadboard_top: float, breadboard_bottom: float):
+                 breadboard_top: float, breadboard_bottom: float,
+                 gap: float | None = None):
         self.data = board_data
         self.position = position  # "left" or "right"
+        self.gap = gap if gap is not None else MCU_GAP
 
         dims = board_data["dimensions_mm"]
         # After 90° CW rotation: natural width → height, natural height → width
@@ -53,10 +55,10 @@ class McuBoard:
 
         # Position the board relative to the breadboard
         if position == "left":
-            self.board_x = breadboard_left - MCU_GAP - self.board_w_px
+            self.board_x = breadboard_left - self.gap - self.board_w_px
             self.board_y = breadboard_top
         else:  # right
-            self.board_x = breadboard_right + MCU_GAP
+            self.board_x = breadboard_right + self.gap
             self.board_y = breadboard_top
 
         # Wired pins — populated by generate() before rendering
