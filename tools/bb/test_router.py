@@ -162,6 +162,54 @@ def test_dynamic_gap_grows_monotonically():
         prev = curr
 
 
+# ─── Step 4: Wire crossing detection and visualization (AC-3) ───────
+
+
+def test_crossing_detection_finds_crossing_segments():
+    """Two paths that cross should be detected by _detect_crossings."""
+    from bb.router import _detect_crossings
+
+    # Path A: horizontal at y=100, from x=50 to x=200
+    # Path B: vertical at x=120, from y=50 to y=150
+    # These cross at (120, 100).
+    path_a = [(50.0, 100.0), (200.0, 100.0)]
+    path_b = [(120.0, 50.0), (120.0, 150.0)]
+
+    crossings = _detect_crossings([path_a, path_b])
+    assert len(crossings) > 0, "Should detect crossing between perpendicular segments"
+    # Each crossing: (path_index, segment_index, crossing_point)
+    cx, cy = crossings[0][2]
+    assert abs(cx - 120.0) < 1.0 and abs(cy - 100.0) < 1.0, (
+        f"Crossing point should be near (120, 100), got ({cx:.1f}, {cy:.1f})"
+    )
+
+
+def test_no_crossing_for_parallel_segments():
+    """Parallel segments should produce no crossings."""
+    from bb.router import _detect_crossings
+
+    path_a = [(50.0, 100.0), (200.0, 100.0)]
+    path_b = [(50.0, 110.0), (200.0, 110.0)]
+
+    crossings = _detect_crossings([path_a, path_b])
+    assert len(crossings) == 0, f"Parallel segments shouldn't cross, got {crossings}"
+
+
+def test_crossing_renders_bridge_gap():
+    """A wire with a crossing should render with a gap at the crossing point."""
+    from bb.router import _render_path_with_crossings
+
+    # Simple horizontal path with a crossing in the middle
+    waypoints = [(50.0, 100.0), (200.0, 100.0)]
+    crossing_points = [(120.0, 100.0)]
+
+    svg = _render_path_with_crossings(waypoints, "#e53935", crossing_points)
+    # The SVG should contain multiple path segments (gap breaks the path)
+    assert svg.count("<path") >= 2, (
+        f"Expected >= 2 path segments for bridge gap, got {svg.count('<path')}"
+    )
+
+
 if __name__ == "__main__":
     import pytest
     sys.exit(pytest.main([__file__, "-v", "-p", "no:anchorpy"]))

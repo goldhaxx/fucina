@@ -270,6 +270,154 @@ def _render_path(waypoints: list[tuple[float, float]], color: str) -> str:
             f'opacity="{WIRE_OPACITY}"/>')
 
 
+# ─── Crossing detection and bridge rendering ────────────────────────
+
+BRIDGE_GAP = 6.0  # px — half-width of the gap drawn at crossing points
+
+
+def _seg_intersect(p1: tuple[float, float], p2: tuple[float, float],
+                   p3: tuple[float, float], p4: tuple[float, float]
+                   ) -> tuple[float, float] | None:
+    """Find intersection of two orthogonal line segments, or None."""
+    # Segment 1: p1→p2, Segment 2: p3→p4
+    # Only handle axis-aligned segments (H or V)
+    x1, y1 = p1
+    x2, y2 = p2
+    x3, y3 = p3
+    x4, y4 = p4
+
+    # Classify each segment
+    h1 = abs(y2 - y1) < 0.5  # horizontal
+    v1 = abs(x2 - x1) < 0.5  # vertical
+    h2 = abs(y4 - y3) < 0.5
+    v2 = abs(x4 - x3) < 0.5
+
+    if h1 and v2:
+        # Seg1 horizontal, Seg2 vertical
+        hy = y1
+        vx = x3
+        if (min(x1, x2) < vx < max(x1, x2) and
+                min(y3, y4) < hy < max(y3, y4)):
+            return (vx, hy)
+    elif v1 and h2:
+        # Seg1 vertical, Seg2 horizontal
+        vx = x1
+        hy = y3
+        if (min(y1, y2) < hy < max(y1, y2) and
+                min(x3, x4) < vx < max(x3, x4)):
+            return (vx, hy)
+
+    return None
+
+
+def _detect_crossings(paths: list[list[tuple[float, float]]]
+                      ) -> list[tuple[int, int, tuple[float, float]]]:
+    """Detect pairwise segment crossings between all paths.
+
+    Returns list of (path_i, seg_j_in_path_i, crossing_point) — one entry
+    per crossing, attributed to the later path (higher index) so the bridge
+    gap is drawn on the wire that renders on top.
+    """
+    crossings: list[tuple[int, int, tuple[float, float]]] = []
+
+    for i in range(len(paths)):
+        for j in range(i + 1, len(paths)):
+            for si in range(len(paths[i]) - 1):
+                for sj in range(len(paths[j]) - 1):
+                    pt = _seg_intersect(
+                        paths[i][si], paths[i][si + 1],
+                        paths[j][sj], paths[j][sj + 1],
+                    )
+                    if pt is not None:
+                        # Attribute to the later path (drawn on top)
+                        crossings.append((j, sj, pt))
+
+    return crossings
+
+
+def _render_path_with_crossings(waypoints: list[tuple[float, float]],
+                                color: str,
+                                crossing_points: list[tuple[float, float]]) -> str:
+    """Render a wire path with bridge gaps at crossing points.
+
+    Splits the path into sub-segments around each crossing, leaving a small
+    gap so the under-wire is visible. Returns concatenated SVG path elements.
+    """
+    if not crossing_points:
+        return _render_path(waypoints, color)
+
+    # For each segment of the path, collect crossings sorted by distance from start
+    # Then split the path at each crossing with a gap
+    els = []
+
+    # Walk through waypoints, breaking at crossings
+    # First, associate crossings with their segment
+    seg_crossings: dict[int, list[tuple[float, float]]] = {}
+    for pt in crossing_points:
+        cx, cy = pt
+        # Find which segment this crossing is on
+        for si in range(len(waypoints) - 1):
+            ax, ay = waypoints[si]
+            bx, by = waypoints[si + 1]
+            # Check if point is on this segment
+            if abs(by - ay) < 0.5:  # horizontal segment
+                if abs(cy - ay) < 0.5 and min(ax, bx) <= cx <= max(ax, bx):
+                    seg_crossings.setdefault(si, []).append(pt)
+                    break
+            elif abs(bx - ax) < 0.5:  # vertical segment
+                if abs(cx - ax) < 0.5 and min(ay, by) <= cy <= max(ay, by):
+                    seg_crossings.setdefault(si, []).append(pt)
+                    break
+
+    # Build sub-paths by splitting at crossing gaps
+    current_path: list[tuple[float, float]] = [waypoints[0]]
+
+    for si in range(len(waypoints) - 1):
+        seg_start = waypoints[si]
+        seg_end = waypoints[si + 1]
+
+        if si not in seg_crossings:
+            current_path.append(seg_end)
+            continue
+
+        # Sort crossings along the segment by distance from segment start
+        sx, sy = seg_start
+        pts = sorted(seg_crossings[si],
+                     key=lambda p: math.hypot(p[0] - sx, p[1] - sy))
+
+        for cx, cy in pts:
+            # Direction of this segment
+            dx = seg_end[0] - seg_start[0]
+            dy = seg_end[1] - seg_start[1]
+            seg_len = math.hypot(dx, dy)
+            if seg_len < 0.5:
+                continue
+            ux, uy = dx / seg_len, dy / seg_len
+
+            # Gap before crossing
+            gap_before = (cx - ux * BRIDGE_GAP, cy - uy * BRIDGE_GAP)
+            gap_after = (cx + ux * BRIDGE_GAP, cy + uy * BRIDGE_GAP)
+
+            # End current sub-path at gap_before
+            current_path.append(gap_before)
+            svg = _render_path(current_path, color)
+            if svg:
+                els.append(svg)
+
+            # Start new sub-path at gap_after
+            current_path = [gap_after]
+
+        current_path.append(seg_end)
+
+    # Render final sub-path
+    if len(current_path) >= 2:
+        svg = _render_path(current_path, color)
+        if svg:
+            els.append(svg)
+
+    return "\n".join(els)
+
+
 def route_wires(board: Board, mcu: McuBoard, wires: list[dict]) -> list[str]:
     """Route board-pin wires with smart orthogonal paths.
 
@@ -302,10 +450,26 @@ def route_wires(board: Board, mcu: McuBoard, wires: list[dict]) -> list[str]:
 
     channels = _assign_channels(specs, gap_start_x, gap_end_x)
 
+    # Compute all paths first for crossing detection
+    paths = []
+    for i, spec in enumerate(specs):
+        paths.append(_compute_path(spec.board_xy, spec.hole_xy, channels[i]))
+
+    # Detect crossings across all paths
+    all_crossings = _detect_crossings(paths)
+
+    # Group crossing points by path index
+    path_crossings: dict[int, list[tuple[float, float]]] = {}
+    for path_idx, _seg_idx, point in all_crossings:
+        path_crossings.setdefault(path_idx, []).append(point)
+
     els = []
     for i, spec in enumerate(specs):
-        path = _compute_path(spec.board_xy, spec.hole_xy, channels[i])
-        svg = _render_path(path, spec.color)
+        crossing_pts = path_crossings.get(i, [])
+        if crossing_pts:
+            svg = _render_path_with_crossings(paths[i], spec.color, crossing_pts)
+        else:
+            svg = _render_path(paths[i], spec.color)
         if svg:
             els.append(svg)
 
