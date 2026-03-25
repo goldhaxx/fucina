@@ -210,6 +210,59 @@ def test_crossing_renders_bridge_gap():
     )
 
 
+# ─── Step 5: Inline pill labels (AC-4, AC-5, AC-6, AC-7, AC-8) ─────
+
+
+def test_long_wire_gets_inline_label():
+    """Wire with path length > WIRE_LABEL_THRESHOLD gets an inline pill label (AC-4)."""
+    from bb.router import _render_inline_label, WIRE_LABEL_THRESHOLD
+
+    # Long horizontal path — well above threshold
+    waypoints = [(50.0, 100.0), (300.0, 100.0)]
+    total_length = 250.0
+    assert total_length > WIRE_LABEL_THRESHOLD
+
+    svg = _render_inline_label(waypoints, "#e53935", "red signal — Pin 9")
+    assert svg is not None, "Long wire should get an inline label"
+    assert "<rect" in svg, "Inline label should contain a pill (rect)"
+    assert "<text" in svg, "Inline label should contain text"
+
+
+def test_short_wire_no_inline_label():
+    """Wire below WIRE_LABEL_THRESHOLD gets no inline label (AC-8)."""
+    from bb.router import _render_inline_label, WIRE_LABEL_THRESHOLD
+
+    # Short path — well below threshold
+    waypoints = [(50.0, 100.0), (80.0, 100.0)]
+    total_length = 30.0
+    assert total_length < WIRE_LABEL_THRESHOLD
+
+    svg = _render_inline_label(waypoints, "#e53935", "short wire")
+    assert svg is None, "Short wire should not get an inline label"
+
+
+def test_inline_label_uses_wire_color():
+    """Pill label fill matches the wire's color (AC-7)."""
+    from bb.router import _render_inline_label
+
+    waypoints = [(50.0, 100.0), (300.0, 100.0)]
+    color = "#43a047"
+    svg = _render_inline_label(waypoints, color, "green signal")
+    assert svg is not None
+    assert color in svg, f"Pill fill should use wire color {color}"
+
+
+def test_inline_label_text_from_wire_label():
+    """Pill label displays the wire's label text (AC-5)."""
+    from bb.router import _render_inline_label
+
+    waypoints = [(50.0, 100.0), (300.0, 100.0)]
+    label = "Pin 9 (PWM)"
+    svg = _render_inline_label(waypoints, "#e53935", label)
+    assert svg is not None
+    assert "Pin 9" in svg, f"Label text should appear in SVG: {label}"
+
+
 if __name__ == "__main__":
     import pytest
     sys.exit(pytest.main([__file__, "-v", "-p", "no:anchorpy"]))

@@ -418,6 +418,115 @@ def _render_path_with_crossings(waypoints: list[tuple[float, float]],
     return "\n".join(els)
 
 
+# ─── Inline pill labels ──────────────────────────────────────────────
+
+WIRE_LABEL_THRESHOLD = 100.0  # px — minimum path length to earn an inline label
+WIRE_LABEL_FONT_SIZE = 6.0
+WIRE_LABEL_PAD_X = 4.0
+WIRE_LABEL_PAD_Y = 2.0
+
+
+def _path_length(waypoints: list[tuple[float, float]]) -> float:
+    """Total length of a multi-segment path."""
+    total = 0.0
+    for i in range(1, len(waypoints)):
+        dx = waypoints[i][0] - waypoints[i - 1][0]
+        dy = waypoints[i][1] - waypoints[i - 1][1]
+        total += math.hypot(dx, dy)
+    return total
+
+
+def _longest_segment(waypoints: list[tuple[float, float]]
+                     ) -> tuple[int, float]:
+    """Return (segment_index, length) of the longest segment."""
+    best_idx, best_len = 0, 0.0
+    for i in range(len(waypoints) - 1):
+        dx = waypoints[i + 1][0] - waypoints[i][0]
+        dy = waypoints[i + 1][1] - waypoints[i][1]
+        seg_len = math.hypot(dx, dy)
+        if seg_len > best_len:
+            best_idx, best_len = i, seg_len
+    return best_idx, best_len
+
+
+def _truncate_label(text: str, max_chars: int = 18) -> str:
+    """Shorten label text to fit in a pill."""
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars - 1] + "\u2026"
+
+
+def _render_inline_label(waypoints: list[tuple[float, float]],
+                         color: str, label: str) -> str | None:
+    """Render an inline pill label on the wire's longest segment.
+
+    Returns SVG string or None if the wire is too short for a label.
+    """
+    total = _path_length(waypoints)
+    if total < WIRE_LABEL_THRESHOLD:
+        return None
+
+    if not label:
+        return None
+
+    seg_idx, seg_len = _longest_segment(waypoints)
+    if seg_len < 30:  # segment too short for a readable label
+        return None
+
+    # Midpoint of the longest segment
+    ax, ay = waypoints[seg_idx]
+    bx, by = waypoints[seg_idx + 1]
+    mx, my = (ax + bx) / 2, (ay + by) / 2
+
+    text = _truncate_label(label)
+
+    # Estimate pill dimensions based on text length
+    char_width = WIRE_LABEL_FONT_SIZE * 0.55
+    pill_w = len(text) * char_width + 2 * WIRE_LABEL_PAD_X
+    pill_h = WIRE_LABEL_FONT_SIZE + 2 * WIRE_LABEL_PAD_Y
+
+    # Determine rotation — vertical segments get rotated labels
+    is_vertical = abs(bx - ax) < 0.5
+
+    els = []
+    if is_vertical:
+        # Rotate 90° around midpoint
+        rx = mx - pill_w / 2
+        ry = my - pill_h / 2
+        els.append(
+            f'<g transform="translate({mx:.1f},{my:.1f}) rotate(-90) '
+            f'translate({-mx:.1f},{-my:.1f})">'
+        )
+        els.append(
+            f'<rect x="{rx:.1f}" y="{ry:.1f}" '
+            f'width="{pill_w:.1f}" height="{pill_h:.1f}" '
+            f'rx="{pill_h / 2:.1f}" fill="{color}" opacity="0.9"/>'
+        )
+        els.append(
+            f'<text x="{mx:.1f}" y="{my + WIRE_LABEL_FONT_SIZE * 0.35:.1f}" '
+            f'text-anchor="middle" font-size="{WIRE_LABEL_FONT_SIZE}" '
+            f'fill="white" font-weight="600" '
+            f'font-family="{FONT}">{text}</text>'
+        )
+        els.append('</g>')
+    else:
+        rx = mx - pill_w / 2
+        ry = my - pill_h / 2
+        els.append(
+            f'<rect x="{rx:.1f}" y="{ry:.1f}" '
+            f'width="{pill_w:.1f}" height="{pill_h:.1f}" '
+            f'rx="{pill_h / 2:.1f}" fill="{color}" opacity="0.9"/>'
+        )
+        els.append(
+            f'<text x="{mx:.1f}" y="{my + WIRE_LABEL_FONT_SIZE * 0.35:.1f}" '
+            f'text-anchor="middle" font-size="{WIRE_LABEL_FONT_SIZE}" '
+            f'fill="white" font-weight="600" '
+            f'font-family="{FONT}">{text}</text>'
+        )
+
+    return "\n".join(els)
+
+
 def route_wires(board: Board, mcu: McuBoard, wires: list[dict]) -> list[str]:
     """Route board-pin wires with smart orthogonal paths.
 
@@ -472,5 +581,11 @@ def route_wires(board: Board, mcu: McuBoard, wires: list[dict]) -> list[str]:
             svg = _render_path(paths[i], spec.color)
         if svg:
             els.append(svg)
+
+    # Inline pill labels on long wires
+    for i, spec in enumerate(specs):
+        label_svg = _render_inline_label(paths[i], spec.color, spec.label)
+        if label_svg:
+            els.append(label_svg)
 
     return els
