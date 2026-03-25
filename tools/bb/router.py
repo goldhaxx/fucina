@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, NamedTuple
 from bb.board import Board
 from bb.constants import FONT, HOLE_PITCH
 from bb.geometry import _is_board_pin
+from bb.mcu import MCU_GAP as _MCU_GAP_DEFAULT
 from bb.svg import _attr
 
 if TYPE_CHECKING:
@@ -36,9 +37,6 @@ WIRE_SPACING = 5.0     # px between parallel wires in routing channels
 BEND_RADIUS = 4.0      # px radius for rounded corners
 WIRE_WIDTH = 2.0
 WIRE_OPACITY = 0.85
-
-# Default gap imported for compute_mcu_gap baseline
-from bb.mcu import MCU_GAP as _MCU_GAP_DEFAULT
 
 
 def compute_mcu_gap(wire_count: int) -> float:
@@ -329,8 +327,8 @@ def _detect_crossings(paths: list[list[tuple[float, float]]]
                         paths[j][sj], paths[j][sj + 1],
                     )
                     if pt is not None:
-                        # Attribute to the later path (drawn on top)
-                        crossings.append((j, sj, pt))
+                        # Attribute to the earlier path (under-wire gets the gap)
+                        crossings.append((i, si, pt))
 
     return crossings
 
@@ -394,9 +392,19 @@ def _render_path_with_crossings(waypoints: list[tuple[float, float]],
                 continue
             ux, uy = dx / seg_len, dy / seg_len
 
-            # Gap before crossing
-            gap_before = (cx - ux * BRIDGE_GAP, cy - uy * BRIDGE_GAP)
-            gap_after = (cx + ux * BRIDGE_GAP, cy + uy * BRIDGE_GAP)
+            # Gap before/after crossing, clamped to segment bounds
+            dist_from_start = math.hypot(cx - sx, cy - sy)
+            dist_to_end = math.hypot(seg_end[0] - cx, seg_end[1] - cy)
+
+            if dist_from_start < BRIDGE_GAP:
+                gap_before = seg_start
+            else:
+                gap_before = (cx - ux * BRIDGE_GAP, cy - uy * BRIDGE_GAP)
+
+            if dist_to_end < BRIDGE_GAP:
+                gap_after = seg_end
+            else:
+                gap_after = (cx + ux * BRIDGE_GAP, cy + uy * BRIDGE_GAP)
 
             # End current sub-path at gap_before
             current_path.append(gap_before)

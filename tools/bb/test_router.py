@@ -88,10 +88,26 @@ def test_channel_count_minimum_half():
     )
 
 
-def test_channels_within_gap_bounds():
-    """All channel positions must be within the routing gap."""
+def test_channels_within_gap_when_gap_is_adequate():
+    """When gap is wide enough for all channels, all positions stay in bounds."""
     specs = [_make_spec(board_y=100 + i * 20, hole_y=200 + i * 20) for i in range(5)]
+    # 60px gap is enough for 5 wires at 5px spacing (20px span + centering)
     gap_start, gap_end = 100.0, 160.0
+    channels = _assign_channels(specs, gap_start, gap_end)
+
+    for i, ch in enumerate(channels):
+        assert gap_start <= ch <= gap_end, (
+            f"Channel {i} at {ch:.1f} outside gap [{gap_start}, {gap_end}]"
+        )
+
+
+def test_compute_mcu_gap_keeps_channels_in_bounds():
+    """When compute_mcu_gap sizes the gap, all channels stay within it."""
+    n = 10
+    gap_size = compute_mcu_gap(n)
+    specs = [_make_spec(board_y=50, hole_y=500) for _ in range(n)]
+    gap_start = 100.0
+    gap_end = gap_start + gap_size
     channels = _assign_channels(specs, gap_start, gap_end)
 
     for i, ch in enumerate(channels):

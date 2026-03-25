@@ -1183,14 +1183,14 @@
 <line x1="398.0" y1="785.0" x2="456.0" y2="785.0" stroke="#333333" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
 <line x1="456.0" y1="785.0" x2="456.0" y2="780.0" stroke="#333333" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
 <line x1="512.0" y1="122.0" x2="512.0" y2="150.0" stroke="#43a047" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<path d="M 360.0 384.4 L 382.5 384.4 A 4.0 4.0 0 0 0 386.5 380.4 L 386.5 84.0 A 4.0 4.0 0 0 1 390.5 80.0 L 456.0 80.0" fill="none" stroke="#e53935" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
-<path d="M 360.0 398.4 L 387.5 398.4 A 4.0 4.0 0 0 0 391.5 394.4 L 391.5 84.0 A 4.0 4.0 0 0 1 395.5 80.0 L 596.0 80.0" fill="none" stroke="#1e88e5" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
-<path d="M 360.0 82.0 L 380.5 82.0" fill="none" stroke="#d32f2f" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
-<path d="M 392.5 82.0 L 385.5 82.0" fill="none" stroke="#d32f2f" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
-<path d="M 397.5 82.0 L 397.0 82.0 A 0.5 0.5 0 0 1 396.5 81.5 L 396.5 81.0 A 1.0 1.0 0 0 1 397.5 80.0 L 426.0 80.0" fill="none" stroke="#d32f2f" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
-<path d="M 122.0 82.0 L 380.5 82.0" fill="none" stroke="#333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
-<path d="M 392.5 82.0 L 385.5 82.0" fill="none" stroke="#333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
-<path d="M 397.5 82.0 L 400.5 82.0 A 1.0 1.0 0 0 0 401.5 81.0 L 401.5 81.0 A 1.0 1.0 0 0 1 402.5 80.0 L 436.0 80.0" fill="none" stroke="#333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 360.0 384.4 L 382.5 384.4 A 4.0 4.0 0 0 0 386.5 380.4 L 386.5 88.0" fill="none" stroke="#e53935" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 386.5 80.0 L 386.5 88.0" fill="none" stroke="#e53935" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 386.5 80.0 L 386.5 80.0 L 456.0 80.0" fill="none" stroke="#e53935" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 360.0 398.4 L 387.5 398.4 A 4.0 4.0 0 0 0 391.5 394.4 L 391.5 88.0" fill="none" stroke="#1e88e5" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 391.5 80.0 L 391.5 88.0" fill="none" stroke="#1e88e5" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 391.5 80.0 L 391.5 80.0 L 596.0 80.0" fill="none" stroke="#1e88e5" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 360.0 82.0 L 395.5 82.0 A 1.0 1.0 0 0 0 396.5 81.0 L 396.5 81.0 A 1.0 1.0 0 0 1 397.5 80.0 L 426.0 80.0" fill="none" stroke="#d32f2f" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 122.0 82.0 L 400.5 82.0 A 1.0 1.0 0 0 0 401.5 81.0 L 401.5 81.0 A 1.0 1.0 0 0 1 402.5 80.0 L 436.0 80.0" fill="none" stroke="#333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
 <g transform="translate(386.5,232.2) rotate(-90) translate(-386.5,-232.2)">
 <rect x="359.4" y="227.2" width="54.2" height="10.0" rx="5.0" fill="#e53935" opacity="0.9"/>
 <text x="386.5" y="234.3" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">signal — Pin 9</text>
