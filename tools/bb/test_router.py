@@ -113,6 +113,25 @@ def test_single_wire():
     )
 
 
+# ─── Step 3: Minimum spacing enforcement (AC-1) ─────────────────────
+
+
+def test_all_adjacent_channels_have_minimum_spacing():
+    """No two adjacent channel X positions are closer than WIRE_SPACING (AC-1)."""
+    # 10 wires, all overlapping — maximum channel pressure
+    specs = [_make_spec(board_y=50, hole_y=500) for _ in range(10)]
+    gap_start, gap_end = 50.0, 200.0
+    channels = _assign_channels(specs, gap_start, gap_end)
+
+    sorted_ch = sorted(set(round(c, 2) for c in channels))
+    for i in range(1, len(sorted_ch)):
+        spacing = sorted_ch[i] - sorted_ch[i - 1]
+        assert spacing >= WIRE_SPACING - 0.01, (
+            f"Adjacent channels {sorted_ch[i-1]:.1f} and {sorted_ch[i]:.1f} "
+            f"only {spacing:.1f}px apart (min {WIRE_SPACING}px)"
+        )
+
+
 # ─── Step 2: Dynamic MCU gap (AC-2) ─────────────────────────────────
 
 
