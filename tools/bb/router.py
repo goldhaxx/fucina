@@ -175,15 +175,87 @@ def _assign_channels(specs: list[WireSpec], gap_start_x: float,
     return channels
 
 
-def _compute_path(src: tuple[float, float], dst: tuple[float, float],
-                  channel_x: float) -> list[tuple[float, float]]:
-    """Compute an orthogonal H-V-H path from src to dst via a channel.
+BOARD_CLEARANCE = 8.0  # px clearance when routing around the board body
 
-    Returns waypoints: src → (channel_x, src_y) → (channel_x, dst_y) → dst
-    Collapses redundant segments when points are colinear.
+
+def _is_far_side(src_x: float, channel_x: float, board_bbox: Rect | None) -> bool:
+    """Check if a pin is on the far side of the board from the routing channel.
+
+    A pin is "far side" if a straight horizontal line from the pin to the
+    channel would cross through the board interior. This means the pin is
+    on the opposite side of the board center from the channel.
+    """
+    if board_bbox is None:
+        return False
+    bx, _, bw, _ = board_bbox
+    board_center_x = bx + bw / 2
+    # Far side: pin is on the opposite side of the board center from the channel
+    if channel_x > board_center_x:
+        return src_x < board_center_x
+    else:
+        return src_x > board_center_x
+
+
+def _compute_path(src: tuple[float, float], dst: tuple[float, float],
+                  channel_x: float,
+                  board_bbox: Rect | None = None) -> list[tuple[float, float]]:
+    """Compute an orthogonal path from src to dst via a channel.
+
+    For near-side pins: H-V-H path (src → channel → dst).
+    For far-side pins: route around the board body — go vertically to
+    clear the board top or bottom, then horizontally past the far edge,
+    then into the channel, then to the destination.
     """
     sx, sy = src
     dx, dy = dst
+
+    if board_bbox is not None and _is_far_side(sx, channel_x, board_bbox):
+        bx, by, bw, bh = board_bbox
+        board_top = by
+        board_bottom = by + bh
+
+        # Decide whether to route around the top or bottom (shortest path)
+        dist_to_top = abs(sy - board_top)
+        dist_to_bottom = abs(sy - board_bottom)
+
+        if dist_to_top <= dist_to_bottom:
+            clear_y = board_top - BOARD_CLEARANCE
+        else:
+            clear_y = board_bottom + BOARD_CLEARANCE
+
+        # Far-edge X: the board edge away from the breadboard
+        if channel_x > bx + bw / 2:
+            far_x = bx - BOARD_CLEARANCE  # board on left, far edge is left
+        else:
+            far_x = bx + bw + BOARD_CLEARANCE  # board on right, far edge is right
+
+        waypoints = [(sx, sy)]
+
+        # Step 1: vertical from pin to clear the board top/bottom
+        if abs(clear_y - sy) > 0.5:
+            waypoints.append((sx, clear_y))
+
+        # Step 2: horizontal past the far edge (still outside board Y range)
+        if abs(far_x - sx) > 0.5:
+            waypoints.append((far_x, clear_y))
+
+        # Step 3: horizontal to the channel X
+        if abs(channel_x - far_x) > 0.5:
+            waypoints.append((channel_x, clear_y))
+
+        # Step 4: vertical to destination row
+        if abs(dy - clear_y) > 0.5:
+            waypoints.append((channel_x, dy))
+
+        # Step 5: horizontal to destination
+        if abs(dx - channel_x) > 0.5:
+            waypoints.append((dx, dy))
+        elif waypoints[-1] != (dx, dy):
+            waypoints[-1] = (dx, dy)
+
+        return waypoints
+
+    # Near-side: simple H-V-H
     waypoints = [(sx, sy)]
 
     # Horizontal to channel
@@ -710,10 +782,14 @@ def route_wires(board: Board, mcu: McuBoard, wires: list[dict]) -> list[str]:
 
     channels = _assign_channels(specs, gap_start_x, gap_end_x)
 
+    # MCU board bounding box for far-side routing
+    mcu_bbox = Rect(*mcu.bbox)
+
     # Compute all paths first for crossing detection
     paths = []
     for i, spec in enumerate(specs):
-        paths.append(_compute_path(spec.board_xy, spec.hole_xy, channels[i]))
+        paths.append(_compute_path(spec.board_xy, spec.hole_xy, channels[i],
+                                   board_bbox=mcu_bbox))
 
     # Detect crossings across all paths
     all_crossings = _detect_crossings(paths)

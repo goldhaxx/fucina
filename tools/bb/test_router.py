@@ -343,6 +343,65 @@ def test_label_skipped_when_no_clear_position():
     )
 
 
+# ─── Far-side pin routing (around the board) ───────────────────────
+
+
+def test_far_side_pin_routes_around_board():
+    """A pin on the far side of the board must NOT route through the board body."""
+    from bb.router import _compute_path, Rect
+
+    # Board on the left: bbox x=100, y=50, w=200, h=400
+    # Facing edge (right side) at x=300
+    # Far-side pin at (110, 200) — on the LEFT side of the board
+    # Breadboard hole at (500, 300)
+    # Channel at x=340 (in the gap between board right edge and breadboard)
+    board_bbox = Rect(100, 50, 200, 400)  # board occupies x=[100, 300], y=[50, 450]
+
+    path = _compute_path(
+        src=(110.0, 200.0),  # far-side pin
+        dst=(500.0, 300.0),  # breadboard hole
+        channel_x=340.0,
+        board_bbox=board_bbox,
+    )
+
+    # No segment should pass through the board interior
+    for i in range(len(path) - 1):
+        ax, ay = path[i]
+        bx, by = path[i + 1]
+
+        # Horizontal segment check: if it crosses the board's X range,
+        # it must be above or below the board
+        if abs(by - ay) < 0.5:  # horizontal
+            seg_min_x = min(ax, bx)
+            seg_max_x = max(ax, bx)
+            if seg_min_x < board_bbox.x + board_bbox.w and seg_max_x > board_bbox.x:
+                # This horizontal segment overlaps the board's X range —
+                # it must be outside the board's Y range
+                assert ay <= board_bbox.y or ay >= board_bbox.y + board_bbox.h, (
+                    f"Horizontal segment at y={ay:.0f} passes through board "
+                    f"(board Y range [{board_bbox.y}, {board_bbox.y + board_bbox.h}])"
+                )
+
+
+def test_near_side_pin_routes_directly():
+    """A pin on the facing side doesn't need to route around."""
+    from bb.router import _compute_path, Rect
+
+    # Board on the left: facing edge at x=300
+    # Near-side pin at (295, 200) — on the RIGHT side, facing breadboard
+    board_bbox = Rect(100, 50, 200, 400)
+
+    path = _compute_path(
+        src=(295.0, 200.0),
+        dst=(500.0, 300.0),
+        channel_x=340.0,
+        board_bbox=board_bbox,
+    )
+
+    # Should be a simple H-V-H, 3 or 4 waypoints
+    assert len(path) <= 4, f"Near-side pin should route directly, got {len(path)} waypoints"
+
+
 if __name__ == "__main__":
     import pytest
     sys.exit(pytest.main([__file__, "-v", "-p", "no:anchorpy"]))
