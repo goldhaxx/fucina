@@ -402,6 +402,81 @@ def test_near_side_pin_routes_directly():
     assert len(path) <= 4, f"Near-side pin should route directly, got {len(path)} waypoints"
 
 
+# ─── Far-side wire spreading ────────────────────────────────────────
+
+
+def test_far_side_wires_do_not_overlap():
+    """Multiple far-side wires routing around the same board edge must not share segments."""
+    from bb.router import _compute_path, Rect
+
+    board_bbox = Rect(100, 50, 200, 400)  # board at x=[100,300], y=[50,450]
+
+    # Two far-side pins in the same column (like A0 and A1), same routing side
+    path_a = _compute_path(
+        src=(110.0, 200.0), dst=(500.0, 300.0), channel_x=340.0,
+        board_bbox=board_bbox, perimeter_index=0, perimeter_count=2,
+    )
+    path_b = _compute_path(
+        src=(110.0, 220.0), dst=(500.0, 350.0), channel_x=345.0,
+        board_bbox=board_bbox, perimeter_index=1, perimeter_count=2,
+    )
+
+    # Extract the horizontal perimeter segments (the ones that cross the board X range)
+    def get_perimeter_y(path):
+        """Find the Y value of the horizontal segment that runs along the board edge."""
+        for i in range(len(path) - 1):
+            ax, ay = path[i]
+            bx, by = path[i + 1]
+            if abs(by - ay) < 0.5:  # horizontal
+                if min(ax, bx) < 300 and max(ax, bx) > 100:
+                    return ay
+        return None
+
+    y_a = get_perimeter_y(path_a)
+    y_b = get_perimeter_y(path_b)
+    assert y_a is not None and y_b is not None, "Both paths should have perimeter segments"
+    assert abs(y_a - y_b) >= WIRE_SPACING - 0.01, (
+        f"Perimeter segments at y={y_a:.1f} and y={y_b:.1f} are too close "
+        f"(need >= {WIRE_SPACING}px)"
+    )
+
+
+def test_far_side_vertical_segments_spread():
+    """Far-side wires from the same pin column should not share the vertical exit."""
+    from bb.router import _compute_path, Rect
+
+    board_bbox = Rect(100, 50, 200, 400)
+
+    path_a = _compute_path(
+        src=(110.0, 200.0), dst=(500.0, 300.0), channel_x=340.0,
+        board_bbox=board_bbox, perimeter_index=0, perimeter_count=2,
+    )
+    path_b = _compute_path(
+        src=(110.0, 220.0), dst=(500.0, 350.0), channel_x=345.0,
+        board_bbox=board_bbox, perimeter_index=1, perimeter_count=2,
+    )
+
+    # The vertical exit segment (first segment going up/down from the pin)
+    # should be at different X positions
+    def get_vertical_x(path):
+        """Find X of the first vertical segment."""
+        for i in range(len(path) - 1):
+            ax, ay = path[i]
+            bx, by = path[i + 1]
+            if abs(bx - ax) < 0.5 and abs(by - ay) > 1.0:  # vertical
+                return ax
+        return None
+
+    x_a = get_vertical_x(path_a)
+    x_b = get_vertical_x(path_b)
+    assert x_a is not None and x_b is not None, "Both should have vertical segments"
+    # They should be at different X positions (spread apart)
+    assert abs(x_a - x_b) >= WIRE_SPACING - 0.01, (
+        f"Vertical segments at x={x_a:.1f} and x={x_b:.1f} overlap "
+        f"(need >= {WIRE_SPACING}px)"
+    )
+
+
 if __name__ == "__main__":
     import pytest
     sys.exit(pytest.main([__file__, "-v", "-p", "no:anchorpy"]))

@@ -198,13 +198,19 @@ def _is_far_side(src_x: float, channel_x: float, board_bbox: Rect | None) -> boo
 
 def _compute_path(src: tuple[float, float], dst: tuple[float, float],
                   channel_x: float,
-                  board_bbox: Rect | None = None) -> list[tuple[float, float]]:
+                  board_bbox: Rect | None = None,
+                  perimeter_index: int = 0,
+                  perimeter_count: int = 1) -> list[tuple[float, float]]:
     """Compute an orthogonal path from src to dst via a channel.
 
     For near-side pins: H-V-H path (src → channel → dst).
-    For far-side pins: route around the board body — go vertically to
-    clear the board top or bottom, then horizontally past the far edge,
-    then into the channel, then to the destination.
+    For far-side pins: route around the board body — go horizontally to
+    a spread exit column, vertically to clear the board top or bottom,
+    then horizontally into the channel, then to the destination.
+
+    perimeter_index/perimeter_count spread multiple far-side wires so
+    they don't overlap: each wire gets its own exit column (X offset)
+    and clearance row (Y offset).
     """
     sx, sy = src
     dx, dy = dst
@@ -217,37 +223,49 @@ def _compute_path(src: tuple[float, float], dst: tuple[float, float],
         # Decide whether to route around the top or bottom (shortest path)
         dist_to_top = abs(sy - board_top)
         dist_to_bottom = abs(sy - board_bottom)
+        use_top = dist_to_top <= dist_to_bottom
 
-        if dist_to_top <= dist_to_bottom:
-            clear_y = board_top - BOARD_CLEARANCE
+        # Spread: each wire gets its own clearance Y and exit X
+        spread = perimeter_index * WIRE_SPACING
+
+        if use_top:
+            clear_y = board_top - BOARD_CLEARANCE - spread
         else:
-            clear_y = board_bottom + BOARD_CLEARANCE
+            clear_y = board_bottom + BOARD_CLEARANCE + spread
 
-        # Far-edge X: the board edge away from the breadboard
+        # Far-edge X: the board edge away from the breadboard, spread per wire
         if channel_x > bx + bw / 2:
-            far_x = bx - BOARD_CLEARANCE  # board on left, far edge is left
+            far_x = bx - BOARD_CLEARANCE - spread
         else:
-            far_x = bx + bw + BOARD_CLEARANCE  # board on right, far edge is right
+            far_x = bx + bw + BOARD_CLEARANCE + spread
+
+        # Exit column: offset from pin X so vertical segments don't overlap
+        exit_x = sx - WIRE_SPACING * perimeter_index if channel_x > bx + bw / 2 \
+            else sx + WIRE_SPACING * perimeter_index
 
         waypoints = [(sx, sy)]
 
-        # Step 1: vertical from pin to clear the board top/bottom
-        if abs(clear_y - sy) > 0.5:
-            waypoints.append((sx, clear_y))
+        # Step 1: horizontal stub from pin to exit column (spreads the vertical run)
+        if abs(exit_x - sx) > 0.5:
+            waypoints.append((exit_x, sy))
 
-        # Step 2: horizontal past the far edge (still outside board Y range)
-        if abs(far_x - sx) > 0.5:
+        # Step 2: vertical from exit column to clear the board top/bottom
+        if abs(clear_y - sy) > 0.5:
+            waypoints.append((exit_x, clear_y))
+
+        # Step 3: horizontal past the far edge
+        if abs(far_x - exit_x) > 0.5:
             waypoints.append((far_x, clear_y))
 
-        # Step 3: horizontal to the channel X
+        # Step 4: horizontal to the channel X
         if abs(channel_x - far_x) > 0.5:
             waypoints.append((channel_x, clear_y))
 
-        # Step 4: vertical to destination row
+        # Step 5: vertical to destination row
         if abs(dy - clear_y) > 0.5:
             waypoints.append((channel_x, dy))
 
-        # Step 5: horizontal to destination
+        # Step 6: horizontal to destination
         if abs(dx - channel_x) > 0.5:
             waypoints.append((dx, dy))
         elif waypoints[-1] != (dx, dy):
@@ -785,11 +803,35 @@ def route_wires(board: Board, mcu: McuBoard, wires: list[dict]) -> list[str]:
     # MCU board bounding box for far-side routing
     mcu_bbox = Rect(*mcu.bbox)
 
+    # Identify far-side wires and assign perimeter indices per routing side
+    # so they spread out instead of overlapping
+    far_side_top: list[int] = []
+    far_side_bottom: list[int] = []
+    bx, by, bw, bh = mcu_bbox
+    for i, spec in enumerate(specs):
+        if _is_far_side(spec.board_xy[0], channels[i], mcu_bbox):
+            dist_top = abs(spec.board_xy[1] - by)
+            dist_bot = abs(spec.board_xy[1] - (by + bh))
+            if dist_top <= dist_bot:
+                far_side_top.append(i)
+            else:
+                far_side_bottom.append(i)
+
+    # Build per-wire perimeter index and count
+    perimeter_index = [0] * len(specs)
+    perimeter_count = [1] * len(specs)
+    for group in (far_side_top, far_side_bottom):
+        for rank, wire_i in enumerate(group):
+            perimeter_index[wire_i] = rank
+            perimeter_count[wire_i] = len(group)
+
     # Compute all paths first for crossing detection
     paths = []
     for i, spec in enumerate(specs):
         paths.append(_compute_path(spec.board_xy, spec.hole_xy, channels[i],
-                                   board_bbox=mcu_bbox))
+                                   board_bbox=mcu_bbox,
+                                   perimeter_index=perimeter_index[i],
+                                   perimeter_count=perimeter_count[i]))
 
     # Detect crossings across all paths
     all_crossings = _detect_crossings(paths)

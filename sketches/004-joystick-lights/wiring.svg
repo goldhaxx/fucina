@@ -995,7 +995,11 @@
 <line x1="517.0" y1="388.0" x2="497.0" y2="388.0" stroke="#333333" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
 <line x1="517.0" y1="486.0" x2="497.0" y2="500.0" stroke="#333333" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
 <line x1="517.0" y1="584.0" x2="497.0" y2="584.0" stroke="#333333" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
-<path d="M 168.0 82.0 L 168.0 36.0 A 4.0 4.0 0 0 0 164.0 32.0 L 118.0 32.0 L 426.0 32.0 A 4.0 4.0 0 0 1 430.0 36.0 L 430.0 76.0 A 4.0 4.0 0 0 0 434.0 80.0 L 449.0 80.0" fill="none" stroke="#333333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 168.0 82.0 L 168.0 36.0 A 4.0 4.0 0 0 0 164.0 32.0 L 141.0 32.0" fill="none" stroke="#333333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 129.0 32.0 L 141.0 32.0" fill="none" stroke="#333333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 129.0 32.0 L 136.0 32.0" fill="none" stroke="#333333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 124.0 32.0 L 136.0 32.0" fill="none" stroke="#333333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 124.0 32.0 L 118.0 32.0 L 426.0 32.0 A 4.0 4.0 0 0 1 430.0 36.0 L 430.0 76.0 A 4.0 4.0 0 0 0 434.0 80.0 L 449.0 80.0" fill="none" stroke="#333333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
 <path d="M 461.0 80.0 L 454.0 80.0" fill="none" stroke="#333333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
 <path d="M 466.0 80.0 L 497.0 80.0" fill="none" stroke="#333333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
 <path d="M 406.0 82.0 L 434.0 82.0 A 1.0 1.0 0 0 0 435.0 81.0 L 435.0 81.0 A 1.0 1.0 0 0 1 436.0 80.0 L 449.0 80.0" fill="none" stroke="#e53935" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
@@ -1029,9 +1033,12 @@
 <path d="M 461.0 528.0 L 454.0 528.0" fill="none" stroke="#f9a825" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
 <path d="M 466.0 528.0 L 459.0 528.0" fill="none" stroke="#f9a825" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
 <path d="M 471.0 528.0 L 517.0 528.0" fill="none" stroke="#f9a825" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
-<path d="M 140.0 320.0 L 140.0 36.0 A 4.0 4.0 0 0 0 136.0 32.0 L 118.0 32.0 L 451.0 32.0 A 4.0 4.0 0 0 1 455.0 36.0 L 455.0 272.0" fill="none" stroke="#43a047" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 140.0 320.0 L 137.5 320.0 A 2.5 2.5 0 0 1 135.0 317.5 L 135.0 312.0" fill="none" stroke="#43a047" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 135.0 300.0 L 135.0 27.0 L 135.0 27.0" fill="none" stroke="#43a047" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 124.0 27.0 L 135.0 27.0" fill="none" stroke="#43a047" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 124.0 27.0 L 113.0 27.0 L 451.0 27.0 A 4.0 4.0 0 0 1 455.0 31.0 L 455.0 272.0" fill="none" stroke="#43a047" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
 <path d="M 455.0 284.0 L 455.0 671.0 A 2.0 2.0 0 0 0 457.0 673.0 L 459.0 673.0" fill="none" stroke="#43a047" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
-<path d="M 140.0 306.0 L 140.0 36.0 A 4.0 4.0 0 0 0 136.0 32.0 L 118.0 32.0 L 456.0 32.0 A 4.0 4.0 0 0 1 460.0 36.0 L 460.0 272.0" fill="none" stroke="#1565c0" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
+<path d="M 140.0 306.0 L 134.0 306.0 A 4.0 4.0 0 0 1 130.0 302.0 L 130.0 26.0 A 4.0 4.0 0 0 0 126.0 22.0 L 108.0 22.0 L 456.0 22.0 A 4.0 4.0 0 0 1 460.0 26.0 L 460.0 272.0" fill="none" stroke="#1565c0" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
 <path d="M 460.0 284.0 L 460.0 686.5 A 0.5 0.5 0 0 1 459.5 687.0 L 459.0 687.0" fill="none" stroke="#1565c0" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
 <path d="M 406.0 278.0 L 461.0 278.0 A 4.0 4.0 0 0 1 465.0 282.0 L 465.0 698.0 A 3.0 3.0 0 0 1 462.0 701.0 L 459.0 701.0" fill="none" stroke="#7b1fa2" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
 <rect x="240.3" y="27.0" width="67.4" height="10.0" rx="5.0" fill="#333333" opacity="0.9"/>
