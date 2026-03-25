@@ -91,39 +91,72 @@ def _build_wire_specs(board: Board, mcu: McuBoard, wires: list[dict]) -> list[Wi
     return specs
 
 
+def _vertical_span(spec: WireSpec) -> tuple[float, float]:
+    """Return the Y-interval of a wire's vertical segment."""
+    y1 = spec.board_xy[1]
+    y2 = spec.hole_xy[1]
+    return (min(y1, y2), max(y1, y2))
+
+
+def _intervals_overlap(a: tuple[float, float], b: tuple[float, float]) -> bool:
+    """Check if two Y-intervals overlap (exclusive of touching endpoints)."""
+    return a[0] < b[1] and b[0] < a[1]
+
+
 def _assign_channels(specs: list[WireSpec], gap_start_x: float,
                      gap_end_x: float) -> list[float]:
-    """Assign vertical channel X positions in the routing gap.
+    """Assign vertical channel X positions using interval-graph coloring.
 
-    Sorts wires by destination Y to minimize crossings, then spaces
-    channels evenly across the gap.
+    Wires whose vertical segments overlap must be in different channels.
+    Wires that don't overlap can share a channel, reducing the total number
+    of distinct channel positions needed.
+
+    Channels are spaced at WIRE_SPACING intervals, centered in the gap.
+    If the gap is too narrow, channels extend beyond the gap boundaries
+    (the caller should use compute_mcu_gap() to size the gap properly).
     """
     n = len(specs)
     if n == 0:
         return []
+    if n == 1:
+        return [(gap_start_x + gap_end_x) / 2]
 
-    # Sort indices by breadboard hole Y position
+    # Sort wires by destination Y (crossing minimization heuristic)
     sorted_indices = sorted(range(n), key=lambda i: specs[i].hole_xy[1])
 
-    # Create a mapping: original index → sort rank
-    rank = [0] * n
-    for r, idx in enumerate(sorted_indices):
-        rank[idx] = r
+    # Greedy interval-graph coloring: assign each wire (in Y-sorted order)
+    # to the lowest-numbered channel that has no overlapping wire.
+    # Each channel is a list of Y-intervals already assigned to it.
+    channel_intervals: list[list[tuple[float, float]]] = []
+    wire_channel = [0] * n  # maps original wire index → channel number
 
-    # Compute channel positions evenly spaced in the gap
-    usable = max(0, abs(gap_end_x - gap_start_x) - 2 * WIRE_SPACING)
-    if n == 1:
-        spacing = 0
-    else:
-        spacing = min(WIRE_SPACING, usable / (n - 1))
+    for idx in sorted_indices:
+        span = _vertical_span(specs[idx])
+        assigned = False
+        for ch_num, intervals in enumerate(channel_intervals):
+            conflict = False
+            for existing_span in intervals:
+                if _intervals_overlap(span, existing_span):
+                    conflict = True
+                    break
+            if not conflict:
+                intervals.append(span)
+                wire_channel[idx] = ch_num
+                assigned = True
+                break
+        if not assigned:
+            channel_intervals.append([span])
+            wire_channel[idx] = len(channel_intervals) - 1
 
+    # Convert channel numbers to pixel X positions
+    num_channels = len(channel_intervals)
     center = (gap_start_x + gap_end_x) / 2
-    total_span = spacing * (n - 1)
-    start = center - total_span / 2
+    total_span = WIRE_SPACING * (num_channels - 1) if num_channels > 1 else 0
+    start_x = center - total_span / 2
 
     channels = [0.0] * n
     for i in range(n):
-        channels[i] = start + rank[i] * spacing
+        channels[i] = start_x + wire_channel[i] * WIRE_SPACING
 
     return channels
 

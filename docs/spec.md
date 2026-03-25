@@ -1,94 +1,62 @@
-# Feature: HERO XL Board Renderer with Smart Wire Routing
+# Feature: Wire Routing Visual Polish — Spacing and Labels
 
-> Feature: board-renderer
-> Created: 1774321016
-> Status: Draft
+> Feature: wire-routing-polish
+> Created: 1774327551
+> Status: In Progress
 
 ## Summary
 
-Add a visual representation of the HERO XL (Arduino Mega 2560) microcontroller board to breadboard SVG diagrams, replacing the current pill-label system for board pin connections. The board graphic shows all pin headers with labels. Wires connecting breadboard holes to board pins route intelligently around obstacles using orthogonal paths that minimize crossings — similar to smart-routing in Visio or KiCad. Board position relative to the breadboard is configurable (default: left).
+Routed wires in dense circuits (e.g., 004-joystick-lights with 10 wires) bunch together and overlap, making individual wires indistinguishable. Two improvements: enforce minimum padding between parallel wire segments, and add inline pill labels on longer wire runs so users can identify wires without tracing back to the legend.
 
 ## Job To Be Done
 
-**When** I generate a breadboard wiring diagram with `breadboard.py`,
-**I want to** see a visual representation of the HERO XL board with labeled pins and clearly routed wires connecting it to the breadboard,
-**So that** I can look at the diagram and know exactly which board pins to connect without cross-referencing a separate pinout chart.
+**When** I look at a diagram with many routed wires,
+**I want to** clearly distinguish each wire and know what it connects without tracing to the legend,
+**So that** I can wire the circuit correctly without confusion.
 
 ## Acceptance Criteria
 
-Each criterion is independently testable. Binary pass/fail.
+### Wire Spacing
 
-### Board Graphic
+- [ ] **AC-1:** Parallel wire segments in the routing gap have a minimum spacing of `WIRE_SPACING` (currently 5px) between them. No two wire segments occupy the same pixel column.
+- [ ] **AC-2:** When the routing gap is too narrow to fit all wires at minimum spacing, the gap is automatically widened (increase `MCU_GAP` dynamically based on wire count).
+- [ ] **AC-3:** Wire segments that cross other wires have a visual distinction at the crossing point (e.g., a small gap/bridge in one wire, or a dot at the junction) to make crossings explicit rather than ambiguous.
 
-- [ ] **AC-1:** When `board: hero-xl` is specified in `wiring.yaml`, the SVG includes a board graphic showing the board outline, USB-B connector, DC barrel jack, and board name label.
-- [ ] **AC-2:** All HERO XL pin headers are rendered with labeled pins: digital 0–53, analog A0–A15, power (IOREF, RESET, 3.3V, 5V, GND×3, VIN), communication (TX/RX pairs), AREF, SDA, SCL. Every pin position matches the physical Mega 2560 Rev3 header layout.
-- [ ] **AC-3:** Pins that are wired in the circuit are visually highlighted (distinct fill or border) compared to unwired pins.
+### Inline Wire Labels
 
-### Positioning
+- [ ] **AC-4:** Wires longer than a threshold (e.g., > 100px total path length) get an inline pill label placed at the midpoint of their longest segment.
+- [ ] **AC-5:** The pill label shows the wire's label text (from `wiring.yaml`) or the pin name if no label is provided.
+- [ ] **AC-6:** Pill labels are positioned to avoid overlapping other wires or labels. If overlap would occur, the label shifts along the wire segment.
+- [ ] **AC-7:** Pill labels use the wire's color as the pill fill (matching the existing pill-label visual style).
+- [ ] **AC-8:** Short wires (< threshold) do not get inline labels to avoid clutter.
 
-- [ ] **AC-4:** The board graphic defaults to the left side of the breadboard. When `board_position: right` is set in `wiring.yaml` (or `--board-position right` CLI arg), the board renders on the right. CLI arg overrides YAML.
-- [ ] **AC-5:** When the board is on the left and module cards are also present, both are visible without overlapping. Module cards stack to the left of the board or reposition automatically.
+### Channel Assignment Improvements
 
-### Wire Routing
-
-- [ ] **AC-6:** Wires from breadboard holes to board pins use orthogonal segments (horizontal and vertical only) with visually smooth bends (rounded corners or short diagonal chamfers at turns).
-- [ ] **AC-7:** No wire segment passes through the interior of the board graphic, the breadboard body, or any module card. Wires route around these obstacles.
-- [ ] **AC-8:** Wire crossings are minimized. Given N wires, the router produces fewer crossings than a naive direct-line approach. (Testable: count crossings in a multi-wire sketch like 004-joystick-lights.)
-- [ ] **AC-9:** Parallel wires running in the same direction are spaced apart (channel assignment), not drawn on top of each other.
-- [ ] **AC-10:** Wires between breadboard holes (hole-to-hole, not involving board pins) continue to render as direct lines — smart routing only applies to wires with at least one board pin endpoint.
-
-### Data Model
-
-- [ ] **AC-11:** The HERO XL pin layout is defined in a data file (`tools/bb/boards/hero-xl.yaml` or equivalent), not hardcoded in Python. Adding a new board (e.g., ESP32) requires only adding a new data file, not modifying renderer code.
-- [ ] **AC-12:** The board data file specifies: board dimensions (mm), pin header positions (mm offsets from board origin), pin names per header, connector positions (USB, DC jack), and board display name.
-
-### Integration
-
-- [ ] **AC-13:** Existing sketches that specify `board: hero-xl` render with the board graphic and routed wires. No changes to `wiring.yaml` files are required (the `board:` field already exists).
-- [ ] **AC-14:** When `board:` is absent or set to an unknown value, the diagram falls back to the current pill-label behavior. No board graphic is rendered.
-- [ ] **AC-15:** The pill-label code path is preserved as the fallback — not deleted.
-- [ ] **AC-16:** `python3 tools/breadboard.py <input> -o <output>` CLI interface is unchanged except for the new optional `--board-position` argument.
-- [ ] **AC-17:** Module `to: pin9` wires that previously rendered as cross-diagram pills now route to the board graphic's pin 9 position instead.
-
-### Visual Quality
-
-- [ ] **AC-18:** Wire colors from `wiring.yaml` are preserved in the routed paths.
-- [ ] **AC-19:** Board pin labels are legible at the diagram's default scale (font size >= 6px).
-- [ ] **AC-20:** The legend section continues to list all wires with their labels and colors.
+- [ ] **AC-9:** Channel assignment considers the Y-span of each wire's vertical segment. Wires whose vertical segments overlap in Y range must be in different channels (no shared channel for wires that would visually merge).
+- [ ] **AC-10:** The number of channels scales with wire count — at least `ceil(N / 2)` distinct channel positions for N wires, ensuring visual separation even when destinations are close together.
 
 ## Affected Files
 
 | File | Change |
 |------|--------|
-| `tools/bb/boards/hero-xl.yaml` | New — board pin layout data |
-| `tools/bb/boards/__init__.py` | New — board data loader |
-| `tools/bb/mcu.py` | New — board graphic renderer |
-| `tools/bb/router.py` | New — smart wire routing engine |
-| `tools/bb/constants.py` | Modified — new board-related color constants |
-| `tools/bb/legend.py` | Modified — wire rendering delegates to router when board is present |
-| `tools/bb/renderers.py` | Modified — module renderer delegates board-pin wires to router |
-| `tools/breadboard.py` | Modified — board rendering layer, CLI `--board-position` arg, router integration |
-| `docs/renderers.md` | Modified — document board renderer and routing behavior |
-| `sketches/*/wiring.svg` | Modified — regenerated with board graphics |
+| `tools/bb/router.py` | Modified — spacing enforcement, dynamic gap, inline labels, improved channel assignment |
+| `tools/bb/mcu.py` | Modified — dynamic MCU_GAP based on wire count |
+| `tools/bb/constants.py` | Modified — add WIRE_LABEL_THRESHOLD, WIRE_CROSSING_GAP constants |
+| `sketches/*/wiring.svg` | Modified — regenerated |
 
 ## Dependencies
 
-- **Requires:** HERO XL physical pin header layout (derivable from Arduino Mega 2560 Rev3 schematic and board files, publicly available)
-- **Blocked by:** Nothing
+- **Requires:** Board renderer feature (complete)
+- **Benefits from:** obstacle-avoidance spec (can be done independently)
 
 ## Out of Scope
 
-- Rendering boards other than HERO XL (data model supports it, but only hero-xl.yaml ships)
-- Interactive/clickable SVG elements
-- Curved or diagonal wire routing (orthogonal only)
-- Automatic pin assignment (wiring.yaml still specifies which pins are used)
-- Routing optimization beyond crossing minimization (e.g., minimizing total wire length is nice-to-have, not required)
+- Interactive hover/tooltip on wires (SVG is static)
+- Wire bundling/grouping (treating GND wires as a bus)
+- Color-blind accessible wire differentiation (separate concern)
 
 ## Implementation Notes
 
-- Follow the existing renderer pattern: `render_board()` in `mcu.py` takes `(board: Board, circuit: dict)` and returns `list[str]` of SVG elements.
-- The router needs obstacle rectangles as input. Each obstacle is an axis-aligned bounding box. Sources: board graphic bounds, `board.board_left/right/top/bottom` for the breadboard, module card bounds from `render_module`.
-- For routing algorithm: a grid-based approach (coarse grid over the SVG canvas, A* or BFS per wire, ordered by Y-coordinate to minimize crossings) is a reasonable starting point. Channel assignment prevents parallel wires from overlapping.
-- The board graphic should use a consistent scale factor: mm-to-px conversion based on `HOLE_PITCH` (14px = 2.54mm, so 1mm ≈ 5.51px).
-- Pin headers on the board graphic should have small circular holes at each pin position, matching the breadboard hole visual style but smaller.
-- The board data file should use mm coordinates relative to the board's origin (bottom-left corner matching PCB convention, or top-left matching SVG convention — document whichever is chosen).
+- The current `_assign_channels()` sorts by destination Y — this is a good start but doesn't account for vertical segment overlap. Two wires going to rows 7 and 11 may share a channel if their vertical segments don't overlap, but two going to rows 7 and 8 should not.
+- Inline pill labels follow the same visual pattern as the existing legend pills: colored rounded rect + white text. Font size 6-7px to fit on the wire without overwhelming the diagram.
+- For crossing visualization, the simplest approach is a small white gap in the under-wire at the crossing point (the "bridge" pattern used in circuit schematics).
