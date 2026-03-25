@@ -279,6 +279,70 @@ def test_inline_label_text_from_wire_label():
     assert "Pin 9" in svg, f"Label text should appear in SVG: {label}"
 
 
+# ─── Step 5b: Label collision avoidance (AC-6) ─────────────────────
+
+
+def test_labels_do_not_overlap():
+    """Placed labels must not overlap each other (AC-6)."""
+    from bb.router import _place_labels, WIRE_LABEL_THRESHOLD
+
+    # 5 wires with long vertical segments at nearby X positions.
+    # Midpoints would cluster — labels must be nudged apart.
+    candidates = []
+    for i in range(5):
+        waypoints = [(100.0 + i * 5, 50.0), (100.0 + i * 5, 400.0)]
+        candidates.append({
+            "waypoints": waypoints,
+            "color": "#e53935",
+            "label": f"wire {i}",
+        })
+
+    placements = _place_labels(candidates)
+
+    # Extract pill bounding boxes and check for overlaps
+    MARGIN = 2.0
+    for i in range(len(placements)):
+        for j in range(i + 1, len(placements)):
+            pi = placements[i]
+            pj = placements[j]
+            if pi is None or pj is None:
+                continue
+            # Check axis-aligned overlap with margin
+            ix1, iy1, iw, ih = pi
+            jx1, jy1, jw, jh = pj
+            ix2, iy2 = ix1 + iw, iy1 + ih
+            jx2, jy2 = jx1 + jw, jy1 + jh
+            overlap_x = ix1 - MARGIN < jx2 and jx1 - MARGIN < ix2
+            overlap_y = iy1 - MARGIN < jy2 and jy1 - MARGIN < iy2
+            assert not (overlap_x and overlap_y), (
+                f"Labels {i} and {j} overlap: "
+                f"[{ix1:.0f},{iy1:.0f},{iw:.0f},{ih:.0f}] vs "
+                f"[{jx1:.0f},{jy1:.0f},{jw:.0f},{jh:.0f}]"
+            )
+
+
+def test_label_skipped_when_no_clear_position():
+    """If a label can't be placed without overlap, it should be skipped."""
+    from bb.router import _place_labels
+
+    # 10 wires all on the same short vertical segment — can't fit 10 labels
+    candidates = []
+    for i in range(10):
+        waypoints = [(100.0, 50.0), (100.0, 120.0)]  # only 70px vertical
+        candidates.append({
+            "waypoints": waypoints,
+            "color": "#e53935",
+            "label": f"wire {i}",
+        })
+
+    placements = _place_labels(candidates)
+    placed_count = sum(1 for p in placements if p is not None)
+    # Can't fit all 10 on a 70px segment — some must be None
+    assert placed_count < 10, (
+        f"Expected some labels to be skipped, but all {placed_count} were placed"
+    )
+
+
 if __name__ == "__main__":
     import pytest
     sys.exit(pytest.main([__file__, "-v", "-p", "no:anchorpy"]))

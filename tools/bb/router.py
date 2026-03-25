@@ -464,41 +464,184 @@ def _truncate_label(text: str, max_chars: int = 18) -> str:
     return text[:max_chars - 1] + "\u2026"
 
 
-def _render_inline_label(waypoints: list[tuple[float, float]],
-                         color: str, label: str) -> str | None:
-    """Render an inline pill label on the wire's longest segment.
-
-    Returns SVG string or None if the wire is too short for a label.
-    """
-    total = _path_length(waypoints)
-    if total < WIRE_LABEL_THRESHOLD:
-        return None
-
-    if not label:
-        return None
-
-    seg_idx, seg_len = _longest_segment(waypoints)
-    if seg_len < 30:  # segment too short for a readable label
-        return None
-
-    # Midpoint of the longest segment
-    ax, ay = waypoints[seg_idx]
-    bx, by = waypoints[seg_idx + 1]
-    mx, my = (ax + bx) / 2, (ay + by) / 2
-
+def _pill_dimensions(label: str) -> tuple[float, float]:
+    """Return (width, height) of a pill for the given label text."""
     text = _truncate_label(label)
-
-    # Estimate pill dimensions based on text length
     char_width = WIRE_LABEL_FONT_SIZE * 0.55
     pill_w = len(text) * char_width + 2 * WIRE_LABEL_PAD_X
     pill_h = WIRE_LABEL_FONT_SIZE + 2 * WIRE_LABEL_PAD_Y
+    return pill_w, pill_h
 
-    # Determine rotation — vertical segments get rotated labels
+
+def _label_candidate(waypoints: list[tuple[float, float]], label: str
+                     ) -> tuple[float, float, float, float, int, bool] | None:
+    """Compute candidate label placement: (cx, cy, pill_w, pill_h, seg_idx, is_vertical).
+
+    Returns None if the wire is too short for a label.
+    """
+    total = _path_length(waypoints)
+    if total < WIRE_LABEL_THRESHOLD or not label:
+        return None
+
+    seg_idx, seg_len = _longest_segment(waypoints)
+    if seg_len < 30:
+        return None
+
+    ax, ay = waypoints[seg_idx]
+    bx, by = waypoints[seg_idx + 1]
+    cx, cy = (ax + bx) / 2, (ay + by) / 2
     is_vertical = abs(bx - ax) < 0.5
+    pill_w, pill_h = _pill_dimensions(label)
+
+    return cx, cy, pill_w, pill_h, seg_idx, is_vertical
+
+
+LABEL_MARGIN = 4.0  # px margin between labels
+
+
+def _label_bbox(cx: float, cy: float, pw: float, ph: float,
+                is_vertical: bool) -> tuple[float, float, float, float]:
+    """Return axis-aligned bounding box (x, y, w, h) for a pill label.
+
+    For vertical segments the pill is rotated 90°, so its effective
+    screen bbox swaps width and height.
+    """
+    if is_vertical:
+        return (cx - ph / 2, cy - pw / 2, ph, pw)
+    return (cx - pw / 2, cy - ph / 2, pw, ph)
+
+
+def _bboxes_overlap(a: tuple[float, float, float, float],
+                    b: tuple[float, float, float, float],
+                    margin: float = LABEL_MARGIN) -> bool:
+    """Check if two axis-aligned bounding boxes overlap (with margin)."""
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    return (ax - margin < bx + bw and bx - margin < ax + aw and
+            ay - margin < by + bh and by - margin < ay + ah)
+
+
+def _place_labels(candidates: list[dict]
+                  ) -> list[tuple[float, float, float, float] | None]:
+    """Place labels with collision avoidance.
+
+    Each candidate dict has: waypoints, color, label.
+    Returns a list parallel to candidates — either (x, y, w, h) screen bbox
+    or None if the label was skipped.
+
+    Strategy: for each candidate, try the midpoint of the longest segment.
+    If it overlaps an already-placed label, slide along the segment in both
+    directions until a clear spot is found or the segment is exhausted.
+    """
+    placed: list[tuple[float, float, float, float]] = []
+    result: list[tuple[float, float, float, float] | None] = []
+
+    for cand in candidates:
+        info = _label_candidate(cand["waypoints"], cand["label"])
+        if info is None:
+            result.append(None)
+            continue
+
+        cx, cy, pw, ph, seg_idx, is_vert = info
+        waypoints = cand["waypoints"]
+        ax, ay = waypoints[seg_idx]
+        bx, by = waypoints[seg_idx + 1]
+
+        # Try midpoint first, then slide along the segment
+        seg_dx = bx - ax
+        seg_dy = by - ay
+        seg_len = math.hypot(seg_dx, seg_dy)
+        if seg_len < 0.5:
+            result.append(None)
+            continue
+        ux, uy = seg_dx / seg_len, seg_dy / seg_len
+
+        # Sliding range: from pill half-extent to seg_len minus half-extent
+        if is_vert:
+            half_extent = pw / 2  # rotated: pill width becomes vertical extent
+        else:
+            half_extent = pw / 2
+
+        min_t = half_extent
+        max_t = seg_len - half_extent
+        if min_t > max_t:
+            # Segment too short for the pill
+            result.append(None)
+            continue
+
+        mid_t = seg_len / 2
+        # Try positions: midpoint, then alternating offsets
+        step = ph + LABEL_MARGIN  # step by pill height + margin
+        offsets = [0.0]
+        for k in range(1, 20):
+            offsets.append(k * step)
+            offsets.append(-k * step)
+
+        best_bbox = None
+        for offset in offsets:
+            t = mid_t + offset
+            if t < min_t or t > max_t:
+                continue
+            test_cx = ax + ux * t
+            test_cy = ay + uy * t
+            bbox = _label_bbox(test_cx, test_cy, pw, ph, is_vert)
+            conflict = False
+            for existing in placed:
+                if _bboxes_overlap(bbox, existing):
+                    conflict = True
+                    break
+            if not conflict:
+                best_bbox = bbox
+                break
+
+        if best_bbox is not None:
+            placed.append(best_bbox)
+            result.append(best_bbox)
+        else:
+            result.append(None)
+
+    return result
+
+
+def _render_inline_label(waypoints: list[tuple[float, float]],
+                         color: str, label: str,
+                         bbox: tuple[float, float, float, float] | None = None
+                         ) -> str | None:
+    """Render an inline pill label on the wire's longest segment.
+
+    If bbox is provided, use it for placement (from _place_labels).
+    Otherwise fall back to midpoint placement (for single-wire use).
+    Returns SVG string or None if the wire is too short for a label.
+    """
+    total = _path_length(waypoints)
+    if total < WIRE_LABEL_THRESHOLD or not label:
+        return None
+
+    seg_idx, seg_len = _longest_segment(waypoints)
+    if seg_len < 30:
+        return None
+
+    ax, ay = waypoints[seg_idx]
+    bx, by = waypoints[seg_idx + 1]
+    is_vertical = abs(bx - ax) < 0.5
+
+    text = _truncate_label(label)
+    pill_w, pill_h = _pill_dimensions(label)
+
+    if bbox is not None:
+        # Recover center from bbox
+        bx_pos, by_pos, bw, bh = bbox
+        if is_vertical:
+            mx = bx_pos + bh / 2  # swapped for vertical
+            my = by_pos + bw / 2
+        else:
+            mx = bx_pos + bw / 2
+            my = by_pos + bh / 2
+    else:
+        mx, my = (ax + bx) / 2, (ay + by) / 2
 
     els = []
     if is_vertical:
-        # Rotate 90° around midpoint
         rx = mx - pill_w / 2
         ry = my - pill_h / 2
         els.append(
@@ -590,10 +733,17 @@ def route_wires(board: Board, mcu: McuBoard, wires: list[dict]) -> list[str]:
         if svg:
             els.append(svg)
 
-    # Inline pill labels on long wires
+    # Inline pill labels on long wires — with collision avoidance
+    label_candidates = [
+        {"waypoints": paths[i], "color": specs[i].color, "label": specs[i].label}
+        for i in range(len(specs))
+    ]
+    placements = _place_labels(label_candidates)
     for i, spec in enumerate(specs):
-        label_svg = _render_inline_label(paths[i], spec.color, spec.label)
-        if label_svg:
-            els.append(label_svg)
+        if placements[i] is not None:
+            label_svg = _render_inline_label(
+                paths[i], spec.color, spec.label, bbox=placements[i])
+            if label_svg:
+                els.append(label_svg)
 
     return els

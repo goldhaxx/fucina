@@ -392,13 +392,13 @@
 <line x1="432.0" y1="148.5" x2="432.0" y2="150.0" stroke="#999" stroke-width="1.2"/>
 <path d="M 280.0 384.4 L 307.5 384.4 A 4.0 4.0 0 0 0 311.5 380.4 L 311.5 98.0 A 4.0 4.0 0 0 1 315.5 94.0 L 376.0 94.0" fill="none" stroke="#e53935" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
 <path d="M 280.0 454.4 L 312.5 454.4 A 4.0 4.0 0 0 0 316.5 450.4 L 316.5 154.0 A 4.0 4.0 0 0 1 320.5 150.0 L 376.0 150.0" fill="none" stroke="#333333" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
-<g transform="translate(311.5,239.2) rotate(-90) translate(-311.5,-239.2)">
-<rect x="277.8" y="234.2" width="67.4" height="10.0" rx="5.0" fill="#e53935" opacity="0.9"/>
-<text x="311.5" y="241.3" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">signal — HERO XL …</text>
+<g transform="translate(340.2,210.5) rotate(-90) translate(-340.2,-210.5)">
+<rect x="306.5" y="205.5" width="67.4" height="10.0" rx="5.0" fill="#e53935" opacity="0.9"/>
+<text x="340.2" y="212.6" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">signal — HERO XL …</text>
 </g>
-<g transform="translate(316.5,302.2) rotate(-90) translate(-316.5,-302.2)">
-<rect x="282.8" y="297.2" width="67.4" height="10.0" rx="5.0" fill="#333333" opacity="0.9"/>
-<text x="316.5" y="304.3" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ground — HERO XL …</text>
+<g transform="translate(345.2,287.5) rotate(-90) translate(-345.2,-287.5)">
+<rect x="311.5" y="282.5" width="67.4" height="10.0" rx="5.0" fill="#333333" opacity="0.9"/>
+<text x="345.2" y="289.6" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">ground — HERO XL …</text>
 </g>
 <text x="334.0" y="224.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">COMPONENTS</text>
 <circle cx="339.0" cy="235.0" r="4.0" fill="#c8aa78" stroke="#0002" stroke-width="0.5"/>

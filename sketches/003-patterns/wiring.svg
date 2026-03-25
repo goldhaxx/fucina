@@ -899,25 +899,17 @@
 <path d="M 280.0 334.0 L 320.0 334.0 A 4.0 4.0 0 0 1 324.0 338.0 L 324.0 524.0 A 4.0 4.0 0 0 0 328.0 528.0 L 376.0 528.0" fill="none" stroke="#f9a825" stroke-width="2.0" stroke-linecap="round" opacity="0.85"/>
 <rect x="139.3" y="77.0" width="67.4" height="10.0" rx="5.0" fill="#333333" opacity="0.9"/>
 <text x="173.0" y="84.1" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">GND bus — HERO XL…</text>
-<g transform="translate(304.0,260.2) rotate(-90) translate(-304.0,-260.2)">
-<rect x="270.3" y="255.2" width="67.4" height="10.0" rx="5.0" fill="#e53935" opacity="0.9"/>
-<text x="304.0" y="262.3" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">red signal — Pin 9</text>
+<g transform="translate(332.7,231.5) rotate(-90) translate(-332.7,-231.5)">
+<rect x="299.0" y="226.5" width="67.4" height="10.0" rx="5.0" fill="#e53935" opacity="0.9"/>
+<text x="332.7" y="233.6" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">red signal — Pin 9</text>
 </g>
-<g transform="translate(309.0,316.2) rotate(-90) translate(-309.0,-316.2)">
-<rect x="275.3" y="311.2" width="67.4" height="10.0" rx="5.0" fill="#2e7d32" opacity="0.9"/>
-<text x="309.0" y="318.3" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">green signal — Pi…</text>
+<g transform="translate(337.7,315.5) rotate(-90) translate(-337.7,-315.5)">
+<rect x="304.0" y="310.5" width="67.4" height="10.0" rx="5.0" fill="#2e7d32" opacity="0.9"/>
+<text x="337.7" y="317.6" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">green signal — Pi…</text>
 </g>
-<g transform="translate(314.0,372.2) rotate(-90) translate(-314.0,-372.2)">
-<rect x="280.3" y="367.2" width="67.4" height="10.0" rx="5.0" fill="#1565c0" opacity="0.9"/>
-<text x="314.0" y="374.3" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">blue signal — Pin…</text>
-</g>
-<g transform="translate(319.0,375.0) rotate(-90) translate(-319.0,-375.0)">
-<rect x="285.3" y="370.0" width="67.4" height="10.0" rx="5.0" fill="#757575" opacity="0.9"/>
-<text x="319.0" y="377.1" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">white signal — Pi…</text>
-</g>
-<g transform="translate(324.0,431.0) rotate(-90) translate(-324.0,-431.0)">
-<rect x="290.3" y="426.0" width="67.4" height="10.0" rx="5.0" fill="#f9a825" opacity="0.9"/>
-<text x="324.0" y="433.1" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">yellow signal — P…</text>
+<g transform="translate(352.7,402.3) rotate(-90) translate(-352.7,-402.3)">
+<rect x="319.0" y="397.3" width="67.4" height="10.0" rx="5.0" fill="#f9a825" opacity="0.9"/>
+<text x="352.7" y="404.4" text-anchor="middle" font-size="6.0" fill="white" font-weight="600" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">yellow signal — P…</text>
 </g>
 <text x="334.0" y="658.0" font-size="8" fill="#999" font-weight="600" letter-spacing="0.5" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">COMPONENTS</text>
 <circle cx="339.0" cy="669.0" r="4.0" fill="#c8aa78" stroke="#0002" stroke-width="0.5"/>
