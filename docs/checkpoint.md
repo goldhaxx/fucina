@@ -1,7 +1,7 @@
 # Checkpoint
 
 > Feature: wire-routing-polish
-> Last updated: 1774554235
+> Last updated: 1774554827
 > Plan hash: 05d8f20c
 
 ## Accomplished
@@ -33,19 +33,18 @@
 
 ## Current State
 
-- **Branch:** `claude/feat/wire-routing-polish`, 10 commits ahead of main
+- **Branch:** `main`, clean — PR #1 merged
+- **Spec status:** `wire-routing-polish` marked Complete
 - **Build status:** all sketches compile, all SVGs regenerate
 - **Validation:** 36 wiring files pass, test-renderers.py works
 - **Tests:** 23 pass in `tools/bb/test_router.py`
 - **No failing tests**
-- **No uncommitted changes** (after this checkpoint commit)
 
 ## Next Steps
 
-1. **Merge wire-routing-polish to main** — all 10 ACs pass, reviewed and fixed. Ready for PR.
+1. **Regenerate SVGs script** (`regenerate-svgs` spec) — quick deterministic win, extract the `for sketch in sketches/*/wiring.yaml` loop.
 2. **Obstacle avoidance remainder** (`obstacle-avoidance` spec) — AC-1 (formalize collect_obstacles call) and AC-4 (module card bbox as obstacle) still open. Low priority since the critical far-side routing is done.
-3. **Regenerate SVGs script** (`regenerate-svgs` spec) — quick deterministic win, extract the `for sketch in sketches/*/wiring.yaml` loop.
-4. **/new-board skill** (`new-board-skill` spec) — repeatable board onboarding.
+3. **/new-board skill** (`new-board-skill` spec) — repeatable board onboarding.
 
 ## Determinism Review
 
