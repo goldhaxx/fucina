@@ -583,7 +583,22 @@ def render_module(board: Board, comp: dict) -> list[str]:
                              text_anchor="end", font_family=FONT_MONO))
 
         if use_direct and dest_id and _is_board_pin(dest_id):
-            # Board pin → wire across diagram to a labeled pill on the right
+            mcu = getattr(board, "mcu", None)
+            if mcu is not None:
+                # Route to MCU board pin — defer to router via pending_module_wires
+                pin_xy = mcu.pin_xy(dest_id, near=(anchor_x, pin_y))
+                if pin_xy is not None:
+                    if not hasattr(board, "_module_board_wires"):
+                        board._module_board_wires = []
+                    board._module_board_wires.append({
+                        "src": (anchor_x, pin_y),
+                        "dst": pin_xy,
+                        "color": wire_color,
+                    })
+                    # Skip pill — wire will be rendered by the router
+                    continue
+
+            # Fallback: pill label on the right margin
             pill_label = _pin_label(dest_id)
             pill_h = 12
             text_w = max(len(pill_label) * 5.5 + 8, 32)

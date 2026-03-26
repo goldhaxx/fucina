@@ -1,0 +1,176 @@
+# HERO XL (Arduino Mega 2560 Rev3) — Pin Header Layout
+#
+# Positions from KiCad Arduino Mega 2560 R3 Shield footprint.
+# Origin: top-left corner of PCB, X rightward, Y downward.
+# USB-B connector is at the left end of the board.
+#
+# Source: github.com/Alarm-Siren/arduino-kicad-library
+#         footprints/arduino-library.pretty/Arduino_Mega2560_R3_Shield.kicad_mod
+
+name: "HERO XL"
+display_name: "HERO XL (Mega 2560 Rev3)"
+
+dimensions_mm:
+  width: 101.6
+  height: 53.34
+
+# Connectors rendered as visual landmarks (approximate positions)
+connectors:
+  - type: usb-b
+    x_mm: 1.0
+    y_mm: 12.0
+    width_mm: 12.0
+    height_mm: 11.5
+
+  - type: barrel-jack
+    x_mm: 0.5
+    y_mm: 35.0
+    width_mm: 9.5
+    height_mm: 12.0
+
+# Each header: name, edge, start position, pitch direction, ordered pin list.
+# Pin ids are what wiring.yaml uses after stripping "pin"/"pin_" prefix.
+# Pins with shared ids (GND, 5V) resolve to nearest at routing time.
+# Pitch: [dx_mm, dy_mm] per pin increment.
+
+headers:
+  # ── Top edge (Y = 2.54 mm) ──────────────────────────────────────
+
+  - name: POWER
+    edge: top
+    start_mm: [27.94, 2.54]
+    pitch_mm: [2.54, 0]
+    pins:
+      - {name: NC}
+      - {name: IOREF, id: ioref}
+      - {name: RESET, id: reset}
+      - {name: 3V3, id: 3v3}
+      - {name: 5V, id: 5v}
+      - {name: GND, id: gnd}
+      - {name: GND, id: gnd}
+      - {name: VIN, id: vin}
+
+  - name: ANALOG_LOW
+    edge: top
+    start_mm: [50.80, 2.54]
+    pitch_mm: [2.54, 0]
+    pins:
+      - {name: A0, id: a0}
+      - {name: A1, id: a1}
+      - {name: A2, id: a2}
+      - {name: A3, id: a3}
+      - {name: A4, id: a4}
+      - {name: A5, id: a5}
+      - {name: A6, id: a6}
+      - {name: A7, id: a7}
+
+  - name: ANALOG_HIGH
+    edge: top
+    start_mm: [73.66, 2.54]
+    pitch_mm: [2.54, 0]
+    pins:
+      - {name: A8, id: a8}
+      - {name: A9, id: a9}
+      - {name: A10, id: a10}
+      - {name: A11, id: a11}
+      - {name: A12, id: a12}
+      - {name: A13, id: a13}
+      - {name: A14, id: a14}
+      - {name: A15, id: a15}
+
+  # ── Bottom edge (Y = 50.80 mm) ──────────────────────────────────
+
+  - name: DIGITAL_HIGH
+    edge: bottom
+    start_mm: [18.796, 50.80]
+    pitch_mm: [2.54, 0]
+    pins:
+      - {name: SCL, id: "21"}
+      - {name: SDA, id: "20"}
+      - {name: AREF, id: aref}
+      - {name: GND, id: gnd}
+      - {name: D13, id: "13"}
+      - {name: D12, id: "12"}
+      - {name: D11, id: "11"}
+      - {name: D10, id: "10"}
+      - {name: D9, id: "9"}
+      - {name: D8, id: "8"}
+
+  - name: DIGITAL_LOW
+    edge: bottom
+    # 4.064mm gap (160 mil) from D8 to D7 — famous Arduino quirk
+    start_mm: [45.72, 50.80]
+    pitch_mm: [2.54, 0]
+    pins:
+      - {name: D7, id: "7"}
+      - {name: D6, id: "6"}
+      - {name: D5, id: "5"}
+      - {name: D4, id: "4"}
+      - {name: D3, id: "3"}
+      - {name: D2, id: "2"}
+      - {name: D1, id: "1"}
+      - {name: D0, id: "0"}
+
+  - name: COMMUNICATION
+    edge: bottom
+    start_mm: [68.58, 50.80]
+    pitch_mm: [2.54, 0]
+    pins:
+      - {name: TX3, id: "14"}
+      - {name: RX3, id: "15"}
+      - {name: TX2, id: "16"}
+      - {name: RX2, id: "17"}
+      - {name: TX1, id: "18"}
+      - {name: RX1, id: "19"}
+      - {name: SDA1, id: "20"}
+      - {name: SCL1, id: "21"}
+
+  # ── Right edge (2×18 double row, X = 93.98/96.52 mm) ────────────
+
+  - name: DIGITAL_DOUBLE_INNER
+    edge: right
+    start_mm: [93.98, 7.62]
+    pitch_mm: [0, 2.54]
+    pins:
+      - {name: GND, id: gnd}
+      - {name: D52, id: "52"}
+      - {name: D50, id: "50"}
+      - {name: D48, id: "48"}
+      - {name: D46, id: "46"}
+      - {name: D44, id: "44"}
+      - {name: D42, id: "42"}
+      - {name: D40, id: "40"}
+      - {name: D38, id: "38"}
+      - {name: D36, id: "36"}
+      - {name: D34, id: "34"}
+      - {name: D32, id: "32"}
+      - {name: D30, id: "30"}
+      - {name: D28, id: "28"}
+      - {name: D26, id: "26"}
+      - {name: D24, id: "24"}
+      - {name: D22, id: "22"}
+      - {name: 5V, id: 5v}
+
+  - name: DIGITAL_DOUBLE_OUTER
+    edge: right
+    start_mm: [96.52, 7.62]
+    pitch_mm: [0, 2.54]
+    pins:
+      - {name: GND, id: gnd}
+      - {name: D53, id: "53"}
+      - {name: D51, id: "51"}
+      - {name: D49, id: "49"}
+      - {name: D47, id: "47"}
+      - {name: D45, id: "45"}
+      - {name: D43, id: "43"}
+      - {name: D41, id: "41"}
+      - {name: D39, id: "39"}
+      - {name: D37, id: "37"}
+      - {name: D35, id: "35"}
+      - {name: D33, id: "33"}
+      - {name: D31, id: "31"}
+      - {name: D29, id: "29"}
+      - {name: D27, id: "27"}
+      - {name: D25, id: "25"}
+      - {name: D23, id: "23"}
+      - {name: 5V, id: 5v}

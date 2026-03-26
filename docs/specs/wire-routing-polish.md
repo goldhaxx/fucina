@@ -18,22 +18,22 @@ Routed wires in dense circuits (e.g., 004-joystick-lights with 10 wires) bunch t
 
 ### Wire Spacing
 
-- [ ] **AC-1:** Parallel wire segments in the routing gap have a minimum spacing of `WIRE_SPACING` (currently 5px) between them. No two wire segments occupy the same pixel column.
-- [ ] **AC-2:** When the routing gap is too narrow to fit all wires at minimum spacing, the gap is automatically widened (increase `MCU_GAP` dynamically based on wire count).
-- [ ] **AC-3:** Wire segments that cross other wires have a visual distinction at the crossing point (e.g., a small gap/bridge in one wire, or a dot at the junction) to make crossings explicit rather than ambiguous.
+- [x] **AC-1:** Parallel wire segments in the routing gap have a minimum spacing of `WIRE_SPACING` (currently 5px) between them. No two wire segments occupy the same pixel column.
+- [x] **AC-2:** When the routing gap is too narrow to fit all wires at minimum spacing, the gap is automatically widened (increase `MCU_GAP` dynamically based on wire count).
+- [x] **AC-3:** Wire segments that cross other wires have a visual distinction at the crossing point (e.g., a small gap/bridge in one wire, or a dot at the junction) to make crossings explicit rather than ambiguous.
 
 ### Inline Wire Labels
 
-- [ ] **AC-4:** Wires longer than a threshold (e.g., > 100px total path length) get an inline pill label placed at the midpoint of their longest segment.
-- [ ] **AC-5:** The pill label shows the wire's label text (from `wiring.yaml`) or the pin name if no label is provided.
-- [ ] **AC-6:** Pill labels are positioned to avoid overlapping other wires or labels. If overlap would occur, the label shifts along the wire segment.
-- [ ] **AC-7:** Pill labels use the wire's color as the pill fill (matching the existing pill-label visual style).
-- [ ] **AC-8:** Short wires (< threshold) do not get inline labels to avoid clutter.
+- [x] **AC-4:** Wires longer than a threshold (e.g., > 100px total path length) get an inline pill label placed at the midpoint of their longest segment.
+- [x] **AC-5:** The pill label shows the wire's label text (from `wiring.yaml`) or the pin name if no label is provided.
+- [x] **AC-6:** Pill labels are positioned to avoid overlapping other wires or labels. If overlap would occur, the label shifts along the wire segment.
+- [x] **AC-7:** Pill labels use the wire's color as the pill fill (matching the existing pill-label visual style).
+- [x] **AC-8:** Short wires (< threshold) do not get inline labels to avoid clutter.
 
 ### Channel Assignment Improvements
 
-- [ ] **AC-9:** Channel assignment considers the Y-span of each wire's vertical segment. Wires whose vertical segments overlap in Y range must be in different channels (no shared channel for wires that would visually merge).
-- [ ] **AC-10:** The number of channels scales with wire count — at least `ceil(N / 2)` distinct channel positions for N wires, ensuring visual separation even when destinations are close together.
+- [x] **AC-9:** Channel assignment considers the Y-span of each wire's vertical segment. Wires whose vertical segments overlap in Y range must be in different channels (no shared channel for wires that would visually merge).
+- [x] **AC-10:** The number of channels scales with wire count — at least `ceil(N / 2)` distinct channel positions for N wires, ensuring visual separation even when destinations are close together.
 
 ## Affected Files
 

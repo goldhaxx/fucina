@@ -23,6 +23,7 @@ def build_test_circuit() -> dict:
     """Build a synthetic circuit with one of each component type."""
     return {
         "name": "Renderer Test Fixture — All Component Types",
+        "board": "hero-xl",
         "components": [
             # 1. Resistor — rows 3-6
             {
@@ -204,73 +205,27 @@ def add_bounding_boxes(board: bb.Board, circuit: dict) -> list[str]:
 
 
 def generate_test_svg(circuit: dict) -> str:
-    """Generate the test SVG with bounding boxes overlaid."""
-    # Use full board height to show all components
+    """Generate the test SVG using bb.generate() with bounding box overlays.
+
+    Uses the main generate() function so the test fixture exercises the same
+    code paths as production (including board graphic and wire routing).
+    Bounding boxes are injected as a post-processing overlay.
+    """
+    # Generate the base SVG via the production pipeline
+    base_svg = bb.generate(circuit)
+
+    # Build bounding box overlays using a separate Board for coordinate lookups
     row_lo, row_hi = bb.detect_row_range(circuit, padding=2)
     board = bb.Board(row_lo, row_hi)
     board.specs = bb.load_component_specs()
+    bbox_els = add_bounding_boxes(board, circuit)
 
-    # Mark all occupied holes (same as generate())
-    for comp in circuit.get("components", []):
-        for key in ("from", "to", "anode", "cathode", "positive", "negative",
-                    "pin1", "pin2", "pin3", "red", "common", "green", "blue"):
-            if key in comp and not bb._is_board_pin(str(comp[key])):
-                board.mark_occupied(str(comp[key]))
-        pins_val = comp.get("pins", [])
-        if isinstance(pins_val, list):
-            for pin in pins_val:
-                if isinstance(pin, dict) and "hole" in pin:
-                    h = str(pin["hole"])
-                    if not bb._is_board_pin(h):
-                        board.mark_occupied(h)
-    for wire in circuit.get("wires", []):
-        for key in ("from", "to"):
-            if not bb._is_board_pin(str(wire[key])):
-                board.mark_occupied(str(wire[key]))
+    if not bbox_els:
+        return base_svg
 
-    layers = []
-
-    # Board chrome
-    layers.extend(bb.render_background(board))
-    layers.extend(bb.render_power_rails(board))
-    layers.extend(bb.render_row_connections(board))
-    layers.extend(bb.render_holes(board))
-    layers.extend(bb.render_labels(board))
-
-    # Bounding boxes (rendered BEFORE components so they appear behind)
-    layers.extend(add_bounding_boxes(board, circuit))
-
-    # Components — use the RENDERERS registry
-    for comp in circuit.get("components", []):
-        entry = bb.RENDERERS.get(comp.get("type", ""))
-        if entry:
-            layers.extend(entry[0](board, comp))
-
-    # Wires
-    for wire in circuit.get("wires", []):
-        layers.extend(bb.render_wire(board, wire))
-
-    # Legend
-    legend_els, legend_y = bb.render_legend(board, circuit)
-    layers.extend(legend_els)
-
-    # Title
-    title_x = board.board_left + (board.board_right - board.board_left) / 2
-    layers.append(bb._text(title_x, board.board_top - 22, circuit["name"],
-                           font_size="13", fill="#222", font_weight="700",
-                           text_anchor="middle", font_family=bb.FONT))
-
-    svg_w = board.svg_width
-    svg_h = max(board.svg_height, legend_y + 10)
-
-    body = "\n".join(layers)
-    return f'''<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 {svg_w:.0f} {svg_h:.0f}"
-     width="{svg_w:.0f}" height="{svg_h:.0f}"
-     style="background:#fff">
-{body}
-</svg>'''
+    # Inject bounding boxes just before </svg>
+    bbox_layer = "\n".join(bbox_els)
+    return base_svg.replace("</svg>", f"{bbox_layer}\n</svg>")
 
 
 def main():

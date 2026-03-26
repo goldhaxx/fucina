@@ -23,11 +23,13 @@ class Board:
     """
 
     def __init__(self, row_lo: int = 1, row_hi: int = TERMINAL_ROWS,
-                 margin_left: float = MARGIN_LEFT):
+                 margin_left: float = MARGIN_LEFT,
+                 margin_right: float = MARGIN_RIGHT):
         self.row_lo = row_lo
         self.row_hi = row_hi
         self.visible_rows = row_hi - row_lo + 1
         self.margin_left = margin_left
+        self.margin_right = margin_right
         self._col_x: dict[str, float] = {}
         self._setup_columns()
         self.occupied: set[str] = set()
@@ -100,7 +102,7 @@ class Board:
 
     @property
     def svg_width(self) -> float:
-        return self.board_right + MARGIN_RIGHT
+        return self.board_right + self.margin_right
 
     @property
     def svg_height(self) -> float:

@@ -1,52 +1,54 @@
 # Checkpoint
 
-> Last updated: 2026-03-23
-> Session objective: Split breadboard.py monolith into modular bb/ package
+> Feature: wire-routing-polish
+> Last updated: 1774554235
+> Plan hash: 05d8f20c
 
 ## Accomplished
 
-### Session 7 (2026-03-23)
+### Session 10 (2026-03-26)
 
-**breadboard.py modular split:**
-- Split 1513-line monolith (48k chars) into 8 modules under `tools/bb/`
-- `constants.py` (88 lines), `svg.py` (43), `loaders.py` (101), `geometry.py` (164), `board.py` (114), `renderers.py` (614), `chrome.py` (134), `legend.py` (190)
-- `breadboard.py` remains as thin CLI entry + re-exports (186 lines)
-- All SVGs verified byte-identical after split
-- CLI (`python3 tools/breadboard.py`) and library API (`import breadboard as bb`) unchanged
-- `test-renderers.py` backward compatibility preserved
-- Fixed pre-existing bug: `#silver` → `silver` in render_sensor
-- Fixed namespace leak: `_r`/`_i` loop vars → list comprehension in constants
-- Updated `docs/renderers.md` to reference new module paths
-- Code review PASS, security audit PASS, self-review PASS
+**Wire Routing Visual Polish — all 10 ACs complete:**
+- Interval-graph channel assignment — greedy coloring ensures overlapping vertical segments get different channels; non-overlapping wires reuse channels (AC-9, AC-10)
+- Dynamic MCU gap — `compute_mcu_gap()` widens the routing gap when wire count exceeds what fits at `WIRE_SPACING` (AC-2)
+- Minimum spacing enforcement — channels are always `WIRE_SPACING` (5px) apart by construction (AC-1)
+- Wire crossing bridge gaps — `_detect_crossings()` finds pairwise segment crossings; `_render_path_with_crossings()` splits the under-wire with a visible gap (AC-3)
+- Inline pill labels — `_render_inline_label()` places colored pill labels on wires > 100px; `_place_labels()` resolves collisions by sliding along segments (AC-4–8)
+- Code review: 1 blocking (bridge gap on wrong wire — fixed), 2 concerns (import order, gap clamp — fixed)
 
-### Session 6 (2026-03-22)
+**Far-side pin routing (bonus — partially addresses obstacle-avoidance spec):**
+- `_is_far_side()` detects pins on the opposite side of the board from the routing channel
+- Far-side paths route vertically to clear the board top/bottom, then horizontally around the perimeter
+- Per-wire perimeter spreading — `perimeter_index` offsets exit column (X) and clearance row (Y) so co-linear far-side wires run side-by-side
+- Fixes A0/A1 overlap in 004-joystick-lights
+- Fixes module wire direction — VRx now exits joystick pin rightward toward channel
+- Updated `obstacle-avoidance` spec: AC-2 and AC-3 marked done
 
-**Sketch 004 — Joystick Lights:**
-- 5 LEDs + HW-504 joystick on HERO XL, 5 effects controlled by joystick position
-- Effects: sync pulse (center), chase left/right (X-axis), random twinkle (up), ripple from center (down)
-- Auto-calibration at startup, cubic intensity curves, hysteresis on zone transitions
-- Compiled, uploaded, tested on hardware — all effects working
+**Test suite:** 23 unit tests in `tools/bb/test_router.py`
+**Validation:** 36 wiring files pass, 4 sketch SVGs regenerated, test-renderers output updated
 
-**HW-504 Joystick Onboarding + Module Renderer Overhaul:**
-- Full HW-504 component onboarding (specs, inventory, wiring patterns)
-- New `to:` pin format for modules, dynamic left margin, board pin pills
-- All 23 module-containing SVGs regenerated
+### Session 9 (2026-03-21)
+
+*(See previous checkpoint for board-renderer session details)*
 
 ## Current State
 
-- **Branch:** main, clean (1 commit ahead of origin)
-- **Build status:** all sketches compile
-- **Validation:** all wiring.yaml files pass
+- **Branch:** `claude/feat/wire-routing-polish`, 10 commits ahead of main
+- **Build status:** all sketches compile, all SVGs regenerate
+- **Validation:** 36 wiring files pass, test-renderers.py works
+- **Tests:** 23 pass in `tools/bb/test_router.py`
 - **No failing tests**
+- **No uncommitted changes** (after this checkpoint commit)
 
 ## Next Steps
 
-1. Consider adding HERO XL board renderer to breadboard.py (Zach asked about this)
-2. Next sketch ideas: button to cycle effects, combine joystick with buzzer for sound+light
-3. Consider sorting `board.occupied` set in `render_row_connections` for deterministic SVG output (observed set-ordering nondeterminism during regression testing)
+1. **Merge wire-routing-polish to main** — all 10 ACs pass, reviewed and fixed. Ready for PR.
+2. **Obstacle avoidance remainder** (`obstacle-avoidance` spec) — AC-1 (formalize collect_obstacles call) and AC-4 (module card bbox as obstacle) still open. Low priority since the critical far-side routing is done.
+3. **Regenerate SVGs script** (`regenerate-svgs` spec) — quick deterministic win, extract the `for sketch in sketches/*/wiring.yaml` loop.
+4. **/new-board skill** (`new-board-skill` spec) — repeatable board onboarding.
 
-## Context Notes
+## Determinism Review
 
-- Largest module is `tools/bb/renderers.py` at 614 lines / 22k chars — well under 40k threshold
-- `_seven_segment_body_rows` lives in `geometry.py` (not renderers) to avoid circular imports
-- Import graph is strictly one-directional: constants → svg → loaders → geometry → board → renderers/chrome → legend
+- **operations_reviewed:** 6
+- **candidates_found:** 1
+- **`for sketch in sketches/*/wiring.yaml` regeneration loop:** Claude ran this 4 times during the session. Should be `scripts/regenerate-svgs.sh`. Already backlogged as `regenerate-svgs` spec from session 9. Impact: **high** (recurs every session that touches rendering).

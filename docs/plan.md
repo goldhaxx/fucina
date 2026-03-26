@@ -1,134 +1,75 @@
-# Implementation Plan: Split breadboard.py into modular package
+# Implementation Plan: Wire Routing Visual Polish — Spacing and Labels
 
-> Created: 2026-03-23
-> Based on: Discussion — Option A (flat `tools/bb/` package)
+> Feature: wire-routing-polish
+> Created: 1774403546
+> Spec hash: 0b1d7a18
+> Based on: docs/spec.md
 
 ## Objective
 
-Refactor the monolithic `tools/breadboard.py` (1513 lines, 48.1k chars) into a `tools/bb/` package with 8 focused modules, keeping `tools/breadboard.py` as a thin CLI entry point — so no single file exceeds the 40k char context threshold.
+Improve wire routing visual quality by enforcing minimum spacing between parallel wire segments, adding crossing indicators, inline pill labels on long wires, and smarter channel assignment that respects vertical overlap.
 
-## Constraints
+## Analysis
 
-- **CLI unchanged:** `python3 tools/breadboard.py <input> -o <output>` must keep working.
-- **Library API unchanged:** `test-renderers.py` imports `breadboard as bb` and uses `bb.Board`, `bb.RENDERERS`, `bb._is_board_pin`, `bb.render_*`, `bb._text`, `bb._rect`, `bb.FONT`, `bb.HOLE_PITCH`, `bb.detect_row_range`, `bb.load_component_specs`, `bb._seven_segment_body_rows`. All must remain accessible via `import breadboard as bb`.
-- **Zero behavior change:** Every SVG generated before and after must be byte-identical.
+### Current State
+- `_assign_channels()` sorts wires by destination Y, spaces evenly across the gap
+- Spacing is clamped to `WIRE_SPACING` (5px) max — but with many wires the channels compress to < 5px
+- No crossing detection or visualization
+- No inline labels — wires are only identifiable by color + legend
+- Channel assignment doesn't consider whether vertical segments actually overlap
+
+### Key Insight
+The routing gap between MCU board and breadboard is fixed at `MCU_GAP = 40px`. With 7 board-pin wires in 004-joystick-lights, channels compress to ~5px spacing. If we need more space, `MCU_GAP` must grow dynamically. This affects `McuBoard.__init__()` positioning and `generate()` margin calculation.
 
 ## Sequence
 
-### Step 1: Capture baselines for regression testing
+### Step 1: Interval-graph channel assignment (AC-9, AC-10)
+- **Test:** Python unit test — two wires whose vertical segments overlap must get different channels; two wires whose vertical segments don't overlap can share a channel. Test that N wires get at least `ceil(N/2)` distinct positions.
+- **Implement:** Replace Y-sort channel assignment with an interval-graph greedy algorithm: each wire's vertical segment is an interval `[min_y, max_y]`. Greedily assign the lowest available channel that doesn't conflict with any overlapping interval already in that channel.
+- **Files:** `tools/bb/router.py` — rewrite `_assign_channels()`
+- **Verify:** Unit test passes. Regenerate 004-joystick-lights SVG, visually confirm wires are separated.
 
-- **Test:** N/A (setup step)
-- **Implement:** Generate SVGs from 3 representative sketches (simple, module, 7-segment) into `/tmp/baseline-*.svg`. These are the regression targets for all subsequent steps.
-- **Files:** None (temp files only)
-- **Verify:** Baselines exist and are valid SVGs
+### Step 2: Dynamic MCU gap (AC-2)
+- **Test:** Python unit test — when wire count exceeds what fits at `WIRE_SPACING` in the default gap, the returned gap is wider than `MCU_GAP`.
+- **Implement:** Add `compute_mcu_gap(wire_count: int) -> float` that returns `max(MCU_GAP, (wire_count + 1) * WIRE_SPACING + 2 * WIRE_SPACING)`. Wire this into `generate()` margin calculation and `McuBoard` positioning.
+- **Files:** `tools/bb/router.py` (new function), `tools/bb/mcu.py` (use dynamic gap), `tools/breadboard.py` (pass wire count to gap calculation)
+- **Verify:** Unit test passes. 004-joystick-lights SVG has wider gap when needed.
 
-### Step 2: Create `bb/constants.py` — layout constants and color palettes
+### Step 3: Minimum spacing enforcement (AC-1)
+- **Test:** Python unit test — given assigned channels, assert no two adjacent channels are closer than `WIRE_SPACING` apart.
+- **Implement:** After interval-graph assignment, post-process channel positions to enforce `WIRE_SPACING` minimum. If the gap is too narrow (shouldn't happen after Step 2), fall back to even distribution.
+- **Files:** `tools/bb/router.py`
+- **Verify:** Unit test passes. All sketch SVGs regenerate without visual overlap.
 
-- **Test:** Import check from `tools/` directory.
-- **Implement:** Extract layout constants (lines 21–79), band colors (lines 125–136), LED palette (lines 138–145), buzzer palette (lines 555–558) into `tools/bb/constants.py`. Create `tools/bb/__init__.py` (empty).
-- **Files:** Create `tools/bb/__init__.py`, `tools/bb/constants.py`
-- **Verify:** `python3 -c "from bb.constants import HOLE_PITCH, LED_PALETTE, BUZZER_PALETTE; print('OK')"`
+### Step 4: Wire crossing detection and visualization (AC-3)
+- **Test:** Python unit test — given two wire paths that cross, the render output contains a crossing indicator (small white gap in the under-wire).
+- **Implement:** After computing all paths, detect pairwise segment crossings. For each crossing, insert a small gap (3px break) in the wire that was routed later (lower z-order). Render crossing wires with a path break at the crossing point.
+- **Files:** `tools/bb/router.py` — add `_detect_crossings()` and modify `_render_path()`
+- **Verify:** Unit test passes. Visual check on multi-wire sketches.
 
-### Step 3: Create `bb/svg.py` — SVG primitives and resistor bands
+### Step 5: Inline pill labels on long wires (AC-4, AC-5, AC-6, AC-7, AC-8)
+- **Test:** Python unit test — wire with path length > threshold gets an inline label SVG element; wire below threshold does not. Label text matches wire label from YAML.
+- **Implement:** After path computation, calculate total path length. For wires > `WIRE_LABEL_THRESHOLD` (100px), find the longest segment, place a pill label at its midpoint. Pill uses wire color fill + white text (matching legend style). Shift label along segment if it would overlap another label (greedy placement).
+- **Files:** `tools/bb/router.py` — add `_render_inline_label()`, `tools/bb/constants.py` — add `WIRE_LABEL_THRESHOLD`
+- **Verify:** Unit test passes. 004-joystick-lights SVG shows inline labels on long wires. Short wires have no labels.
 
-- **Test:** Import check.
-- **Implement:** Extract `_attr`, `_circle`, `_rect`, `_line`, `_text`, `resistor_bands` (lines 422–461) into `tools/bb/svg.py`. Imports `BAND_DIGIT`, `BAND_MULTIPLIER`, `BAND_TOLERANCE_GOLD` from `bb.constants` and `escape` from `xml.sax.saxutils`.
-- **Files:** Create `tools/bb/svg.py`
-- **Verify:** `python3 -c "from bb.svg import _circle, _rect, _text, resistor_bands; print('OK')"`
-
-### Step 4: Create `bb/loaders.py` — YAML loading and specs cache
-
-- **Test:** Import check.
-- **Implement:** Extract `load_circuit`, `load_component_specs`, `_SPECS_CACHE`, `_parse_yaml_simple`, `_coerce` (lines 148–240) into `tools/bb/loaders.py`. The `try: import yaml` block moves here. No dependencies on other `bb` modules.
-- **Files:** Create `tools/bb/loaders.py`
-- **Verify:** `python3 -c "from bb.loaders import load_circuit, load_component_specs; print('OK')"`
-
-### Step 5: Create `bb/geometry.py` — orientation, row detection, pin utilities
-
-- **Test:** Import check.
-- **Implement:** Extract `parse_orientation`, `compute_rotated_fit` (lines 82–122), `_extract_row`, `detect_row_range` (lines 243–319), `_is_board_pin`, `_pin_label` (lines 1086–1097) into `tools/bb/geometry.py`. Also move `_seven_segment_body_rows` here (it's a dimension calculation, not a renderer — lines 780–796). Imports from `bb.constants` and `bb.loaders`.
-- **Files:** Create `tools/bb/geometry.py`
-- **Verify:** `python3 -c "from bb.geometry import detect_row_range, _is_board_pin, parse_orientation; print('OK')"`
-
-### Step 6: Create `bb/board.py` — Board class
-
-- **Test:** Import check.
-- **Implement:** Extract class `Board` (lines 324–420) into `tools/bb/board.py`. Imports layout constants from `bb.constants`.
-- **Files:** Create `tools/bb/board.py`
-- **Verify:** `python3 -c "from bb.board import Board; b = Board(); print(b.hole_xy('a1'))"`
-
-### Step 7: Create `bb/renderers.py` — component render functions
-
-- **Test:** Import check.
-- **Implement:** Extract all `render_*` component functions and their helpers: `render_resistor`, `render_led`, `render_button`, `render_buzzer`, `render_sensor`, `render_potentiometer`, `render_rgb_led`, `render_seven_segment`, `render_module`, `_seven_segment_digit`, `_module_box_width`, `_module_wire_color` (lines 464–1083, minus `_seven_segment_body_rows` which went to geometry). Imports from `bb.constants`, `bb.svg`, `bb.geometry`, `bb.board`.
-- **Files:** Create `tools/bb/renderers.py`
-- **Verify:** `python3 -c "from bb.renderers import render_resistor, render_led, render_module; print('OK')"`
-
-### Step 8: Create `bb/chrome.py` — board background, rails, holes, labels
-
-- **Test:** Import check.
-- **Implement:** Extract `render_background`, `render_power_rails`, `render_holes`, `render_labels`, `render_row_connections` (lines 1232–1347) into `tools/bb/chrome.py`. Imports from `bb.constants`, `bb.svg`, `bb.geometry` (`_extract_row`).
-- **Files:** Create `tools/bb/chrome.py`
-- **Verify:** `python3 -c "from bb.chrome import render_background, render_holes; print('OK')"`
-
-### Step 9: Create `bb/legend.py` — legend rendering, registry, wire rendering
-
-- **Test:** Import check.
-- **Implement:** Extract `RENDERERS` dict, all `_legend_*` functions, `render_wire`, `render_legend` (lines 1099–1228, 1349–1384) into `tools/bb/legend.py`. `RENDERERS` references render functions from `bb.renderers` and legend functions defined locally. Imports from `bb.constants`, `bb.svg`, `bb.geometry`.
-- **Files:** Create `tools/bb/legend.py`
-- **Verify:** `python3 -c "from bb.legend import RENDERERS, render_wire, render_legend; print('OK')"`
-
-### Step 10: Rewrite `breadboard.py` as thin entry point + re-exports
-
-- **Test:** Byte-diff SVGs against baselines from Step 1.
-- **Implement:** Replace the 1513-line file with ~80 lines that: (1) re-exports all public names from `bb.*` so `import breadboard as bb` still exposes everything `test-renderers.py` needs, (2) defines `generate()` which orchestrates render layers (the current lines 1389–1482), (3) defines `main()` CLI (lines 1487–1513).
-- **Files:** Rewrite `tools/breadboard.py`
-- **Verify:** `python3 tools/breadboard.py sketches/001-blink/wiring.yaml -o /tmp/after.svg && diff /tmp/baseline-blink.svg /tmp/after.svg` (empty diff). Also: `python3 tools/test-renderers.py -o /tmp/test.svg` works.
-
-### Step 11: Full regression — regenerate all SVGs and diff
-
-- **Test:** Regenerate every wiring.svg in the project.
-- **Implement:** Loop over all `wiring.yaml` files, regenerate SVGs, compare with `git diff`.
-- **Files:** None (verification only)
-- **Verify:** `git diff --stat` shows zero changes to `.svg` files. `python3 tools/test-renderers.py` also works.
-
-### Step 12: Update documentation references
-
-- **Test:** N/A (docs only)
-- **Implement:** Update `docs/renderers.md` line 177 — currently says "add it to `tools/breadboard.py`", update to reference `tools/bb/renderers.py`. Grep for any other stale references that tell developers to edit the monolith.
-- **Files:** `docs/renderers.md`
-- **Verify:** No docs reference editing `tools/breadboard.py` for adding renderers.
-
-## Circular Import Strategy
-
-`detect_row_range` (geometry) calls `_seven_segment_body_rows`. Moving `_seven_segment_body_rows` to `bb/geometry.py` (it's a pure dimension lookup, not a renderer) eliminates the only potential circular dependency.
-
-Import graph (all edges point one direction — no cycles):
-```
-constants ← svg ← board
-    ↑        ↑      ↑
-    └── loaders  geometry
-              ↑      ↑
-           renderers  chrome
-              ↑        ↑
-             legend ───┘
-                ↑
-           breadboard.py (generate + main + re-exports)
-```
+### Step 6: Integration verification and SVG regeneration
+- **Test:** Run `python3 tools/validate-wiring.py` on all sketches. Run `python3 tools/test-renderers.py`.
+- **Implement:** Regenerate all sketch SVGs. Fix any visual regressions.
+- **Files:** `sketches/*/wiring.svg`
+- **Verify:** All validation passes. Visual inspection of all 4 sketches.
 
 ## Risks
 
-- **`_seven_segment_body_rows` in geometry:** It reads `specs` dict. This is conceptually a geometry/dimension concern, not rendering, so the move is natural. But if future renderers need similar spec lookups, we'd want a shared pattern. Low risk — cross that bridge later.
-- **test-renderers.py private name access:** It uses `bb._is_board_pin`, `bb._rect`, `bb._text`, etc. Re-exporting these from `breadboard.py` maintains compatibility. If we ever make `bb/` a public API, we'd formalize these — but that's out of scope.
-- **sys.path resolution:** `test-renderers.py` inserts `tools/` into sys.path and imports `breadboard`. The `bb/` package lives in `tools/`, so `from bb.X` resolves correctly through the same sys.path entry.
+- **Dynamic gap changes SVG dimensions:** All downstream sketch SVGs will change dimensions. This is expected — regeneration handles it.
+- **Crossing detection performance:** Pairwise segment comparison is O(N^2 x segments). With < 20 wires this is negligible.
+- **Label overlap in dense regions:** Greedy shift may not always find a clear spot. Mitigation: if no clear position exists within the segment, skip the label for that wire (graceful degradation).
+- **Interval-graph channel reuse:** Allowing non-overlapping wires to share channels reduces the number of distinct channels needed — but may confuse viewers if wires at different Y ranges share the same X column. Mitigation: preserve Y-sort tiebreaking within each channel so visual flow is maintained.
 
 ## Definition of Done
 
-- [ ] All 8 `bb/` modules created with correct imports
-- [ ] `tools/breadboard.py` is <200 lines and under 10k chars
-- [ ] No single file in `bb/` exceeds 40k chars (~1200 lines)
-- [ ] `python3 tools/breadboard.py` CLI works identically
-- [ ] `python3 tools/test-renderers.py` works identically
-- [ ] All SVGs regenerated with zero byte-level diff
-- [ ] `python3 tools/validate-wiring.py` still works
-- [ ] Stale doc references updated
+- [ ] All 10 acceptance criteria from spec pass
+- [ ] All existing sketches regenerate without errors
+- [ ] `validate-wiring.py` passes on all 36 wiring files
+- [ ] `test-renderers.py` generates valid output
+- [ ] Code reviewed (run /review)
