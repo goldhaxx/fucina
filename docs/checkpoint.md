@@ -1,51 +1,54 @@
 # Checkpoint
 
-> Feature: board-renderer
-> Last updated: 1774327598
-> Plan hash: 76f8ec90
+> Feature: wire-routing-polish
+> Last updated: 1774554235
+> Plan hash: 05d8f20c
 
 ## Accomplished
 
+### Session 10 (2026-03-26)
+
+**Wire Routing Visual Polish — all 10 ACs complete:**
+- Interval-graph channel assignment — greedy coloring ensures overlapping vertical segments get different channels; non-overlapping wires reuse channels (AC-9, AC-10)
+- Dynamic MCU gap — `compute_mcu_gap()` widens the routing gap when wire count exceeds what fits at `WIRE_SPACING` (AC-2)
+- Minimum spacing enforcement — channels are always `WIRE_SPACING` (5px) apart by construction (AC-1)
+- Wire crossing bridge gaps — `_detect_crossings()` finds pairwise segment crossings; `_render_path_with_crossings()` splits the under-wire with a visible gap (AC-3)
+- Inline pill labels — `_render_inline_label()` places colored pill labels on wires > 100px; `_place_labels()` resolves collisions by sliding along segments (AC-4–8)
+- Code review: 1 blocking (bridge gap on wrong wire — fixed), 2 concerns (import order, gap clamp — fixed)
+
+**Far-side pin routing (bonus — partially addresses obstacle-avoidance spec):**
+- `_is_far_side()` detects pins on the opposite side of the board from the routing channel
+- Far-side paths route vertically to clear the board top/bottom, then horizontally around the perimeter
+- Per-wire perimeter spreading — `perimeter_index` offsets exit column (X) and clearance row (Y) so co-linear far-side wires run side-by-side
+- Fixes A0/A1 overlap in 004-joystick-lights
+- Fixes module wire direction — VRx now exits joystick pin rightward toward channel
+- Updated `obstacle-avoidance` spec: AC-2 and AC-3 marked done
+
+**Test suite:** 23 unit tests in `tools/bb/test_router.py`
+**Validation:** 36 wiring files pass, 4 sketch SVGs regenerated, test-renderers output updated
+
 ### Session 9 (2026-03-21)
 
-**HERO XL Board Renderer with Smart Wire Routing:**
-- Created data-driven board definition system (`tools/bb/boards/hero-xl.yaml`) with all 86 pins from KiCad footprint data
-- Built MCU board graphic renderer (`tools/bb/mcu.py`) — dark green PCB, USB-B, barrel jack, labeled pins with wired-pin highlighting
-- Built channel-based orthogonal wire router (`tools/bb/router.py`) — H-V-H paths, crossing minimization via Y-sort, smooth arc bends
-- Integrated into `generate()` — board graphic layer, wire partitioning (board-pin vs hole-to-hole), module-to-board-pin wire routing
-- Configurable position (left/right) via `board_position:` YAML key or `--board-position` CLI arg
-- Pill-label fallback preserved for unknown/absent boards
-- All 20 acceptance criteria pass
-- Code review: 6 concerns, 0 blocking — fixed 5 (docstring, type annotations, normalization helper, spacing guard, docs), backlogged 1 (obstacle avoidance)
-- Security audit: PASS
-- `_normalize_pin_id()` helper extracted to `bb/geometry.py` to eliminate triple normalization
-- `docs/renderers.md` updated with board renderer documentation
-- All 4 sketch SVGs regenerated, 36 wiring files validate
-
-**Backlog specs created (4 total in `docs/specs/`):**
-- `new-board-skill` — `/new-board` command for repeatable board onboarding with validation
-- `regenerate-svgs` — Extract manual SVG regeneration loop into deterministic script
-- `obstacle-avoidance` — Enforce wire routing around board body (collect_obstacles unused)
-- `wire-routing-polish` — Wire spacing enforcement, inline pill labels for long runs, crossing visualization
+*(See previous checkpoint for board-renderer session details)*
 
 ## Current State
 
-- **Branch:** main, clean (4 commits ahead of origin)
+- **Branch:** `claude/feat/wire-routing-polish`, 10 commits ahead of main
 - **Build status:** all sketches compile, all SVGs regenerate
 - **Validation:** 36 wiring files pass, test-renderers.py works
+- **Tests:** 23 pass in `tools/bb/test_router.py`
 - **No failing tests**
-- **No uncommitted changes**
+- **No uncommitted changes** (after this checkpoint commit)
 
 ## Next Steps
 
-1. **Wire routing polish** (`wire-routing-polish` spec) — highest visual impact. The 004-joystick-lights diagram has wires bunched together and overlapping. Needs spacing enforcement and inline labels.
-2. **Obstacle avoidance** (`obstacle-avoidance` spec) — wires to far-side pins clip through board body.
-3. **Regenerate SVGs script** (`regenerate-svgs` spec) — quick deterministic win, extract the repeated for-loop.
-4. **/new-board skill** (`new-board-skill` spec) — repeatable board onboarding process.
+1. **Merge wire-routing-polish to main** — all 10 ACs pass, reviewed and fixed. Ready for PR.
+2. **Obstacle avoidance remainder** (`obstacle-avoidance` spec) — AC-1 (formalize collect_obstacles call) and AC-4 (module card bbox as obstacle) still open. Low priority since the critical far-side routing is done.
+3. **Regenerate SVGs script** (`regenerate-svgs` spec) — quick deterministic win, extract the `for sketch in sketches/*/wiring.yaml` loop.
+4. **/new-board skill** (`new-board-skill` spec) — repeatable board onboarding.
 
 ## Determinism Review
 
-- **operations_reviewed:** 8
-- **candidates_found:** 2
-- **`for sketch in sketches/*/wiring.yaml` regeneration loop:** Claude ran this 3 times during the session. Should be `scripts/regenerate-svgs.sh`. Backlogged as `regenerate-svgs` spec. Impact: **high** (recurs every session that touches rendering).
-- **Pin layout research via agent:** Used a general-purpose agent to look up Arduino Mega 2560 pin positions from KiCad footprint. Could become a deterministic script that parses `.kicad_mod` files into YAML. Backlogged as part of `new-board-skill` spec. Impact: **medium** (only recurs when onboarding new boards).
+- **operations_reviewed:** 6
+- **candidates_found:** 1
+- **`for sketch in sketches/*/wiring.yaml` regeneration loop:** Claude ran this 4 times during the session. Should be `scripts/regenerate-svgs.sh`. Already backlogged as `regenerate-svgs` spec from session 9. Impact: **high** (recurs every session that touches rendering).

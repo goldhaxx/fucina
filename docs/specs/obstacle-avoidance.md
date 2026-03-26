@@ -17,8 +17,8 @@ The wire router's `collect_obstacles()` function is defined but never called. Wi
 ## Acceptance Criteria
 
 - [ ] **AC-1:** `route_wires()` calls `collect_obstacles()` and passes obstacle rects to path computation.
-- [ ] **AC-2:** No wire segment intersects the interior of the MCU board graphic bounding box.
-- [ ] **AC-3:** Wires to far-side pins route around the board (over the top or under the bottom) with orthogonal segments.
+- [x] **AC-2:** No wire segment intersects the interior of the MCU board graphic bounding box. *(Done in wire-routing-polish session — far-side detection + perimeter routing)*
+- [x] **AC-3:** Wires to far-side pins route around the board (over the top or under the bottom) with orthogonal segments. *(Done in wire-routing-polish session)*
 - [ ] **AC-4:** Module card bounding boxes are also treated as obstacles when present.
 
 ## Dependencies
