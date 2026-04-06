@@ -14,7 +14,7 @@ Use this decision ladder for every operation:
 
 1. **Hook** — if the action is binary (always/never) and triggered by a lifecycle event, make it a hook. Zero context cost. Examples: block writes to `.env`, auto-format on save, protect `scaffold-framework.md`.
 
-2. **Script** — if the action involves multiple deterministic steps (hash, compare, copy, update lockfile), wrap them in a shell function/command. Claude calls one command instead of orchestrating ten. Examples: `scaffold-sync.sh pull-auto`, `scaffold-sync.sh promote <file>`.
+2. **Script** — if the action involves multiple deterministic steps (hash, compare, copy, update lockfile), wrap them in a shell function/command. Claude calls one command instead of orchestrating ten. Examples: `ccanvil-sync.sh pull-auto`, `ccanvil-sync.sh promote <file>`.
 
 3. **Slash command with script calls** — if the workflow has BOTH deterministic steps and judgment calls, the slash command should call scripts for the deterministic parts and describe ONLY the judgment calls for Claude. Examples: conflict resolution (script identifies conflicts, Claude proposes merge), push classification (script lists candidates, Claude classifies).
 
@@ -44,4 +44,4 @@ When reviewing existing automations:
 
 <!-- NODE-SPECIFIC-START -->
 <!-- Add project-specific content below this line. -->
-<!-- Hub content above is updated via /scaffold-pull. -->
+<!-- Hub content above is updated via /ccanvil-pull. -->

@@ -23,7 +23,7 @@ esac
 
 # --- Protected scaffold files ---
 case "$FILE_PATH" in
-  *docs/scaffold-guide/scaffold-framework.md)
+  *.ccanvil/guide/scaffold-framework.md)
     echo "BLOCKED: scaffold-framework.md is research source material — read-only." >&2
     echo "Only modify with explicit user approval for paradigm shifts or new research." >&2
     exit 2

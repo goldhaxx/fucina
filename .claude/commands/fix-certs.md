@@ -4,13 +4,13 @@ Diagnose and fix TLS certificate issues caused by Cloudflare WARP VPN.
 
 2. Run the diagnosis first:
    ```bash
-   bash scripts/fix-cloudflare-certs.sh --check
+   bash .ccanvil/scripts/fix-cloudflare-certs.sh --check
    ```
    If the script doesn't exist in the current project, run the manual steps from the rule file.
 
 3. If the combined bundle doesn't exist or is stale, build it:
    ```bash
-   bash scripts/fix-cloudflare-certs.sh
+   bash .ccanvil/scripts/fix-cloudflare-certs.sh
    ```
 
 4. Set the environment variables for the current session by running each export from the script output.
@@ -19,11 +19,11 @@ Diagnose and fix TLS certificate issues caused by Cloudflare WARP VPN.
 
 6. Check if the user's `~/.zshrc` already has the Cloudflare cert exports. If not, suggest making them permanent:
    ```bash
-   bash scripts/fix-cloudflare-certs.sh >> ~/.zshrc
+   bash .ccanvil/scripts/fix-cloudflare-certs.sh >> ~/.zshrc
    ```
 
 7. Report what was fixed and what the user should verify.
 
 <!-- NODE-SPECIFIC-START -->
 <!-- Add project-specific content below this line. -->
-<!-- Hub content above is updated via /scaffold-pull. -->
+<!-- Hub content above is updated via /ccanvil-pull. -->

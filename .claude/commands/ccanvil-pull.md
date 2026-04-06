@@ -5,8 +5,8 @@ All deterministic operations (copy, hash, lockfile, logging) are handled by the 
 ## Step 1: Pre-check and plan (deterministic)
 
 ```bash
-./scripts/scaffold-sync.sh pre-check
-./scripts/scaffold-sync.sh pull-plan
+./.ccanvil/scripts/ccanvil-sync.sh pre-check
+./.ccanvil/scripts/ccanvil-sync.sh pull-plan
 ```
 
 Pre-check verifies both repos are clean and auto-bootstraps the sync script if the hub has a newer version (prints "BOOTSTRAPPED" and exits — re-run the command).
@@ -24,7 +24,7 @@ Read the JSON output. It contains an array of `{file, action, reason}` objects. 
 
 If the plan contains `auto-update` entries:
 ```bash
-./scripts/scaffold-sync.sh pull-auto
+./.ccanvil/scripts/ccanvil-sync.sh pull-auto
 ```
 
 This handles both `auto-update` and `adopt-clean` files in one pass — copies, updates lockfile, logs. Do NOT manually `cp` or `lock-update`.
@@ -33,7 +33,7 @@ This handles both `auto-update` and `adopt-clean` files in one pass — copies, 
 
 For each file with action `section-merge`:
 ```bash
-./scripts/scaffold-sync.sh pull-apply <file> section-merge
+./.ccanvil/scripts/ccanvil-sync.sh pull-apply <file> section-merge
 ```
 
 Show the user what changed (hub sections updated, node sections preserved). No Claude judgment needed — the delimiter-based merge is deterministic.
@@ -41,11 +41,11 @@ Show the user what changed (hub sections updated, node sections preserved). No C
 ## Step 4: Handle conflicts (JUDGMENT CALL)
 
 For each file with action `conflict`:
-1. Show the diff: `./scripts/scaffold-sync.sh diff <file>`
+1. Show the diff: `./.ccanvil/scripts/ccanvil-sync.sh diff <file>`
 2. Present four options:
-   - **Keep local** → `./scripts/scaffold-sync.sh pull-apply <file> keep-local`
-   - **Take scaffold** → `./scripts/scaffold-sync.sh pull-apply <file> take-scaffold`
-   - **Merge** → Claude reads both versions, proposes a combined version, writes it to a temp file, user approves → `./scripts/scaffold-sync.sh pull-apply <file> write-merged <temp-file>`
+   - **Keep local** → `./.ccanvil/scripts/ccanvil-sync.sh pull-apply <file> keep-local`
+   - **Take scaffold** → `./.ccanvil/scripts/ccanvil-sync.sh pull-apply <file> take-scaffold`
+   - **Merge** → Claude reads both versions, proposes a combined version, writes it to a temp file, user approves → `./.ccanvil/scripts/ccanvil-sync.sh pull-apply <file> write-merged <temp-file>`
    - **Show full diff** → display side-by-side, then ask again
 
 **This is the ONLY step where Claude exercises judgment** — proposing merged content.
@@ -54,20 +54,20 @@ For each file with action `conflict`:
 
 For each file with action `new`:
 1. Show the file's first few lines from the scaffold
-2. If user accepts → `./scripts/scaffold-sync.sh pull-apply <file> accept-new`
+2. If user accepts → `./.ccanvil/scripts/ccanvil-sync.sh pull-apply <file> accept-new`
 3. If user declines → skip
 
 ## Step 6: Handle removed files (user confirmation)
 
 For each file with action `removed`:
 1. Ask user: keep locally or delete?
-2. Keep → `./scripts/scaffold-sync.sh pull-apply <file> keep-local`
-3. Delete → `./scripts/scaffold-sync.sh pull-apply <file> delete`
+2. Keep → `./.ccanvil/scripts/ccanvil-sync.sh pull-apply <file> keep-local`
+3. Delete → `./.ccanvil/scripts/ccanvil-sync.sh pull-apply <file> delete`
 
 ## Step 7: Finalize (deterministic)
 
 ```bash
-./scripts/scaffold-sync.sh pull-finalize
+./.ccanvil/scripts/ccanvil-sync.sh pull-finalize
 ```
 
 This commits all changes with a structured message listing every synced file. The commit is browsable on GitHub.
@@ -83,4 +83,4 @@ Report what happened: N auto-updated, N section-merged, N conflicts resolved, N 
 
 <!-- NODE-SPECIFIC-START -->
 <!-- Add project-specific content below this line. -->
-<!-- Hub content above is updated via /scaffold-pull. -->
+<!-- Hub content above is updated via /ccanvil-pull. -->

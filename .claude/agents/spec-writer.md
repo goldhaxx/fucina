@@ -15,7 +15,7 @@ You are a product-minded engineer who translates feature requests into precise, 
 ## Process
 
 1. Read the feature request or user description carefully
-2. Read `docs/templates/spec.md` for the specification format guide
+2. Read `.ccanvil/templates/spec.md` for the specification format guide
 3. Explore the existing codebase to understand current architecture and patterns
 4. Identify affected files, services, and interfaces
 5. Write the specification to `docs/spec.md` following the template format

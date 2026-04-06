@@ -5,7 +5,7 @@ This is a fully deterministic operation. No Claude judgment needed for the scan 
 ## Step 1: Run the audit (deterministic)
 
 ```bash
-bash scripts/security-audit.sh
+bash .ccanvil/scripts/security-audit.sh
 ```
 
 This checks:
@@ -34,7 +34,7 @@ For findings in git history, suggest `git filter-branch` or `git filter-repo` to
 
 After fixes, re-run with `--files-only` to verify tracked files are clean:
 ```bash
-bash scripts/security-audit.sh --files-only
+bash .ccanvil/scripts/security-audit.sh --files-only
 ```
 
 ## Rules
@@ -44,4 +44,4 @@ bash scripts/security-audit.sh --files-only
 
 <!-- NODE-SPECIFIC-START -->
 <!-- Add project-specific content below this line. -->
-<!-- Hub content above is updated via /scaffold-pull. -->
+<!-- Hub content above is updated via /ccanvil-pull. -->

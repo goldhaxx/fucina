@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# scaffold-sync.sh — Bi-directional sync between a project and the scaffold hub.
+# ccanvil-sync.sh — Bi-directional sync between a project and the scaffold hub.
 #
 # Usage:
-#   scaffold-sync.sh init [scaffold-path]   Generate lockfile from current state
-#   scaffold-sync.sh status                 Show file provenance and sync state
-#   scaffold-sync.sh diff [file]            Show diff between local and scaffold versions
-#   scaffold-sync.sh hash <file>            Compute sha256 of a file
-#   scaffold-sync.sh lock-get <file>        Read a lockfile entry (JSON)
-#   scaffold-sync.sh lock-update <file> <field> <value>  Update a lockfile field
-#   scaffold-sync.sh section-merge <s> <l>  Merge hub/node sections of a delimited file
-#   scaffold-sync.sh scan                   List all trackable files in the project
+#   ccanvil-sync.sh init [scaffold-path]   Generate lockfile from current state
+#   ccanvil-sync.sh status                 Show file provenance and sync state
+#   ccanvil-sync.sh diff [file]            Show diff between local and scaffold versions
+#   ccanvil-sync.sh hash <file>            Compute sha256 of a file
+#   ccanvil-sync.sh lock-get <file>        Read a lockfile entry (JSON)
+#   ccanvil-sync.sh lock-update <file> <field> <value>  Update a lockfile field
+#   ccanvil-sync.sh section-merge <s> <l>  Merge hub/node sections of a delimited file
+#   ccanvil-sync.sh scan                   List all trackable files in the project
 
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-LOCKFILE=".claude/scaffold.lock"
+LOCKFILE=".ccanvil/ccanvil.lock"
 
 # Directories and patterns to track (relative to project root)
 TRACKED_PATTERNS=(
@@ -27,15 +27,15 @@ TRACKED_PATTERNS=(
   ".claude/hooks/*.sh"
   ".claude/settings.json"
   ".claude/scaffold.json"
-  "docs/templates/*.md"
-  "scripts/*.sh"
-  "docs/scaffold-guide/*.md"
+  ".ccanvil/templates/*.md"
+  ".ccanvil/scripts/*.sh"
+  ".ccanvil/guide/*.md"
   "CLAUDE.md"
 )
 
 # Files to never track
 EXCLUDED_FILES=(
-  ".claude/scaffold.lock"
+  ".ccanvil/ccanvil.lock"
 )
 
 # ---------------------------------------------------------------------------
@@ -69,12 +69,20 @@ safe_lock_mv() {
 }
 
 require_lockfile() {
-  [[ -f "$LOCKFILE" ]] || die "No $LOCKFILE found. Run: scaffold-sync.sh init"
+  [[ -f "$LOCKFILE" ]] || die "No $LOCKFILE found. Run: ccanvil-sync.sh init"
+}
+
+get_scaffold_source_raw() {
+  # Returns absolute path to the hub root (for git operations on the hub)
+  jq -r '.scaffold_source' "$LOCKFILE" | sed "s|^~|$HOME|"
 }
 
 get_scaffold_source() {
-  # Returns absolute path (for filesystem operations)
-  jq -r '.scaffold_source' "$LOCKFILE" | sed "s|^~|$HOME|"
+  # Returns absolute path to the distributable root within the hub.
+  # If hub has preset/, distributable files live there; otherwise hub root.
+  local src
+  src=$(get_scaffold_source_raw)
+  scaffold_dist_root "$src"
 }
 
 get_scaffold_source_display() {
@@ -135,17 +143,31 @@ scan_tracked_files() {
   printf '%s\n' "${files[@]}" | sort -u
 }
 
+# Resolve the distributable root within a scaffold hub.
+# If the hub has a preset/ directory, distributable files live there.
+# Otherwise (legacy or non-hub), scan from the path directly.
+scaffold_dist_root() {
+  local scaffold_path="$1"
+  if [[ -d "$scaffold_path/preset" ]]; then
+    echo "$scaffold_path/preset"
+  else
+    echo "$scaffold_path"
+  fi
+}
+
 # Scan scaffold for all files matching tracked patterns
 scan_scaffold_files() {
   local scaffold_path="$1"
+  local dist_root
+  dist_root=$(scaffold_dist_root "$scaffold_path")
   local files=()
   for pattern in "${TRACKED_PATTERNS[@]}"; do
     local matches
-    matches=( "$scaffold_path"/$pattern ) 2>/dev/null || true
+    matches=( "$dist_root"/$pattern ) 2>/dev/null || true
     for f in "${matches[@]}"; do
       if [[ -f "$f" ]]; then
-        # Convert to relative path (strip scaffold_path prefix)
-        local rel="${f#$scaffold_path/}"
+        # Convert to relative path (strip dist_root prefix)
+        local rel="${f#$dist_root/}"
         ! is_excluded "$rel" && files+=("$rel")
       fi
     done
@@ -158,10 +180,14 @@ scan_scaffold_files() {
 # ---------------------------------------------------------------------------
 
 cmd_init() {
-  local scaffold_path="${1:-$HOME/projects/claude-code-scaffold}"
+  local scaffold_path="${1:-$HOME/projects/ccanvil}"
   scaffold_path="${scaffold_path/#\~/$HOME}"
 
   [[ -d "$scaffold_path" ]] || die "Scaffold not found at: $scaffold_path"
+
+  # Resolve dist root (preset/ if hub, scaffold_path if downstream)
+  local dist_root
+  dist_root=$(scaffold_dist_root "$scaffold_path")
 
   # Get scaffold git version
   local scaffold_version="unknown"
@@ -174,7 +200,7 @@ cmd_init() {
 
   # Find all trackable files in the project
   while IFS= read -r file; do
-    local scaffold_file="$scaffold_path/$file"
+    local scaffold_file="$dist_root/$file"
     local local_h
     local_h=$(file_hash "$file")
 
@@ -201,7 +227,7 @@ cmd_init() {
   while IFS= read -r file; do
     if ! echo "$files_json" | jq -e --arg f "$file" '.[$f]' >/dev/null 2>&1; then
       local scaffold_h
-      scaffold_h=$(file_hash "$scaffold_path/$file")
+      scaffold_h=$(file_hash "$dist_root/$file")
       files_json=$(echo "$files_json" | jq --arg f "$file" --arg sh "$scaffold_h" \
         '. + {($f): {"origin": "scaffold", "scaffold_hash": $sh, "local_hash": null, "status": "scaffold-only", "sync": "tracked"}}')
     fi
@@ -231,6 +257,8 @@ cmd_status() {
 
   local scaffold_source
   scaffold_source=$(get_scaffold_source)
+  local scaffold_hub
+  scaffold_hub=$(get_scaffold_source_raw)
   local scaffold_version
   scaffold_version=$(jq -r '.scaffold_version' "$LOCKFILE")
   local synced_at
@@ -241,9 +269,9 @@ cmd_status() {
   echo ""
 
   # Check if scaffold has new commits since last sync
-  if git -C "$scaffold_source" rev-parse HEAD >/dev/null 2>&1; then
+  if git -C "$scaffold_hub" rev-parse HEAD >/dev/null 2>&1; then
     local current_scaffold_version
-    current_scaffold_version=$(git -C "$scaffold_source" rev-parse --short HEAD)
+    current_scaffold_version=$(git -C "$scaffold_hub" rev-parse --short HEAD)
     if [[ "$current_scaffold_version" != "$scaffold_version" ]]; then
       echo "NOTE: Scaffold has new commits ($scaffold_version → $current_scaffold_version)"
       echo ""
@@ -300,7 +328,7 @@ cmd_status() {
   echo ""
   echo "Statuses: CLEAN=synced, MODIFIED=locally changed, MODIFIED*=changed since last sync,"
   echo "          LOCAL=project-only, PROMOTED=pushed to scaffold, SCAFFOLD-ONLY=not yet pulled,"
-  echo "          NODE-ONLY=excluded from sync (use /scaffold-ignore to set, scaffold-sync.sh track to undo)"
+  echo "          NODE-ONLY=excluded from sync (use /scaffold-ignore to set, ccanvil-sync.sh track to undo)"
 }
 
 cmd_diff() {
@@ -346,19 +374,19 @@ cmd_diff() {
 }
 
 cmd_hash() {
-  local file="${1:?Usage: scaffold-sync.sh hash <file>}"
+  local file="${1:?Usage: ccanvil-sync.sh hash <file>}"
   echo "$(file_hash "$file")  $file"
 }
 
 cmd_lock_get() {
   require_lockfile
-  local file="${1:?Usage: scaffold-sync.sh lock-get <file>}"
+  local file="${1:?Usage: ccanvil-sync.sh lock-get <file>}"
   jq --arg f "$file" '.files[$f] // "not found"' "$LOCKFILE"
 }
 
 cmd_lock_update() {
   require_lockfile
-  local file="${1:?Usage: scaffold-sync.sh lock-update <file> <field> <value>}"
+  local file="${1:?Usage: ccanvil-sync.sh lock-update <file> <field> <value>}"
   local field="${2:?}"
   local value="${3:?}"
 
@@ -374,7 +402,7 @@ cmd_lock_update() {
 
 cmd_lock_add() {
   require_lockfile
-  local file="${1:?Usage: scaffold-sync.sh lock-add <file> <origin> <scaffold_hash> <local_hash> <status>}"
+  local file="${1:?Usage: ccanvil-sync.sh lock-add <file> <origin> <scaffold_hash> <local_hash> <status>}"
   local origin="${2:?}"
   local scaffold_hash="${3}"
   local local_hash="${4}"
@@ -397,7 +425,7 @@ cmd_lock_add() {
 
 cmd_lock_remove() {
   require_lockfile
-  local file="${1:?Usage: scaffold-sync.sh lock-remove <file>}"
+  local file="${1:?Usage: ccanvil-sync.sh lock-remove <file>}"
 
   local tmp
   tmp=$(mktemp)
@@ -407,7 +435,7 @@ cmd_lock_remove() {
 
 cmd_lock_set_version() {
   require_lockfile
-  local version="${1:?Usage: scaffold-sync.sh lock-set-version <version>}"
+  local version="${1:?Usage: ccanvil-sync.sh lock-set-version <version>}"
 
   local tmp
   tmp=$(mktemp)
@@ -416,8 +444,8 @@ cmd_lock_set_version() {
 }
 
 cmd_section_merge() {
-  local scaffold_file="${1:?Usage: scaffold-sync.sh section-merge <scaffold-file> <local-file>}"
-  local local_file="${2:?Usage: scaffold-sync.sh section-merge <scaffold-file> <local-file>}"
+  local scaffold_file="${1:?Usage: ccanvil-sync.sh section-merge <scaffold-file> <local-file>}"
+  local local_file="${2:?Usage: ccanvil-sync.sh section-merge <scaffold-file> <local-file>}"
 
   [[ -f "$scaffold_file" ]] || die "Scaffold file not found: $scaffold_file"
   [[ -f "$local_file" ]] || die "Local file not found: $local_file"
@@ -482,7 +510,7 @@ cmd_section_merge() {
 # Node-only classification commands
 cmd_node_only() {
   require_lockfile
-  local file="${1:?Usage: scaffold-sync.sh node-only <file>}"
+  local file="${1:?Usage: ccanvil-sync.sh node-only <file>}"
 
   # Verify file exists in lockfile
   local exists
@@ -505,7 +533,7 @@ cmd_node_only() {
 
 cmd_track() {
   require_lockfile
-  local file="${1:?Usage: scaffold-sync.sh track <file>}"
+  local file="${1:?Usage: ccanvil-sync.sh track <file>}"
 
   local exists
   exists=$(jq -r --arg f "$file" '.files[$f] // "null"' "$LOCKFILE")
@@ -552,13 +580,15 @@ cmd_pre_check() {
   require_lockfile
   local scaffold_source
   scaffold_source=$(get_scaffold_source)
+  local scaffold_hub
+  scaffold_hub=$(get_scaffold_source_raw)
 
   [[ -d "$scaffold_source" ]] || die "Scaffold not found at: $scaffold_source"
 
   # Check hub (scaffold) is clean
-  if git -C "$scaffold_source" rev-parse HEAD >/dev/null 2>&1; then
+  if git -C "$scaffold_hub" rev-parse HEAD >/dev/null 2>&1; then
     local dirty
-    dirty=$(git -C "$scaffold_source" status --porcelain 2>/dev/null)
+    dirty=$(git -C "$scaffold_hub" status --porcelain 2>/dev/null)
     if [[ -n "$dirty" ]]; then
       echo "ERROR: Scaffold repo has uncommitted changes:" >&2
       echo "$dirty" >&2
@@ -582,15 +612,15 @@ cmd_pre_check() {
   fi
 
   # Bootstrap: if the hub has a newer sync script, copy it before proceeding
-  local hub_script="$scaffold_source/scripts/scaffold-sync.sh"
-  local local_script="scripts/scaffold-sync.sh"
+  local hub_script="$scaffold_source/.ccanvil/scripts/ccanvil-sync.sh"
+  local local_script=".ccanvil/scripts/ccanvil-sync.sh"
   if [[ -f "$hub_script" && -f "$local_script" ]]; then
     local hub_hash local_hash
     hub_hash=$(file_hash "$hub_script")
     local_hash=$(file_hash "$local_script")
     if [[ "$hub_hash" != "$local_hash" ]]; then
       cp "$hub_script" "$local_script"
-      echo "BOOTSTRAPPED: Updated scripts/scaffold-sync.sh from hub"
+      echo "BOOTSTRAPPED: Updated .ccanvil/scripts/ccanvil-sync.sh from hub"
       echo "  Re-run your command to use the updated script."
       exit 0
     fi
@@ -739,7 +769,7 @@ cmd_pull_auto() {
   # Skip this script itself to avoid replacing a running process mid-execution.
   # Bootstrap in pre-check handles sync script updates separately.
   echo "$plan" | jq -r '.[] | select(.action == "auto-update" or .action == "adopt-clean") | .file' | while IFS= read -r file; do
-    if [[ "$file" == "scripts/scaffold-sync.sh" ]]; then
+    if [[ "$file" == ".ccanvil/scripts/ccanvil-sync.sh" ]]; then
       if $dry_run; then
         echo "DRY-RUN: would skip $file (updated via bootstrap)"
       else
@@ -790,7 +820,7 @@ cmd_pull_auto() {
 # Actions: take-scaffold, keep-local, section-merge, accept-new, adopt-conflict, delete, write-merged <path>
 cmd_pull_apply() {
   require_lockfile
-  local file="${1:?Usage: scaffold-sync.sh pull-apply <file> <action> [merged-content-file]}"
+  local file="${1:?Usage: ccanvil-sync.sh pull-apply <file> <action> [merged-content-file]}"
   local action="${2:?}"
   local merged_file=""
   local dry_run=false
@@ -948,10 +978,12 @@ cmd_pull_finalize() {
   require_lockfile
   local scaffold_source
   scaffold_source=$(get_scaffold_source)
+  local scaffold_hub
+  scaffold_hub=$(get_scaffold_source_raw)
 
   local new_version
-  if git -C "$scaffold_source" rev-parse HEAD >/dev/null 2>&1; then
-    new_version=$(git -C "$scaffold_source" rev-parse --short HEAD)
+  if git -C "$scaffold_hub" rev-parse HEAD >/dev/null 2>&1; then
+    new_version=$(git -C "$scaffold_hub" rev-parse --short HEAD)
   else
     new_version="unknown"
   fi
@@ -1068,7 +1100,7 @@ cmd_push_candidates() {
 # Usage: push-apply <file> [description] [--dry-run]
 cmd_push_apply() {
   require_lockfile
-  local file="${1:?Usage: scaffold-sync.sh push-apply <file> [description]}"
+  local file="${1:?Usage: ccanvil-sync.sh push-apply <file> [description]}"
   local description=""
   local dry_run=false
 
@@ -1136,10 +1168,12 @@ cmd_push_finalize() {
       message="$arg"
     fi
   done
-  [[ -n "$message" ]] || die "Usage: scaffold-sync.sh push-finalize <commit-message>"
+  [[ -n "$message" ]] || die "Usage: ccanvil-sync.sh push-finalize <commit-message>"
 
   local scaffold_source
   scaffold_source=$(get_scaffold_source)
+  local scaffold_hub
+  scaffold_hub=$(get_scaffold_source_raw)
 
   if $dry_run; then
     echo "DRY-RUN: would commit in scaffold with message: $message"
@@ -1149,21 +1183,21 @@ cmd_push_finalize() {
 
   # Stage and commit in scaffold
   local head_before
-  head_before=$(git -C "$scaffold_source" rev-parse HEAD)
-  git -C "$scaffold_source" add -A
-  git -C "$scaffold_source" commit -m "$message" || true
+  head_before=$(git -C "$scaffold_hub" rev-parse HEAD)
+  git -C "$scaffold_hub" add -A
+  git -C "$scaffold_hub" commit -m "$message" || true
   local head_after
-  head_after=$(git -C "$scaffold_source" rev-parse HEAD)
+  head_after=$(git -C "$scaffold_hub" rev-parse HEAD)
   if [[ "$head_before" != "$head_after" ]]; then
-    echo "Committed in scaffold: $(git -C "$scaffold_source" rev-parse --short HEAD)"
+    echo "Committed in scaffold: $(git -C "$scaffold_hub" rev-parse --short HEAD)"
   else
     echo "WARNING: git commit in scaffold produced no new commit." >&2
   fi
 
   # Update version
   local new_version
-  if git -C "$scaffold_source" rev-parse HEAD >/dev/null 2>&1; then
-    new_version=$(git -C "$scaffold_source" rev-parse --short HEAD)
+  if git -C "$scaffold_hub" rev-parse HEAD >/dev/null 2>&1; then
+    new_version=$(git -C "$scaffold_hub" rev-parse --short HEAD)
   else
     new_version="unknown"
   fi
@@ -1177,7 +1211,7 @@ cmd_push_finalize() {
 # Usage: promote <file>
 cmd_promote() {
   require_lockfile
-  local file="${1:?Usage: scaffold-sync.sh promote <file>}"
+  local file="${1:?Usage: ccanvil-sync.sh promote <file>}"
 
   local status
   status=$(jq -r --arg f "$file" '.files[$f].status // "unknown"' "$LOCKFILE")
@@ -1195,6 +1229,8 @@ cmd_promote() {
 
   local scaffold_source
   scaffold_source=$(get_scaffold_source)
+  local scaffold_hub
+  scaffold_hub=$(get_scaffold_source_raw)
 
   # Copy to scaffold
   mkdir -p "$(dirname "$scaffold_source/$file")"
@@ -1210,12 +1246,12 @@ cmd_promote() {
   safe_lock_mv "$tmp" "$LOCKFILE" "promote $file"
 
   # Commit in scaffold
-  git -C "$scaffold_source" add -A
-  git -C "$scaffold_source" commit -m "chore(scaffold): add $(basename "$file") from $(basename "$(pwd)")"
+  git -C "$scaffold_hub" add -A
+  git -C "$scaffold_hub" commit -m "chore(scaffold): add $(basename "$file") from $(basename "$(pwd)")"
 
   # Update version
   local new_version
-  new_version=$(git -C "$scaffold_source" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+  new_version=$(git -C "$scaffold_hub" rev-parse --short HEAD 2>/dev/null || echo "unknown")
   cmd_lock_set_version "$new_version"
 
   echo "PROMOTED: $file → scaffold @ $new_version"
@@ -1225,7 +1261,7 @@ cmd_promote() {
 # Usage: demote <file>
 cmd_demote() {
   require_lockfile
-  local file="${1:?Usage: scaffold-sync.sh demote <file>}"
+  local file="${1:?Usage: ccanvil-sync.sh demote <file>}"
 
   local status
   status=$(jq -r --arg f "$file" '.files[$f].status // "unknown"' "$LOCKFILE")
@@ -1272,7 +1308,7 @@ cmd_scan() {
 
 require_jq
 
-# Allow sourcing for tests: `source scaffold-sync.sh --source-only`
+# Allow sourcing for tests: `source ccanvil-sync.sh --source-only`
 if [[ "${1:-}" == "--source-only" ]]; then
   return 0 2>/dev/null || exit 0
 fi
@@ -1309,7 +1345,7 @@ case "${1:-}" in
   demote)           shift; cmd_demote "$@" ;;
 
   *)
-    echo "Usage: scaffold-sync.sh <command> [args]"
+    echo "Usage: ccanvil-sync.sh <command> [args]"
     echo ""
     echo "Classification commands:"
     echo "  node-only <file>                      Mark file as node-only (exclude from sync)"

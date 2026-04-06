@@ -1,0 +1,434 @@
+{
+  "scaffold_source": "~/projects/ccanvil",
+  "scaffold_version": "18702ff",
+  "synced_at": "1775449849",
+  "files": {
+    ".ccanvil/guide/command-reference.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "f01892f977a72958dec322565dc85d9ea1ce918ef95fa125d6a3ca40a22d6685",
+      "local_hash": "f01892f977a72958dec322565dc85d9ea1ce918ef95fa125d6a3ca40a22d6685",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/guide/configuration.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "c90e6951eb3ea1bb22261cc42b4e8aba7cf7c30c88f632f703dd847c53bef923",
+      "local_hash": "c90e6951eb3ea1bb22261cc42b4e8aba7cf7c30c88f632f703dd847c53bef923",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/guide/core-workflow.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "0d185b545046d9d5389566c2f4fc2d7b0f830ad6d4e88c4304d523b8d1aa0577",
+      "local_hash": "0d185b545046d9d5389566c2f4fc2d7b0f830ad6d4e88c4304d523b8d1aa0577",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/guide/decision-guide.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "9dc290a9ae827ced0ecf73bcf6574198aed01723ac3ca09f1d50de4c75b722fc",
+      "local_hash": "9dc290a9ae827ced0ecf73bcf6574198aed01723ac3ca09f1d50de4c75b722fc",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/guide/getting-started.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "4ad927351e837b5d73a92b40754f766b20fb35e16091214235602557acd3dd8a",
+      "local_hash": "4ad927351e837b5d73a92b40754f766b20fb35e16091214235602557acd3dd8a",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/guide/hooks.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "a74684df8baea86b24d24b738574a7f5ca12272a6f918484eadc826a359b2039",
+      "local_hash": "a74684df8baea86b24d24b738574a7f5ca12272a6f918484eadc826a359b2039",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/guide/index.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "091049e9d6fee476d743119bd9b38df52af52e4a61d67ec63d27ca3e2207a97a",
+      "local_hash": "091049e9d6fee476d743119bd9b38df52af52e4a61d67ec63d27ca3e2207a97a",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/guide/parallel-sessions.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "c28597cce5338de553186133b1af09899326983105a96ded58bda704a90a0cfe",
+      "local_hash": "c28597cce5338de553186133b1af09899326983105a96ded58bda704a90a0cfe",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/guide/scaffold-framework.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "86f37177ec0f643a79bcd92de598a1cef3e25aaffd6975bb156f62075c56d2a0",
+      "local_hash": "86f37177ec0f643a79bcd92de598a1cef3e25aaffd6975bb156f62075c56d2a0",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/guide/scaffold-sync.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "ab2db3a8d2a504c7672b855e6cf3be794efbb41ec1cf03382d960d4035271e59",
+      "local_hash": "ab2db3a8d2a504c7672b855e6cf3be794efbb41ec1cf03382d960d4035271e59",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/guide/session-management.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "3e2e58cf258d0b70b04bee846769f63f20b81d9c1e26d2eb00bcbda2a3e95e22",
+      "local_hash": "3e2e58cf258d0b70b04bee846769f63f20b81d9c1e26d2eb00bcbda2a3e95e22",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/guide/system-overview.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "08ac4374d8d6cbb190d35086530d36f4c8b7ed54d8557d991bb0a219f5042eeb",
+      "local_hash": "08ac4374d8d6cbb190d35086530d36f4c8b7ed54d8557d991bb0a219f5042eeb",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/scripts/ccanvil-sync.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "f1e182d2a15f7dc48920987ad0fc5071f7b78ebf9df52b7ec3d89808421671f0",
+      "local_hash": "f1e182d2a15f7dc48920987ad0fc5071f7b78ebf9df52b7ec3d89808421671f0",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/scripts/context-budget.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "09ebbdea2709fa21c644c035bc8509f727bcd86088735df22caf50b18a193eb1",
+      "local_hash": "09ebbdea2709fa21c644c035bc8509f727bcd86088735df22caf50b18a193eb1",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/scripts/docs-check.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "5b5721e6198a7a1d62e4851c8e0060493b5429247d21ce8212b05b07f905fba7",
+      "local_hash": "5b5721e6198a7a1d62e4851c8e0060493b5429247d21ce8212b05b07f905fba7",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/scripts/fetch-license.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "157192855692eff1d05fc5285f7dfadf7f116a8d054c98f757cc7f0b47d6ee01",
+      "local_hash": "157192855692eff1d05fc5285f7dfadf7f116a8d054c98f757cc7f0b47d6ee01",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/scripts/fix-cloudflare-certs.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "09d5cc9ff708e90a1f2d846e70b92f7f388ca24c28a5fc452bfe66e6d5e5ab8d",
+      "local_hash": "09d5cc9ff708e90a1f2d846e70b92f7f388ca24c28a5fc452bfe66e6d5e5ab8d",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/scripts/manifest-check.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "a76073a11a9d6fb4540631f9c4b2a26bf573d5e59dbb88406d9307622a3a3aac",
+      "local_hash": "a76073a11a9d6fb4540631f9c4b2a26bf573d5e59dbb88406d9307622a3a3aac",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/scripts/operations.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "a3a50ce9ae6b9dac973d5b21b25e06e1d06da9477ced5247aa74cfa11b0fab9b",
+      "local_hash": "a3a50ce9ae6b9dac973d5b21b25e06e1d06da9477ced5247aa74cfa11b0fab9b",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/scripts/permissions-audit.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "56a1fa8dc0cb87a35d55be3557593ff900e82091fe07534d12396f581b1a2af2",
+      "local_hash": "56a1fa8dc0cb87a35d55be3557593ff900e82091fe07534d12396f581b1a2af2",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/scripts/security-audit.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "894c9df5aafa4a8eb2fdba0f937029a8074654475fd0d3623daca02a74a211ba",
+      "local_hash": "894c9df5aafa4a8eb2fdba0f937029a8074654475fd0d3623daca02a74a211ba",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/templates/assumptions.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "798ca8e8cc6f53b2307a02b9791b6c981001bd277635bed60fad4aeee9b3a21e",
+      "local_hash": "798ca8e8cc6f53b2307a02b9791b6c981001bd277635bed60fad4aeee9b3a21e",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/templates/checkpoint.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "f40c1a6838293a7bf800e071a73c0d18bfcf2e3a265dd31c94b4a251172f6718",
+      "local_hash": "f40c1a6838293a7bf800e071a73c0d18bfcf2e3a265dd31c94b4a251172f6718",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/templates/hooks-reference.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "f3d412a2049c00ba263c579623f548af1b19932988fa5543f6c0b82eae82a4e6",
+      "local_hash": "f3d412a2049c00ba263c579623f548af1b19932988fa5543f6c0b82eae82a4e6",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/templates/plan.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "7961317e4cac9d84ba69567def985a527280220b564b0dec631ee0553a5326b5",
+      "local_hash": "7961317e4cac9d84ba69567def985a527280220b564b0dec631ee0553a5326b5",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/templates/scaffold.json.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "1d9ebbcf9ec35c1e7c2028263aed5255f3e8e9360801854385898472328a6424",
+      "local_hash": "1d9ebbcf9ec35c1e7c2028263aed5255f3e8e9360801854385898472328a6424",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".ccanvil/templates/spec.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "c3a7a1016a913d34a681ead53f0e6a3876ad237d44fdb682a2042d0ce8b343e1",
+      "local_hash": "c3a7a1016a913d34a681ead53f0e6a3876ad237d44fdb682a2042d0ce8b343e1",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/agents/ccanvil-differ.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "f309f88ebe47c4a968ade4211531b27e45ededd5759364c503c8d0123d452fd6",
+      "local_hash": "f309f88ebe47c4a968ade4211531b27e45ededd5759364c503c8d0123d452fd6",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/agents/code-reviewer.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "a69f59b508ce7f5e3d540ee67a48b867f93e39844e1af4aa277f0708c87aa2eb",
+      "local_hash": "a69f59b508ce7f5e3d540ee67a48b867f93e39844e1af4aa277f0708c87aa2eb",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/agents/spec-writer.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "73f8a39ce7051bee084382c54f99945cd7fdcb42cf5d04cc815c9c78ba48cd28",
+      "local_hash": "73f8a39ce7051bee084382c54f99945cd7fdcb42cf5d04cc815c9c78ba48cd28",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/catchup.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "aba424a41ba70777ce9b31ef23b0ca19da85da4a6be79630c54f0fbb19d52142",
+      "local_hash": "aba424a41ba70777ce9b31ef23b0ca19da85da4a6be79630c54f0fbb19d52142",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/ccanvil-audit.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "7221e1727a439667743843602353cc9084fe4db1c672b39c55699addce7db580",
+      "local_hash": "7221e1727a439667743843602353cc9084fe4db1c672b39c55699addce7db580",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/ccanvil-demote.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "5afb4a237b85d13cce8a398a44d8999d1ac36d334346535c3b86d5e80eb51c1b",
+      "local_hash": "5afb4a237b85d13cce8a398a44d8999d1ac36d334346535c3b86d5e80eb51c1b",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/ccanvil-ignore.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "d7aa815a031d8bb32117d2f5ab55194714eb089255d6db15afaaa30084413dbf",
+      "local_hash": "d7aa815a031d8bb32117d2f5ab55194714eb089255d6db15afaaa30084413dbf",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/ccanvil-promote.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "205bd2065d30d103cea747d788a582259cc8a0ed3fe3bb8c62cdf59fb2f7b0a5",
+      "local_hash": "205bd2065d30d103cea747d788a582259cc8a0ed3fe3bb8c62cdf59fb2f7b0a5",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/ccanvil-pull.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "7b621f7e0c5d1950b7035d99d2721d6bd61677fa565b2917c59632eb834dbf0d",
+      "local_hash": "7b621f7e0c5d1950b7035d99d2721d6bd61677fa565b2917c59632eb834dbf0d",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/ccanvil-push.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "4ba601f20534cf5d21d8541302d3df864dcc7b57318279a158176d81cd65140a",
+      "local_hash": "4ba601f20534cf5d21d8541302d3df864dcc7b57318279a158176d81cd65140a",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/ccanvil-status.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "d6e5dfc9ee26826be83f8ed83ca7abb30f15ed44c2a22b7b0d402c8497abf4ef",
+      "local_hash": "d6e5dfc9ee26826be83f8ed83ca7abb30f15ed44c2a22b7b0d402c8497abf4ef",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/commit.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "ffd7a291113cc6a85176bbc94658d0bf557f4b0026804e468c6e10b6481761b0",
+      "local_hash": "ffd7a291113cc6a85176bbc94658d0bf557f4b0026804e468c6e10b6481761b0",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/fix-certs.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "4fa03daffaf03ed8dc9ae2b44c1673a900be694f508d5e59535d155ce4be8a43",
+      "local_hash": "4fa03daffaf03ed8dc9ae2b44c1673a900be694f508d5e59535d155ce4be8a43",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/new-component.md": {
+      "origin": "local",
+      "scaffold_hash": null,
+      "local_hash": "505ce860994967e889596df0bf8e48bb3523a87ef87ec0dc2b56d8e64b8bcef6",
+      "status": "local-only",
+      "sync": "tracked"
+    },
+    ".claude/commands/plan.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "42303cf544f9bb1c91d8a0ea53120116e53dba582ce66abb57242b7cfed41712",
+      "local_hash": "42303cf544f9bb1c91d8a0ea53120116e53dba582ce66abb57242b7cfed41712",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/pr.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "2b749fbea2c190f762bedd10da10feb813c500d08cb8d53ce46627316fd829f3",
+      "local_hash": "2b749fbea2c190f762bedd10da10feb813c500d08cb8d53ce46627316fd829f3",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/review.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "bdcdc405bb051701d6715ecdf220d29ee93c437971a5984686cd0f27179e0f3d",
+      "local_hash": "bdcdc405bb051701d6715ecdf220d29ee93c437971a5984686cd0f27179e0f3d",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/commands/security-audit.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "ca194352dd8d232e531f5cccce8f78fed057a374adb2e266da57012bb05cb0e2",
+      "local_hash": "ca194352dd8d232e531f5cccce8f78fed057a374adb2e266da57012bb05cb0e2",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/hooks/branch-name-lint.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "e1ca1b9219ea886c3a937806e359dcfdecf8cd0ae2f4a7dafd9ec062355ba1d3",
+      "local_hash": "e1ca1b9219ea886c3a937806e359dcfdecf8cd0ae2f4a7dafd9ec062355ba1d3",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/hooks/commit-msg-lint.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "0467788f9961f78bb5795e8ca0ca248e13c0c125a6dc9b627a6dcfd4c44cee77",
+      "local_hash": "0467788f9961f78bb5795e8ca0ca248e13c0c125a6dc9b627a6dcfd4c44cee77",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/hooks/format-on-write.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "a243b5842ccfb468196e1c6725d77d9f3ad9becb156a422697f9d0c63c5ef277",
+      "local_hash": "a243b5842ccfb468196e1c6725d77d9f3ad9becb156a422697f9d0c63c5ef277",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/hooks/lint-on-write.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "9d1588c5640d47a02176dea545db9aa3621f19ff31744c7b4a01726ab0b59edb",
+      "local_hash": "9d1588c5640d47a02176dea545db9aa3621f19ff31744c7b4a01726ab0b59edb",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/hooks/protect-files.sh": {
+      "origin": "scaffold",
+      "scaffold_hash": "337aeece9478fb0cf2b7f4ac7d3dfc28a0932c944455922a20576e3819809753",
+      "local_hash": "337aeece9478fb0cf2b7f4ac7d3dfc28a0932c944455922a20576e3819809753",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/rules/code-quality.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "5ba08a8f56b40099af540d480356107d977932cf0b908c7c4ba5bfaa70440365",
+      "local_hash": "5ba08a8f56b40099af540d480356107d977932cf0b908c7c4ba5bfaa70440365",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/rules/components.md": {
+      "origin": "local",
+      "scaffold_hash": null,
+      "local_hash": "b30d5f8c0d7160decfc98f07ad6263d2057246de560ef38738f19f29429e9220",
+      "status": "local-only",
+      "sync": "tracked"
+    },
+    ".claude/rules/deterministic-first.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "3bb1f044ffebda1cede19c13a8a0cef517b86d1711b695e076ca0a5ed0654aaa",
+      "local_hash": "3bb1f044ffebda1cede19c13a8a0cef517b86d1711b695e076ca0a5ed0654aaa",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/rules/self-review.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "beaafc25a86d30240a22a3dfdd840fd3342ded6d09898a3576a34c7d5e16f9b6",
+      "local_hash": "beaafc25a86d30240a22a3dfdd840fd3342ded6d09898a3576a34c7d5e16f9b6",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/rules/sketches.md": {
+      "origin": "local",
+      "scaffold_hash": null,
+      "local_hash": "c7ab7044ab3021f49d45b6aaaa46ccc26e60a39bd2f9fed38ac19d01c791da65",
+      "status": "local-only",
+      "sync": "tracked"
+    },
+    ".claude/rules/tdd.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "415e7a412fe1f4f461789d03f4aec9b75972d61cc15bc692c902b4f42bf677e3",
+      "local_hash": "415e7a412fe1f4f461789d03f4aec9b75972d61cc15bc692c902b4f42bf677e3",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/rules/workflow.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "bb340f304e8727c11724f7d8fb854ce219edbd019a8e4b39a763a44335debce0",
+      "local_hash": "bb340f304e8727c11724f7d8fb854ce219edbd019a8e4b39a763a44335debce0",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/scaffold.json": {
+      "origin": "scaffold",
+      "scaffold_hash": "c91ca6ee6edf659a85575a160116553eec58a3f5a1d3b5fc78f9265a72ed86fc",
+      "local_hash": "c91ca6ee6edf659a85575a160116553eec58a3f5a1d3b5fc78f9265a72ed86fc",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    ".claude/settings.json": {
+      "origin": "scaffold",
+      "scaffold_hash": "4db37b84cebd11fd33f9559f1f1b50f7f53f00bb13bf7df9012edfef3bd23ddf",
+      "local_hash": "f78c264b3a1e5433547c4b2e9f62d3a94d2b5fd8322a2851898d7aca77e8f392",
+      "status": "modified",
+      "sync": "tracked"
+    },
+    ".claude/skills/tdd/SKILL.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "77d65b1a6ea15921d883e556600d05ce685c40b46e837b1c7a281f736b12b034",
+      "local_hash": "77d65b1a6ea15921d883e556600d05ce685c40b46e837b1c7a281f736b12b034",
+      "status": "clean",
+      "sync": "tracked"
+    },
+    "CLAUDE.md": {
+      "origin": "scaffold",
+      "scaffold_hash": "b2d14ced66a666c58b422d905d931bbe1156f1591cd624224a6c9f52b45d88a9",
+      "local_hash": "b2d14ced66a666c58b422d905d931bbe1156f1591cd624224a6c9f52b45d88a9",
+      "status": "clean",
+      "sync": "tracked"
+    }
+  }
+}

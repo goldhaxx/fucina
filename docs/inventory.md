@@ -311,6 +311,44 @@ Right side (top to bottom): GND, 21, 22, 17, 2, 15, 13, 12, GND, GND, 3V3, 5V
 
 ---
 
+## Discrete Semiconductors
+
+### S8050 NPN Transistor (×4)
+- **Status:** `[ ]`
+- **Marking:** `S8050 D 331`
+- **Package:** TO-92 (plastic, 3-pin through-hole)
+- **Pinout (flat face, L→R):** Emitter, Base, Collector
+- **Gain group:** D (hFE 200–350 @ Ic=100mA, Vce=1V) — highest gain bin
+- **Max collector current (Ic):** 500 mA continuous, 1000 mA peak
+- **Max collector-emitter voltage (Vceo):** 25V
+- **Max power dissipation:** 625 mW @ 25°C
+- **Transition frequency (fT):** 150 MHz
+- **Vce(sat):** 0.3V typ, 0.6V max (@ Ic=100mA, Ib=5mA)
+- **Vbe:** 0.7V typ
+- **Complementary PNP:** S8550
+- **Operating temperature:** −55°C to +150°C
+- **Datasheet:** https://components101.com/transistors/s8050-transistor-pinout-datasheet
+- **Notes:** General-purpose NPN switching transistor. The "D" suffix indicates the highest gain bin — needs very little base current to saturate (~0.4mA for 100mA load). "331" is a date/lot code. Lower Vceo (25V) than the PN2222A, but adequate for 5V logic switching. Common in Asian-manufactured kits.
+
+### PN2222A NPN Transistor (×5)
+- **Status:** `[ ]`
+- **Marking:** `PN 2222A 901`
+- **Package:** TO-92 (plastic, 3-pin through-hole)
+- **Pinout (flat face, L→R):** Emitter, Base, Collector
+- **Max collector current (Ic):** 1.0 A (600 mA practical continuous)
+- **Max collector-emitter voltage (Vceo):** 40V
+- **Max collector-base voltage (Vcbo):** 75V
+- **Max power dissipation:** 625 mW @ 25°C
+- **DC current gain (hFE):** 100–300 @ Ic=150mA, Vce=10V; 35 min @ Ic=500mA
+- **Transition frequency (fT):** 300 MHz
+- **Complementary PNP:** PN2907A
+- **Operating temperature:** −55°C to +150°C
+- **Manufacturer:** ON Semiconductor (likely — "901" is date code: week 01 of 2019)
+- **Datasheet:** https://www.onsemi.com/pdf/datasheet/pn2222a-d.pdf
+- **Notes:** The plastic TO-92 version of the classic 2N2222A (which uses a TO-18 metal can). The "A" suffix indicates improved ratings over the base PN2222 (40V vs 30V Vceo, 1A vs 600mA Ic). The most common general-purpose NPN transistor in hobby electronics — well-documented in Arduino tutorials for driving LEDs, relays, buzzers, and small motors. Higher voltage and current headroom than the S8050.
+
+---
+
 ## Fundamentals & Passive Components
 
 ### 830-Point Breadboard

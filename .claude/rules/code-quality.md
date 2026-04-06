@@ -28,7 +28,7 @@
 
 ## Protected Files
 
-- `docs/scaffold-guide/scaffold-framework.md` is research source material — never modify it without explicit user approval. It documents the foundational research (transformer attention, TDD evidence, context management) that justifies every scaffold design decision. Only update for paradigm shifts, new research findings, or major industry practice changes.
+- `.ccanvil/guide/scaffold-framework.md` is research source material — never modify it without explicit user approval. It documents the foundational research (transformer attention, TDD evidence, context management) that justifies every scaffold design decision. Only update for paradigm shifts, new research findings, or major industry practice changes.
 
 ## Naming
 
@@ -39,4 +39,4 @@
 
 <!-- NODE-SPECIFIC-START -->
 <!-- Add project-specific content below this line. -->
-<!-- Hub content above is updated via /scaffold-pull. -->
+<!-- Hub content above is updated via /ccanvil-pull. -->

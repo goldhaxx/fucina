@@ -6,7 +6,7 @@ Delegate to the `code-reviewer` agent with this task:
 After the code review completes, run the security audit (deterministic):
 
 ```bash
-bash scripts/security-audit.sh --files-only
+bash .ccanvil/scripts/security-audit.sh --files-only
 ```
 
 Then do a quick self-review per `.claude/rules/self-review.md`: were there any stochastic operations in this session that should become deterministic? If so, note them briefly.
@@ -15,4 +15,4 @@ Summarize all three checks (code review, security audit, self-review) and recomm
 
 <!-- NODE-SPECIFIC-START -->
 <!-- Add project-specific content below this line. -->
-<!-- Hub content above is updated via /scaffold-pull. -->
+<!-- Hub content above is updated via /ccanvil-pull. -->

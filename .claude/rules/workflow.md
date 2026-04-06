@@ -15,7 +15,7 @@
 
 ## Context Preservation
 
-- When I say "checkpoint," write to `docs/checkpoint.md` (see `docs/templates/checkpoint.md` for format):
+- When I say "checkpoint," write to `docs/checkpoint.md` (see `.ccanvil/templates/checkpoint.md` for format):
   - What was accomplished this session
   - Current state of the implementation
   - Failing tests (if any) and why
@@ -55,10 +55,10 @@
 ## Scaffold Sync
 
 - After adding a new rule, command, agent, or skill, consider whether it's project-specific or globally useful.
-- **Classify new components at creation time:** When creating a new file in a tracked scaffold directory (`.claude/rules/`, `.claude/commands/`, `.claude/skills/`, `.claude/agents/`, `.claude/hooks/`), ask the user: "Is this project-specific (node-only) or should it sync with the scaffold (tracked)?" Then run the appropriate command: `./scripts/scaffold-sync.sh node-only <file>` or leave as tracked (default).
-- Run `/scaffold-status` periodically to check for scaffold updates.
+- **Classify new components at creation time:** When creating a new file in a tracked scaffold directory (`.claude/rules/`, `.claude/commands/`, `.claude/skills/`, `.claude/agents/`, `.claude/hooks/`), ask the user: "Is this project-specific (node-only) or should it sync with the scaffold (tracked)?" Then run the appropriate command: `./scripts/ccanvil-sync.sh node-only <file>` or leave as tracked (default).
+- Run `/ccanvil-status` periodically to check for scaffold updates.
 - Before starting a new project, pull latest scaffold changes into your current project first.
-- When scaffold structure changes (new/modified commands, rules, agents, skills, hooks, or scripts), the relevant file in `docs/scaffold-guide/` must be updated to reflect the change — diagrams, tables, and descriptions must stay accurate.
+- When scaffold structure changes (new/modified commands, rules, agents, skills, hooks, or scripts), the relevant file in `.ccanvil/guide/` must be updated to reflect the change — diagrams, tables, and descriptions must stay accurate.
 
 ## Error Recovery
 
@@ -69,4 +69,4 @@
 
 <!-- NODE-SPECIFIC-START -->
 <!-- Add project-specific content below this line. -->
-<!-- Hub content above is updated via /scaffold-pull. -->
+<!-- Hub content above is updated via /ccanvil-pull. -->

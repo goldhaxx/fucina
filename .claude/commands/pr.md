@@ -4,7 +4,7 @@ Create a draft pull request from the current feature branch.
 
 1. Verify you are NOT on the default branch (main/master). If so, STOP with: "Cannot create PR from the default branch. Activate a spec first to create a feature branch."
 2. Run the project's test suite. If tests fail, STOP — show failures and do not create PR.
-3. Run `scripts/docs-check.sh validate` (if it exists). If result is not `aligned` and not `no-active-spec`, STOP — show the validation result.
+3. Run `.ccanvil/scripts/docs-check.sh validate` (if it exists). If result is not `aligned` and not `no-active-spec`, STOP — show the validation result.
 
 ## Optional: Code review gate
 
@@ -59,4 +59,4 @@ Create a draft pull request from the current feature branch.
 
 <!-- NODE-SPECIFIC-START -->
 <!-- Add project-specific content below this line. -->
-<!-- Hub content above is updated via /scaffold-pull. -->
+<!-- Hub content above is updated via /ccanvil-pull. -->

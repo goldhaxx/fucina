@@ -36,5 +36,7 @@ course-archive/github-repo/
 tools/test-renderers-output.svg
 
 # Scaffold sync state (machine-managed, not useful in context)
-.claude/scaffold.lock
-.claude/scaffold-sync.log
+.ccanvil/ccanvil.lock
+
+# Scaffold local config (read via scripts, not raw file reads)
+.claude/scaffold.local.json

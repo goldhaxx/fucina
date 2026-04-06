@@ -1,6 +1,6 @@
 Analyze the scaffold for opportunities to reduce stochastic surface area and increase deterministic automation.
 
-This is a self-review process. Run it on demand (`/scaffold-audit`) or as part of checkpoints and reviews.
+This is a self-review process. Run it on demand (`/ccanvil-audit`) or as part of checkpoints and reviews.
 
 ## Step 1: Collect evidence
 
@@ -13,7 +13,7 @@ Review recent work for stochastic interventions — moments where Claude exercis
 
 ## Step 1b: Permissions check
 
-Run `scripts/permissions-audit.sh check --settings-dir .claude` and check the exit code:
+Run `.ccanvil/scripts/permissions-audit.sh check --settings-dir .claude` and check the exit code:
 
 - **Exit 0:** All entries REVIEWED, no DANGER. Report "Permissions: PASS" and move on.
 - **Exit 1 or 2:** Include a "Permissions" section in the audit report with:
@@ -25,7 +25,7 @@ If `permissions-audit.sh` does not exist, skip this step.
 
 ## Step 1c: Context budget check
 
-Run `scripts/context-budget.sh check` and check the exit code:
+Run `.ccanvil/scripts/context-budget.sh check` and check the exit code:
 
 - **Exit 0 (HEALTHY):** Report "Context budget: HEALTHY (X% of Y token budget)" and move on.
 - **Exit 1 (WARNING):** Include a "Context Budget" section with the budget percentage and list the top 3 files by token count.
@@ -77,11 +77,11 @@ Output a structured audit:
 ```
 
 ## Rules
-- Be specific. "Could be more deterministic" is useless. "Claude manually runs `jq` to read lockfile status on line 42 of scaffold-pull.md — should call `scaffold-sync.sh lock-get <file>`" is useful.
+- Be specific. "Could be more deterministic" is useless. "Claude manually runs `jq` to read lockfile status on line 42 of scaffold-pull.md — should call `ccanvil-sync.sh lock-get <file>`" is useful.
 - Don't flag stochastic operations that genuinely require semantic understanding.
 - Prioritize by impact: operations that run frequently or consume many tokens first.
 - If no violations found, say so — don't invent problems.
 
 <!-- NODE-SPECIFIC-START -->
 <!-- Add project-specific content below this line. -->
-<!-- Hub content above is updated via /scaffold-pull. -->
+<!-- Hub content above is updated via /ccanvil-pull. -->
