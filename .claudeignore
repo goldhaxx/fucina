@@ -35,8 +35,8 @@ course-archive/github-repo/
 # Generated test output (ephemeral, not useful in context)
 tools/test-renderers-output.svg
 
-# Scaffold sync state (machine-managed, not useful in context)
+# Hub sync state (machine-managed, not useful in context)
 .ccanvil/ccanvil.lock
 
-# Scaffold local config (read via scripts, not raw file reads)
-.claude/scaffold.local.json
+# Hub local config (read via scripts, not raw file reads)
+.claude/ccanvil.local.json
