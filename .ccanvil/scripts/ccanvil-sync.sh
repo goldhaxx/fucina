@@ -2,8 +2,10 @@
 # ccanvil-sync.sh — Bi-directional sync between a project and the hub.
 #
 # Usage:
-#   ccanvil-sync.sh init [hub-path]   Generate lockfile from current state
-#   ccanvil-sync.sh status                 Show file provenance and sync state
+#   ccanvil-sync.sh init [hub-path]          Generate lockfile from current state
+#   ccanvil-sync.sh init-preflight <hub>       Scan for conflicts, output merge plan
+#   ccanvil-sync.sh init-apply <hub> <plan>    Execute an approved merge plan
+#   ccanvil-sync.sh status                     Show file provenance and sync state
 #   ccanvil-sync.sh diff [file]            Show diff between local and hub versions
 #   ccanvil-sync.sh hash <file>            Compute sha256 of a file
 #   ccanvil-sync.sh lock-get <file>        Read a lockfile entry (JSON)
@@ -36,6 +38,22 @@ TRACKED_PATTERNS=(
 # Files to never track
 EXCLUDED_FILES=(
   ".ccanvil/ccanvil.lock"
+)
+
+# Extra files copied during init that aren't in TRACKED_PATTERNS
+INIT_EXTRA_FILES=(
+  ".claudeignore"
+  ".claude/lint.json"
+)
+
+# GitHub template mappings: hub_source_path:destination_path
+# Source paths are relative to dist_root/.ccanvil/templates/github/
+# Destination paths are relative to project root
+INIT_GITHUB_TEMPLATES=(
+  "README.md:README.md"
+  "CONTRIBUTING.md:CONTRIBUTING.md"
+  "PULL_REQUEST_TEMPLATE.md:.github/PULL_REQUEST_TEMPLATE.md"
+  "workflows/ci.yml:.github/workflows/ci.yml"
 )
 
 # ---------------------------------------------------------------------------
@@ -250,10 +268,227 @@ cmd_init() {
   echo "  Hub: $display_path @ $hub_version"
   echo "  Total files: $total"
   echo "  Clean: $clean | Modified: $modified | Local: $local_only | Hub-only: $hub_only"
+
+  # Check if project is registered with the hub
+  local hub_root_abs="${hub_path/#\~/$HOME}"
+  local registry="$hub_root_abs/.ccanvil/registry.json"
+  local node_path
+  node_path=$(pwd)
+  if [[ ! -f "$registry" ]] || ! jq -e --arg p "$node_path" '.nodes[$p]' "$registry" >/dev/null 2>&1; then
+    echo ""
+    echo "NOTE: This project is not registered with the hub."
+    echo "  Register to enable project tracking and discovery."
+    echo "  Run: ccanvil-sync.sh register"
+  fi
+}
+
+cmd_init_preflight() {
+  local hub_path="${1:?Usage: ccanvil-sync.sh init-preflight <hub-path>}"
+  hub_path="${hub_path/#\~/$HOME}"
+
+  [[ -d "$hub_path" ]] || die "Hub not found at: $hub_path"
+
+  local dist_root
+  dist_root=$(hub_dist_root "$hub_path")
+  local github_tpl_root="$dist_root/.ccanvil/templates/github"
+
+  local plan="[]"
+  local seen_files=()
+
+  # Helper: classify a single file
+  # Args: hub_file_abs local_file_rel
+  classify_file() {
+    local hub_file="$1"
+    local local_file="$2"
+
+    if [[ ! -f "$local_file" ]]; then
+      # Hub-only: no local file exists
+      plan=$(echo "$plan" | jq --arg f "$local_file" \
+        '. + [{"file": $f, "source": "hub-only", "recommended_action": "copy", "reason": "New file from hub"}]')
+    else
+      local hub_h local_h
+      hub_h=$(file_hash "$hub_file")
+      local_h=$(file_hash "$local_file")
+
+      if [[ "$hub_h" == "$local_h" ]]; then
+        # Identical — skip
+        plan=$(echo "$plan" | jq --arg f "$local_file" \
+          '. + [{"file": $f, "source": "both", "recommended_action": "skip", "reason": "Already matches hub"}]')
+      else
+        # Different — check for section-merge delimiter
+        local has_delimiter=false
+        if [[ "$local_file" == *.md ]] && \
+           (grep -qx '<!-- NODE-SPECIFIC-START -->' "$hub_file" 2>/dev/null || \
+            grep -qx '<!-- HUB-MANAGED-START -->' "$hub_file" 2>/dev/null); then
+          has_delimiter=true
+        fi
+
+        if [[ "$has_delimiter" == "true" ]]; then
+          plan=$(echo "$plan" | jq --arg f "$local_file" \
+            '. + [{"file": $f, "source": "both", "recommended_action": "section-merge", "reason": "Both versions exist; can merge hub and local sections"}]')
+        else
+          plan=$(echo "$plan" | jq --arg f "$local_file" \
+            '. + [{"file": $f, "source": "both", "recommended_action": "review", "reason": "Local differs from hub; needs user decision"}]')
+        fi
+      fi
+    fi
+    seen_files+=("$local_file")
+  }
+
+  # 1. Scan hub tracked files
+  while IFS= read -r file; do
+    classify_file "$dist_root/$file" "$file"
+  done < <(scan_hub_files "$hub_path")
+
+  # 2. Scan init extra files
+  for file in "${INIT_EXTRA_FILES[@]}"; do
+    if [[ -f "$dist_root/$file" ]]; then
+      classify_file "$dist_root/$file" "$file"
+    fi
+  done
+
+  # 3. Scan GitHub templates (source:destination mapping)
+  for mapping in "${INIT_GITHUB_TEMPLATES[@]}"; do
+    local src="${mapping%%:*}"
+    local dst="${mapping#*:}"
+    local hub_file="$github_tpl_root/$src"
+    if [[ -f "$hub_file" ]]; then
+      classify_file "$hub_file" "$dst"
+    fi
+  done
+
+  # 4. Scan local tracked files for local-only entries
+  if compgen -G ".claude/rules/*.md" >/dev/null 2>&1 || \
+     compgen -G ".claude/commands/*.md" >/dev/null 2>&1 || \
+     compgen -G ".claude/agents/*.md" >/dev/null 2>&1 || \
+     compgen -G ".claude/skills/*/SKILL.md" >/dev/null 2>&1 || \
+     compgen -G ".claude/hooks/*.sh" >/dev/null 2>&1; then
+    while IFS= read -r file; do
+      # Skip if already seen
+      local already_seen=false
+      for s in "${seen_files[@]}"; do
+        [[ "$s" == "$file" ]] && already_seen=true && break
+      done
+      $already_seen && continue
+
+      plan=$(echo "$plan" | jq --arg f "$file" \
+        '. + [{"file": $f, "source": "local-only", "recommended_action": "skip", "reason": "Local file, not in hub"}]')
+    done < <(scan_tracked_files)
+  fi
+
+  # Compute summary
+  local conflicts auto total
+  conflicts=$(echo "$plan" | jq '[.[] | select(.recommended_action == "review")] | length')
+  auto=$(echo "$plan" | jq '[.[] | select(.recommended_action != "review")] | length')
+  total=$(echo "$plan" | jq 'length')
+
+  jq -n --argjson conflicts "$conflicts" --argjson auto "$auto" --argjson total "$total" --argjson plan "$plan" \
+    '{"summary": {"conflicts": $conflicts, "auto": $auto, "total": $total}, "plan": $plan}'
+}
+
+cmd_init_apply() {
+  local hub_path="${1:?Usage: ccanvil-sync.sh init-apply <hub-path> <plan-file>}"
+  local plan_file="${2:?Usage: ccanvil-sync.sh init-apply <hub-path> <plan-file>}"
+  hub_path="${hub_path/#\~/$HOME}"
+
+  [[ -d "$hub_path" ]] || die "Hub not found at: $hub_path"
+  [[ -f "$plan_file" ]] || die "Plan file not found: $plan_file"
+
+  local dist_root
+  dist_root=$(hub_dist_root "$hub_path")
+  local github_tpl_root="$dist_root/.ccanvil/templates/github"
+
+  local copied=0 skipped=0 merged=0 errors=0
+
+  # Process each entry in the plan
+  local entry_count
+  entry_count=$(jq 'length' "$plan_file")
+
+  local i=0
+  while [[ $i -lt $entry_count ]]; do
+    local file action
+    file=$(jq -r ".[$i].file" "$plan_file")
+    action=$(jq -r ".[$i].recommended_action" "$plan_file")
+
+    # Resolve hub source file path
+    # Check GitHub template mappings first, then tracked patterns
+    local hub_file=""
+    for mapping in "${INIT_GITHUB_TEMPLATES[@]}"; do
+      local tpl_src="${mapping%%:*}"
+      local tpl_dst="${mapping#*:}"
+      if [[ "$tpl_dst" == "$file" ]]; then
+        hub_file="$github_tpl_root/$tpl_src"
+        break
+      fi
+    done
+    if [[ -z "$hub_file" && -f "$dist_root/$file" ]]; then
+      hub_file="$dist_root/$file"
+    fi
+
+    case "$action" in
+      copy|overwrite)
+        if [[ -z "$hub_file" || ! -f "$hub_file" ]]; then
+          echo "ERROR: Hub source not found for $file" >&2
+          errors=$((errors + 1))
+          i=$((i + 1)); continue
+        fi
+        mkdir -p "$(dirname "$file")"
+        cp "$hub_file" "$file"
+        copied=$((copied + 1))
+        echo "COPIED: $file"
+        ;;
+      skip)
+        skipped=$((skipped + 1))
+        ;;
+      section-merge)
+        if [[ -z "$hub_file" || ! -f "$hub_file" ]]; then
+          echo "ERROR: Hub source not found for $file" >&2
+          errors=$((errors + 1))
+          i=$((i + 1)); continue
+        fi
+        if [[ ! -f "$file" ]]; then
+          # Local doesn't exist — just copy
+          mkdir -p "$(dirname "$file")"
+          cp "$hub_file" "$file"
+          copied=$((copied + 1))
+          echo "COPIED: $file (no local to merge)"
+        else
+          local merge_result
+          merge_result=$(cmd_section_merge "$hub_file" "$file" 2>/dev/null) && {
+            echo "$merge_result" > "$file"
+            merged=$((merged + 1))
+            echo "MERGED: $file"
+          } || {
+            echo "ERROR: Section-merge failed for $file" >&2
+            errors=$((errors + 1))
+          }
+        fi
+        ;;
+      *)
+        echo "UNKNOWN ACTION: $action for $file — skipping" >&2
+        skipped=$((skipped + 1))
+        ;;
+    esac
+    i=$((i + 1))
+  done
+
+  jq -n --argjson copied "$copied" --argjson skipped "$skipped" --argjson merged "$merged" --argjson errors "$errors" \
+    '{"copied": $copied, "skipped": $skipped, "merged": $merged, "errors": $errors}'
 }
 
 cmd_status() {
   require_lockfile
+
+  # Parse flags
+  local json_mode=false
+  local filter_status=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --json) json_mode=true; shift ;;
+      --filter) filter_status="${2:-}"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
 
   local hub_source
   hub_source=$(get_hub_source)
@@ -264,6 +499,39 @@ cmd_status() {
   local synced_at
   synced_at=$(jq -r '.synced_at' "$LOCKFILE")
 
+  # Build files array (shared by both output modes)
+  local files_json="[]"
+  while IFS= read -r file; do
+    local status origin hub_hash local_hash sync_field
+    status=$(jq -r --arg f "$file" '.files[$f].status' "$LOCKFILE")
+    origin=$(jq -r --arg f "$file" '.files[$f].origin' "$LOCKFILE")
+    hub_hash=$(jq -r --arg f "$file" '.files[$f].hub_hash // "null"' "$LOCKFILE")
+    local_hash=$(jq -r --arg f "$file" '.files[$f].local_hash // "null"' "$LOCKFILE")
+    sync_field=$(get_sync_field "$file")
+
+    # Apply filter
+    if [[ -n "$filter_status" ]]; then
+      if [[ "$filter_status" == "non-clean" ]]; then
+        [[ "$status" == "clean" && "$sync_field" != "node-only" ]] && continue
+      else
+        [[ "$status" != "$filter_status" ]] && continue
+      fi
+    fi
+
+    files_json=$(echo "$files_json" | jq --arg f "$file" --arg o "$origin" --arg s "$status" \
+      --arg sy "$sync_field" --arg hh "$hub_hash" --arg lh "$local_hash" \
+      '. + [{"file": $f, "origin": $o, "status": $s, "sync": $sy, "hub_hash": $hh, "local_hash": $lh}]')
+  done < <(jq -r '.files | keys[]' "$LOCKFILE" | sort)
+
+  # JSON output mode
+  if $json_mode; then
+    jq -n --arg hs "$(get_hub_source_display)" --arg hv "$hub_version" \
+      --arg sa "$synced_at" --argjson files "$files_json" \
+      '{"hub_source": $hs, "hub_version": $hv, "synced_at": $sa, "files": $files}'
+    return 0
+  fi
+
+  # Human-readable output mode (original behavior)
   echo "Hub: $(get_hub_source_display) @ $hub_version"
   echo "Last synced: $synced_at"
   echo ""
@@ -280,46 +548,23 @@ cmd_status() {
 
   # Print each file's status
   local has_output=false
-  while IFS= read -r file; do
-    local status origin hub_hash local_hash
-    status=$(jq -r --arg f "$file" '.files[$f].status' "$LOCKFILE")
-    origin=$(jq -r --arg f "$file" '.files[$f].origin' "$LOCKFILE")
-
-    # Check if local file has changed since lockfile was written
-    local current_hash=""
-    if [[ -f "$file" ]]; then
-      current_hash=$(file_hash "$file")
-    fi
-    local recorded_local_hash
-    recorded_local_hash=$(jq -r --arg f "$file" '.files[$f].local_hash // "null"' "$LOCKFILE")
-
-    # Check node-only classification
-    local sync_field
-    sync_field=$(get_sync_field "$file")
-
+  echo "$files_json" | jq -r '.[] | "\(.status)\t\(.sync)\t\(.file)"' | while IFS=$'\t' read -r status sync_field file; do
     local display_status
     if [[ "$sync_field" == "node-only" ]]; then
       display_status="NODE-ONLY"
     else
       case "$status" in
-        clean)
-          if [[ -n "$current_hash" && "$current_hash" != "$recorded_local_hash" ]]; then
-            display_status="MODIFIED*"  # Changed since last sync
-          else
-            display_status="CLEAN"
-          fi
-          ;;
+        clean)        display_status="CLEAN" ;;
         modified)     display_status="MODIFIED" ;;
         local-only)   display_status="LOCAL" ;;
         promoted)     display_status="PROMOTED" ;;
-        hub-only) display_status="HUB-ONLY" ;;
+        hub-only)     display_status="HUB-ONLY" ;;
         *)            display_status="UNKNOWN" ;;
       esac
     fi
-
     printf "  %-16s %s\n" "$display_status" "$file"
     has_output=true
-  done < <(jq -r '.files | keys[]' "$LOCKFILE" | sort)
+  done
 
   if [[ "$has_output" == "false" ]]; then
     echo "  No tracked files."
@@ -620,6 +865,14 @@ cmd_pre_check() {
     local_hash=$(file_hash "$local_script")
     if [[ "$hub_hash" != "$local_hash" ]]; then
       cp "$hub_script" "$local_script"
+      # Update lockfile hashes so status shows clean after bootstrap
+      local new_hash
+      new_hash=$(file_hash "$local_script")
+      local tmp; tmp=$(mktemp)
+      jq --arg f "$local_script" --arg h "$new_hash" \
+        '.files[$f].hub_hash = $h | .files[$f].local_hash = $h | .files[$f].status = "clean"' \
+        "$LOCKFILE" > "$tmp" || true
+      safe_lock_mv "$tmp" "$LOCKFILE" "bootstrap hash update"
       echo "BOOTSTRAPPED: Updated .ccanvil/scripts/ccanvil-sync.sh from hub"
       echo "  Re-run your command to use the updated script."
       exit 0
@@ -766,18 +1019,7 @@ cmd_pull_auto() {
   plan=$(cmd_pull_plan)
 
   # Also adopt-clean files (identical local copies not yet in lockfile)
-  # Skip this script itself to avoid replacing a running process mid-execution.
-  # Bootstrap in pre-check handles sync script updates separately.
   echo "$plan" | jq -r '.[] | select(.action == "auto-update" or .action == "adopt-clean") | .file' | while IFS= read -r file; do
-    if [[ "$file" == ".ccanvil/scripts/ccanvil-sync.sh" ]]; then
-      if $dry_run; then
-        echo "DRY-RUN: would skip $file (updated via bootstrap)"
-      else
-        echo "SKIPPED: $file (updated via bootstrap in pre-check)"
-      fi
-      continue
-    fi
-
     if $dry_run; then
       echo "DRY-RUN: would copy $file"
       count=$((count + 1))
@@ -1302,6 +1544,145 @@ cmd_scan() {
   fi
 }
 
+# migrate: Copy all hub-managed files to the current project, handle renames, re-init lockfile.
+# Usage: migrate <hub-path> [--dry-run]
+cmd_migrate() {
+  local hub_path="${1:?Usage: ccanvil-sync.sh migrate <hub-path> [--dry-run]}"
+  hub_path="${hub_path/#\~/$HOME}"
+  local dry_run=false
+  [[ "${2:-}" == "--dry-run" ]] && dry_run=true
+
+  [[ -d "$hub_path" ]] || die "Hub not found at: $hub_path"
+
+  local dist_root
+  dist_root=$(hub_dist_root "$hub_path")
+
+  # Remove stale-named files from previous structure
+  local stale_files=(
+    ".ccanvil/guide/scaffold-sync.md"
+    ".ccanvil/guide/scaffold-framework.md"
+    ".ccanvil/templates/scaffold.json.md"
+  )
+  for stale in "${stale_files[@]}"; do
+    if [[ -f "$stale" ]]; then
+      if $dry_run; then
+        echo "DRY-RUN: would remove stale file $stale"
+      else
+        rm "$stale"
+        echo "REMOVED: $stale (stale name)"
+      fi
+    fi
+  done
+
+  # Rename scaffold.json → ccanvil.json if present
+  if [[ -f ".claude/scaffold.json" ]]; then
+    if $dry_run; then
+      echo "DRY-RUN: would rename .claude/scaffold.json → .claude/ccanvil.json"
+    else
+      mv ".claude/scaffold.json" ".claude/ccanvil.json"
+      echo "RENAMED: .claude/scaffold.json → .claude/ccanvil.json"
+    fi
+  fi
+
+  # Copy all hub-managed files
+  local count=0
+  while IFS= read -r file; do
+    local hub_file="$dist_root/$file"
+    [[ -f "$hub_file" ]] || continue
+
+    if $dry_run; then
+      echo "DRY-RUN: would copy $file"
+      count=$((count + 1))
+      continue
+    fi
+
+    # For delimited markdown files, use section-merge to preserve node content
+    if [[ "$file" == *.md ]] && [[ -f "$file" ]] && \
+       (grep -qx '<!-- NODE-SPECIFIC-START -->' "$hub_file" 2>/dev/null || \
+        grep -qx '<!-- HUB-MANAGED-START -->' "$hub_file" 2>/dev/null); then
+      local merged
+      merged=$(cmd_section_merge "$hub_file" "$file" 2>/dev/null) && {
+        echo "$merged" > "$file"
+        echo "MERGED: $file (section-merge)"
+        count=$((count + 1))
+        continue
+      }
+    fi
+
+    # Plain copy for non-delimited files or new files
+    mkdir -p "$(dirname "$file")"
+    cp "$hub_file" "$file"
+    echo "COPIED: $file"
+    count=$((count + 1))
+  done < <(scan_hub_files "$hub_path")
+
+  if $dry_run; then
+    echo ""
+    echo "DRY-RUN: would copy $count files. No changes made."
+    return 0
+  fi
+
+  echo ""
+  echo "MIGRATE: copied $count files from hub."
+
+  # Re-init lockfile
+  cmd_init "$hub_path"
+  echo ""
+  echo "MIGRATE complete. Run 'git add -A && git commit' to finalize."
+}
+
+# register: Add the current project to the hub's registry.
+# Run from a downstream project. Reads hub path from lockfile.
+cmd_register() {
+  require_lockfile
+  local hub_root
+  hub_root=$(get_hub_source_raw)
+  local registry="$hub_root/.ccanvil/registry.json"
+  local node_path
+  node_path=$(pwd)
+  local node_name
+  node_name=$(basename "$node_path")
+  local ts
+  ts=$(timestamp)
+
+  # Create registry file if it doesn't exist
+  if [[ ! -f "$registry" ]]; then
+    mkdir -p "$(dirname "$registry")"
+    echo '{"nodes":{}}' > "$registry"
+  fi
+
+  # Add or update this project's entry
+  local tmp; tmp=$(mktemp)
+  jq --arg p "$node_path" --arg n "$node_name" --arg t "$ts" \
+    '.nodes[$p] = {"name": $n, "registered_at": $t}' "$registry" > "$tmp" || true
+  if [[ -s "$tmp" ]] && jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$registry"
+  else
+    rm -f "$tmp"
+    die "Failed to update registry"
+  fi
+
+  echo "REGISTERED: $node_name ($node_path)"
+}
+
+# registry: List all registered downstream projects.
+# Can be run from anywhere with a lockfile.
+cmd_registry() {
+  require_lockfile
+  local hub_root
+  hub_root=$(get_hub_source_raw)
+  local registry="$hub_root/.ccanvil/registry.json"
+
+  if [[ ! -f "$registry" ]]; then
+    echo "No registry found. Run 'ccanvil-sync.sh register' from a downstream project."
+    return 0
+  fi
+
+  echo "Registered downstream projects:"
+  echo ""
+  jq -r '.nodes | to_entries[] | "  \(.value.name) — \(.key) (registered: \(.value.registered_at))"' "$registry"
+}
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -1316,7 +1697,7 @@ fi
 case "${1:-}" in
   # --- Atomic commands (building blocks) ---
   init)             shift; cmd_init "$@" ;;
-  status)           cmd_status ;;
+  status)           shift; cmd_status "$@" ;;
   diff)             shift; cmd_diff "${1:-}" ;;
   hash)             shift; cmd_hash "$@" ;;
   lock-get)         shift; cmd_lock_get "$@" ;;
@@ -1332,6 +1713,10 @@ case "${1:-}" in
   track)            shift; cmd_track "$@" ;;
   classify)         cmd_classify ;;
 
+  # --- Init preflight/apply ---
+  init-preflight)   shift; cmd_init_preflight "$@" ;;
+  init-apply)       shift; cmd_init_apply "$@" ;;
+
   # --- Compound commands (replace manual orchestration) ---
   pre-check)        cmd_pre_check ;;
   pull-plan)        cmd_pull_plan ;;
@@ -1343,6 +1728,9 @@ case "${1:-}" in
   push-finalize)    shift; cmd_push_finalize "$@" ;;
   promote)          shift; cmd_promote "$@" ;;
   demote)           shift; cmd_demote "$@" ;;
+  migrate)          shift; cmd_migrate "$@" ;;
+  register)         cmd_register ;;
+  registry)         cmd_registry ;;
 
   *)
     echo "Usage: ccanvil-sync.sh <command> [args]"
@@ -1363,6 +1751,10 @@ case "${1:-}" in
     echo "  push-finalize <commit-message>        Commit in hub and update version"
     echo "  promote <file>                        Full promote workflow"
     echo "  demote <file>                         Full demote workflow"
+    echo ""
+    echo "Init commands (use for project initialization):"
+    echo "  init-preflight <hub-path>             Scan for conflicts, output merge plan as JSON"
+    echo "  init-apply <hub-path> <plan-file>     Execute an approved merge plan"
     echo ""
     echo "Atomic commands (building blocks — prefer compound commands):"
     echo "  init [hub-path]                  Generate lockfile from current state"
