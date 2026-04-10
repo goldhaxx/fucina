@@ -89,8 +89,8 @@
     },
     ".ccanvil/scripts/ccanvil-sync.sh": {
       "origin": "hub",
-      "hub_hash": "9d68ecd20f1f7047a3222a85ae4fde436322a3acb10c45d25f2393e700f506f5",
-      "local_hash": "9d68ecd20f1f7047a3222a85ae4fde436322a3acb10c45d25f2393e700f506f5",
+      "hub_hash": "b2d2a9b1c3d87640c267a4dda24a4123dc41eba56f33e586916dc6f3b985cc80",
+      "local_hash": "b2d2a9b1c3d87640c267a4dda24a4123dc41eba56f33e586916dc6f3b985cc80",
       "status": "clean",
       "sync": "tracked"
     },
