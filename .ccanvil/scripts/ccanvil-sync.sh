@@ -96,11 +96,8 @@ get_hub_source_raw() {
 }
 
 get_hub_source() {
-  # Returns absolute path to the distributable root within the hub.
-  # If hub has preset/, distributable files live there; otherwise hub root.
-  local src
-  src=$(get_hub_source_raw)
-  hub_dist_root "$src"
+  # Returns absolute path to the hub root (where distributable files live).
+  get_hub_source_raw
 }
 
 get_hub_source_display() {
@@ -161,23 +158,12 @@ scan_tracked_files() {
   printf '%s\n' "${files[@]}" | sort -u
 }
 
-# Resolve the distributable root within a hub.
-# If the hub has a preset/ directory, distributable files live there.
-# Otherwise (legacy or non-hub), scan from the path directly.
-hub_dist_root() {
-  local hub_path="$1"
-  if [[ -d "$hub_path/preset" ]]; then
-    echo "$hub_path/preset"
-  else
-    echo "$hub_path"
-  fi
-}
 
 # Scan hub for all files matching tracked patterns
 scan_hub_files() {
   local hub_path="$1"
   local dist_root
-  dist_root=$(hub_dist_root "$hub_path")
+  dist_root="$hub_path"
   local files=()
   for pattern in "${TRACKED_PATTERNS[@]}"; do
     local matches
@@ -203,9 +189,9 @@ cmd_init() {
 
   [[ -d "$hub_path" ]] || die "Hub not found at: $hub_path"
 
-  # Resolve dist root (preset/ if hub, hub_path if downstream)
+  # Resolve dist root (hub root where distributable files live)
   local dist_root
-  dist_root=$(hub_dist_root "$hub_path")
+  dist_root="$hub_path"
 
   # Get hub git version
   local hub_version="unknown"
@@ -289,7 +275,7 @@ cmd_init_preflight() {
   [[ -d "$hub_path" ]] || die "Hub not found at: $hub_path"
 
   local dist_root
-  dist_root=$(hub_dist_root "$hub_path")
+  dist_root="$hub_path"
   local github_tpl_root="$dist_root/.ccanvil/templates/github"
 
   local plan="[]"
@@ -395,7 +381,7 @@ cmd_init_apply() {
   [[ -f "$plan_file" ]] || die "Plan file not found: $plan_file"
 
   local dist_root
-  dist_root=$(hub_dist_root "$hub_path")
+  dist_root="$hub_path"
   local github_tpl_root="$dist_root/.ccanvil/templates/github"
 
   local copied=0 skipped=0 merged=0 errors=0
@@ -1563,7 +1549,7 @@ cmd_migrate() {
   [[ -d "$hub_path" ]] || die "Hub not found at: $hub_path"
 
   local dist_root
-  dist_root=$(hub_dist_root "$hub_path")
+  dist_root="$hub_path"
 
   # Remove stale-named files from previous structure
   local stale_files=(
