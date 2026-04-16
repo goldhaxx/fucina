@@ -1,7 +1,7 @@
 {
   "hub_source": "~/projects/ccanvil",
-  "hub_version": "e7ac4ab",
-  "synced_at": "1776300172",
+  "hub_version": "cce160c",
+  "synced_at": "1776300281",
   "files": {
     ".ccanvil/guide/command-reference.md": {
       "origin": "hub",
@@ -460,6 +460,24 @@
       "origin": "hub",
       "hub_hash": "b894dbe8a6c19b7e1097f9da464673ac8a8fdb76c99f06fe4bd634f8c8d7f1d2",
       "local_hash": "b894dbe8a6c19b7e1097f9da464673ac8a8fdb76c99f06fe4bd634f8c8d7f1d2",
+      "status": "clean"
+    },
+    ".claude/hooks/guard-destructive.sh": {
+      "origin": "hub",
+      "hub_hash": "2ac1b2aa9c46c43264cd7223e222833904be28b6fd4be3d3606581fdf5968ceb",
+      "local_hash": "2ac1b2aa9c46c43264cd7223e222833904be28b6fd4be3d3606581fdf5968ceb",
+      "status": "clean"
+    },
+    ".claude/hooks/guard-force-push.sh": {
+      "origin": "hub",
+      "hub_hash": "30a85973326c4c471d2f408ab496a4cdf339e6ba9d56fa1b69251f6b4fb13b2a",
+      "local_hash": "30a85973326c4c471d2f408ab496a4cdf339e6ba9d56fa1b69251f6b4fb13b2a",
+      "status": "clean"
+    },
+    ".claude/skills/spec/SKILL.md": {
+      "origin": "hub",
+      "hub_hash": "3b9830261ae91f2e20290febede5ded0c07dc651ef64ef06d64986cc40221aae",
+      "local_hash": "3b9830261ae91f2e20290febede5ded0c07dc651ef64ef06d64986cc40221aae",
       "status": "clean"
     }
   }
