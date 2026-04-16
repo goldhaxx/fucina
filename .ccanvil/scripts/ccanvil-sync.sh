@@ -6,6 +6,7 @@
 #   ccanvil-sync.sh init-preflight <hub>       Scan for conflicts, output merge plan
 #   ccanvil-sync.sh init-apply <hub> <plan>    Execute an approved merge plan
 #   ccanvil-sync.sh status                     Show file provenance and sync state
+#   ccanvil-sync.sh changelog                List hub commits since last sync (JSON)
 #   ccanvil-sync.sh diff [file]            Show diff between local and hub versions
 #   ccanvil-sync.sh hash <file>            Compute sha256 of a file
 #   ccanvil-sync.sh lock-get <file>        Read a lockfile entry (JSON)
@@ -42,6 +43,7 @@ EXCLUDED_FILES=(
 
 # Extra files copied during init that aren't in TRACKED_PATTERNS
 INIT_EXTRA_FILES=(
+  ".gitignore"
   ".claudeignore"
   ".claude/lint.json"
 )
@@ -255,17 +257,8 @@ cmd_init() {
   echo "  Total files: $total"
   echo "  Clean: $clean | Modified: $modified | Local: $local_only | Hub-only: $hub_only"
 
-  # Check if project is registered with the hub
-  local hub_root_abs="${hub_path/#\~/$HOME}"
-  local registry="$hub_root_abs/.ccanvil/registry.json"
-  local node_path
-  node_path=$(pwd)
-  if [[ ! -f "$registry" ]] || ! jq -e --arg p "$node_path" '.nodes[$p]' "$registry" >/dev/null 2>&1; then
-    echo ""
-    echo "NOTE: This project is not registered with the hub."
-    echo "  Register to enable project tracking and discovery."
-    echo "  Run: ccanvil-sync.sh register"
-  fi
+  # Auto-register with the hub
+  cmd_register 2>/dev/null || echo "WARNING: Hub registration failed (non-fatal)"
 }
 
 cmd_init_preflight() {
@@ -386,15 +379,23 @@ cmd_init_apply() {
 
   local copied=0 skipped=0 merged=0 errors=0
 
+  # Auto-detect format: accept both {plan:[], summary:{}} and bare []
+  local plan_expr='.'
+  if jq -e 'type == "object" and has("plan")' "$plan_file" > /dev/null 2>&1; then
+    plan_expr='.plan'
+  elif ! jq -e 'type == "array"' "$plan_file" > /dev/null 2>&1; then
+    die "Invalid plan file: expected JSON array or object with .plan key"
+  fi
+
   # Process each entry in the plan
   local entry_count
-  entry_count=$(jq 'length' "$plan_file")
+  entry_count=$(jq "$plan_expr | length" "$plan_file")
 
   local i=0
   while [[ $i -lt $entry_count ]]; do
     local file action
-    file=$(jq -r ".[$i].file" "$plan_file")
-    action=$(jq -r ".[$i].recommended_action" "$plan_file")
+    file=$(jq -r "$plan_expr | .[$i].file" "$plan_file")
+    action=$(jq -r "$plan_expr | .[$i].recommended_action" "$plan_file")
 
     # Resolve hub source file path
     # Check GitHub template mappings first, then tracked patterns
@@ -560,6 +561,54 @@ cmd_status() {
   echo "Statuses: CLEAN=synced, MODIFIED=locally changed, MODIFIED*=changed since last sync,"
   echo "          LOCAL=project-only, PROMOTED=pushed to hub, HUB-ONLY=not yet pulled,"
   echo "          NODE-ONLY=excluded from sync (use /ccanvil-ignore to set, ccanvil-sync.sh track to undo)"
+}
+
+cmd_changelog() {
+  require_lockfile
+  local hub_root
+  hub_root=$(get_hub_source_raw)
+
+  [[ -d "$hub_root" ]] || die "Hub not found at: $hub_root"
+
+  local last_version
+  last_version=$(jq -r '.hub_version' "$LOCKFILE")
+
+  local current_version
+  current_version=$(git -C "$hub_root" rev-parse --short HEAD)
+
+  # Up-to-date: no new commits
+  if [[ "$last_version" == "$current_version" ]]; then
+    jq -n --arg from "$last_version" --arg to "$current_version" \
+      '{"status":"up-to-date","from":$from,"to":$to,"commit_count":0,"commits":[],"files_changed":[]}'
+    return 0
+  fi
+
+  # Validate last_version exists in hub repo
+  if ! git -C "$hub_root" rev-parse "$last_version" >/dev/null 2>&1; then
+    die "Last synced version $last_version not found in hub repo. History may have been rewritten."
+  fi
+
+  # Commit log
+  local commits_json="[]"
+  while IFS=$'\t' read -r hash subject; do
+    commits_json=$(echo "$commits_json" | jq --arg h "$hash" --arg s "$subject" \
+      '. + [{"hash": $h, "subject": $s}]')
+  done < <(git -C "$hub_root" log --format="%h%x09%s" "$last_version".."$current_version")
+
+  local commit_count
+  commit_count=$(echo "$commits_json" | jq 'length')
+
+  # Files changed across the range
+  local files_json="[]"
+  while IFS=$'\t' read -r change_type filepath; do
+    files_json=$(echo "$files_json" | jq --arg t "$change_type" --arg f "$filepath" \
+      '. + [{"type": $t, "file": $f}]')
+  done < <(git -C "$hub_root" diff --name-status "$last_version".."$current_version")
+
+  jq -n --arg from "$last_version" --arg to "$current_version" \
+    --argjson count "$commit_count" \
+    --argjson commits "$commits_json" --argjson files "$files_json" \
+    '{"status":"behind","from":$from,"to":$to,"commit_count":$count,"commits":$commits,"files_changed":$files}'
 }
 
 cmd_diff() {
@@ -1674,7 +1723,193 @@ cmd_registry() {
 
   echo "Registered downstream projects:"
   echo ""
-  jq -r '.nodes | to_entries[] | "  \(.value.name) — \(.key) (registered: \(.value.registered_at))"' "$registry"
+  jq -r '.nodes | to_entries[] | "  \(.value.name) — \(.key)\n    registered: \(.value.registered_at)  |  last_synced: \(.value.last_synced // "never")  |  version: \(.value.last_synced_version // "never")"' "$registry"
+}
+
+# broadcast: Push hub updates to all registered downstream nodes.
+# Runs deterministic phases only (auto-update, section-merge, finalize).
+# Conflicts are collected and reported, not resolved.
+# Usage: broadcast [--dry-run]
+cmd_broadcast() {
+  local dry_run=false
+  if [[ "${1:-}" == "--dry-run" ]]; then
+    dry_run=true
+  fi
+
+  # Find hub root: if we have a lockfile, use it; otherwise assume current dir is hub
+  local hub_root
+  if [[ -f "$LOCKFILE" ]]; then
+    hub_root=$(get_hub_source_raw)
+  else
+    hub_root=$(pwd)
+  fi
+
+  local registry="$hub_root/.ccanvil/registry.json"
+  if [[ ! -f "$registry" ]]; then
+    echo "No registered nodes. Run 'ccanvil-sync.sh register' from a downstream project."
+    return 0
+  fi
+
+  local node_count
+  node_count=$(jq '.nodes | length' "$registry")
+  if [[ "$node_count" -eq 0 ]]; then
+    echo "No registered nodes."
+    return 0
+  fi
+
+  local synced=0 skipped=0 unreachable=0
+  local skip_reasons=""
+  local all_conflicts=""
+  local hub_version
+  hub_version=$(git -C "$hub_root" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+
+  # Iterate over all registered nodes
+  while IFS= read -r node_path; do
+    local node_name
+    node_name=$(jq -r --arg p "$node_path" '.nodes[$p].name' "$registry")
+    echo ""
+    echo "=== $node_name ($node_path) ==="
+
+    # AC-8: check node path exists
+    if [[ ! -d "$node_path" ]]; then
+      echo "  SKIP: path does not exist"
+      unreachable=$((unreachable + 1))
+      skip_reasons+="  $node_name: path does not exist"$'\n'
+      continue
+    fi
+
+    # AC-2: run pre-check in node subshell
+    local precheck_out
+    precheck_out=$(cd "$node_path" && bash "$node_path/.ccanvil/scripts/ccanvil-sync.sh" pre-check 2>&1) || {
+      echo "  SKIP: pre-check failed"
+      echo "  $precheck_out" | head -5
+      skipped=$((skipped + 1))
+      skip_reasons+="  $node_name: pre-check failed"$'\n'
+      continue
+    }
+
+    # Handle bootstrap: if pre-check printed BOOTSTRAPPED, re-run pre-check
+    if echo "$precheck_out" | grep -q "^BOOTSTRAPPED:"; then
+      echo "  Bootstrapped sync script — re-checking..."
+      precheck_out=$(cd "$node_path" && bash "$node_path/.ccanvil/scripts/ccanvil-sync.sh" pre-check 2>&1) || {
+        echo "  SKIP: pre-check failed after bootstrap"
+        skipped=$((skipped + 1))
+        skip_reasons+="  $node_name: pre-check failed after bootstrap"$'\n'
+        continue
+      }
+    fi
+
+    # Run pull-plan to classify changes
+    local plan
+    plan=$(cd "$node_path" && bash "$node_path/.ccanvil/scripts/ccanvil-sync.sh" pull-plan 2>/dev/null) || {
+      echo "  SKIP: pull-plan failed"
+      skipped=$((skipped + 1))
+      skip_reasons+="  $node_name: pull-plan failed"$'\n'
+      continue
+    }
+
+    local plan_count
+    plan_count=$(echo "$plan" | jq 'length')
+
+    if [[ "$plan_count" -eq 0 ]]; then
+      echo "  Already up to date."
+      synced=$((synced + 1))
+
+      # Update registry even if no changes (records sync attempt)
+      if ! $dry_run; then
+        local tmp; tmp=$(mktemp)
+        jq --arg p "$node_path" --arg t "$(timestamp)" --arg v "$hub_version" \
+          '.nodes[$p].last_synced = $t | .nodes[$p].last_synced_version = $v' \
+          "$registry" > "$tmp" || true
+        if [[ -s "$tmp" ]] && jq empty "$tmp" 2>/dev/null; then
+          mv "$tmp" "$registry"
+        else
+          rm -f "$tmp"
+        fi
+      fi
+      continue
+    fi
+
+    # Collect conflicts for reporting (AC-3)
+    local conflicts
+    conflicts=$(echo "$plan" | jq -r '.[] | select(.action == "conflict" or .action == "adopt-conflict" or .action == "new" or .action == "removed") | .file')
+    if [[ -n "$conflicts" ]]; then
+      all_conflicts+="  $node_name:"$'\n'
+      while IFS= read -r cfile; do
+        local caction
+        caction=$(echo "$plan" | jq -r --arg f "$cfile" '.[] | select(.file == $f) | .action')
+        all_conflicts+="    - $cfile ($caction)"$'\n'
+      done <<< "$conflicts"
+    fi
+
+    # Run deterministic phases: pull-auto (handles auto-update + adopt-clean)
+    local dry_flag=""
+    if $dry_run; then
+      dry_flag="--dry-run"
+    fi
+
+    local auto_count
+    auto_count=$(echo "$plan" | jq '[.[] | select(.action == "auto-update" or .action == "adopt-clean")] | length')
+    if [[ "$auto_count" -gt 0 ]]; then
+      echo "  Auto-updating $auto_count files..."
+      (cd "$node_path" && bash "$node_path/.ccanvil/scripts/ccanvil-sync.sh" pull-auto $dry_flag 2>&1) | sed 's/^/  /'
+    fi
+
+    # Run section-merges
+    local merge_files
+    merge_files=$(echo "$plan" | jq -r '.[] | select(.action == "section-merge") | .file')
+    if [[ -n "$merge_files" ]]; then
+      while IFS= read -r mfile; do
+        echo "  Section-merging: $mfile"
+        (cd "$node_path" && bash "$node_path/.ccanvil/scripts/ccanvil-sync.sh" pull-apply "$mfile" section-merge $dry_flag 2>&1) | sed 's/^/  /'
+      done <<< "$merge_files"
+    fi
+
+    # Finalize (commit changes, update version)
+    # In dry-run, pull-finalize may exit non-zero when no files changed (grep -v returns 1).
+    # Use || true to prevent pipefail from killing broadcast.
+    (cd "$node_path" && bash "$node_path/.ccanvil/scripts/ccanvil-sync.sh" pull-finalize $dry_flag 2>&1) | sed 's/^/  /' || true
+
+    synced=$((synced + 1))
+
+    # AC-5: update registry with last_synced
+    if ! $dry_run; then
+      local tmp; tmp=$(mktemp)
+      jq --arg p "$node_path" --arg t "$(timestamp)" --arg v "$hub_version" \
+        '.nodes[$p].last_synced = $t | .nodes[$p].last_synced_version = $v' \
+        "$registry" > "$tmp" || true
+      if [[ -s "$tmp" ]] && jq empty "$tmp" 2>/dev/null; then
+        mv "$tmp" "$registry"
+      else
+        rm -f "$tmp"
+      fi
+    fi
+
+  done < <(jq -r '.nodes | keys[]' "$registry")
+
+  # AC-9: Summary
+  echo ""
+  echo "=== Broadcast Summary ==="
+  echo "  Synced: $synced"
+  echo "  Skipped: $skipped"
+  echo "  Unreachable: $unreachable"
+
+  if [[ -n "$skip_reasons" ]]; then
+    echo ""
+    echo "Skip reasons:"
+    echo "$skip_reasons"
+  fi
+
+  if [[ -n "$all_conflicts" ]]; then
+    echo ""
+    echo "Conflicts pending (manual resolution needed):"
+    echo "$all_conflicts"
+  fi
+
+  if $dry_run; then
+    echo ""
+    echo "DRY-RUN: No files were modified in any node."
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -1692,6 +1927,7 @@ case "${1:-}" in
   # --- Atomic commands (building blocks) ---
   init)             shift; cmd_init "$@" ;;
   status)           shift; cmd_status "$@" ;;
+  changelog)        cmd_changelog ;;
   diff)             shift; cmd_diff "${1:-}" ;;
   hash)             shift; cmd_hash "$@" ;;
   lock-get)         shift; cmd_lock_get "$@" ;;
@@ -1725,6 +1961,7 @@ case "${1:-}" in
   migrate)          shift; cmd_migrate "$@" ;;
   register)         cmd_register ;;
   registry)         cmd_registry ;;
+  broadcast)        shift; cmd_broadcast "$@" ;;
 
   *)
     echo "Usage: ccanvil-sync.sh <command> [args]"
@@ -1745,6 +1982,7 @@ case "${1:-}" in
     echo "  push-finalize <commit-message>        Commit in hub and update version"
     echo "  promote <file>                        Full promote workflow"
     echo "  demote <file>                         Full demote workflow"
+    echo "  broadcast [--dry-run]                 Push hub updates to all registered nodes"
     echo ""
     echo "Init commands (use for project initialization):"
     echo "  init-preflight <hub-path>             Scan for conflicts, output merge plan as JSON"
@@ -1753,6 +1991,7 @@ case "${1:-}" in
     echo "Atomic commands (building blocks — prefer compound commands):"
     echo "  init [hub-path]                  Generate lockfile from current state"
     echo "  status                                Show file provenance and sync state"
+    echo "  changelog                             List hub commits since last sync (JSON)"
     echo "  diff [file]                           Show diff between local and hub"
     echo "  hash <file>                           Compute sha256 of a file"
     echo "  lock-get <file>                       Read a lockfile entry"
