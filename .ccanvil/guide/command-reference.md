@@ -4,7 +4,7 @@
 
 | Command | Phase | What it does | Files affected |
 |---------|-------|-------------|----------------|
-| *"Describe feature"* | Spec | Triggers spec-writer agent | Writes `docs/specs/<id>.md` |
+| `/spec <description>` | Spec | Writes feature spec with acceptance criteria | Writes `docs/specs/<id>.md` |
 | `/plan` | Plan | Creates ordered TDD steps from spec | Writes `docs/plan.md` |
 | *"Start building"* | Build | Enters TDD cycle | Source + test files |
 | `/commit` | Build | Stages, generates conventional commit, runs tests | Git history |
@@ -15,9 +15,10 @@
 
 | Command | When | What it does |
 |---------|------|-------------|
-| `/catchup` | After `/clear` | Reads checkpoint + git state, reports status |
+| `/catchup` | After `/compact` or `/clear` | Reads checkpoint + git state, reports status |
 | *"Checkpoint this"* | Pausing work | Writes state to `docs/checkpoint.md`, commits |
-| `/clear` | Between tasks | Resets context (built-in) |
+| `/compact` | Between tasks | Compresses context, retains summary (built-in) |
+| `/clear` | Full reset (rare) | Resets context entirely (built-in) |
 | `/compact` | Context heavy | Summarizes context to free space (built-in) |
 | `/cost` | Monitoring | Shows token usage (built-in) |
 
@@ -31,14 +32,15 @@
 | `/ccanvil-promote <file>` | Project → Hub | Promotes a local file to the hub |
 | `/ccanvil-demote <file>` | Local | Marks a hub file as local override |
 | `/ccanvil-ignore <file>` | Local | Marks file as node-only (permanently excluded from sync) |
+| `ccanvil-sync.sh broadcast [--dry-run]` | Hub → All nodes | Pushes auto-updates to all registered nodes in one pass |
 
 ## Utility Commands
 
 | Command | What it does |
 |---------|-------------|
-| `/ccanvil-audit` | Analyzes preset for stochastic-to-deterministic improvement opportunities. Calls `manifest-check.sh check` for deterministic README verification. Includes permissions audit and context budget check. |
+| `/ccanvil-audit` | Analyzes configuration for stochastic-to-deterministic improvement opportunities. Calls `manifest-check.sh check` for deterministic README verification. Includes permissions audit and context budget check. |
 | `/fix-certs` | Diagnoses and repairs Cloudflare WARP TLS certificate issues |
-| `/init` | Initializes a new project from the hub preset (global command) |
+| `/init` | Initializes a new project from the ccanvil hub (global command) |
 
 ## Permissions Audit Scripts
 
@@ -52,7 +54,7 @@
 
 | Command | What it does |
 |---------|-------------|
-| `context-budget.sh check` | Measure token cost of always-loaded preset files → JSON |
+| `context-budget.sh check` | Measure token cost of always-loaded configuration files → JSON |
 | `context-budget.sh check --text` | Human-readable table with per-file tokens and budget status |
 | `context-budget.sh check --model MODEL_ID` | Set context window from known model (e.g., `claude-opus-4-6[1m]` → 1M) |
 | `context-budget.sh check --context-window N` | Set context window size directly (overrides `--model`) |

@@ -104,11 +104,14 @@ stateDiagram-v2
 
 ## Pull Flow (Hub → Project)
 
-Every step is handled by a script command except conflict merge proposals, which require Claude's semantic understanding.
+Every step is handled by a script command except conflict merge proposals and the impact summary, which require Claude's semantic understanding.
+
+The flow starts with a **pre-pull assessment** (`changelog`) that shows what changed and asks for confirmation before modifying any files.
 
 ```mermaid
 flowchart TD
     subgraph DETERMINISTIC ["Deterministic (script handles)"]
+        CHANGELOG["changelog → JSON<br/><i>commits + files since last sync</i>"]
         START["pre-check"]
         PLAN["pull-plan → JSON"]
         AUTO["pull-auto<br/><i>all clean files in one pass</i>"]
@@ -118,19 +121,25 @@ flowchart TD
         ACCEPT["pull-apply file accept-new"]
         DEL["pull-apply file delete"]
         FIN["pull-finalize"]
+        BUDGET["context-budget.sh check"]
     end
 
     subgraph STOCHASTIC ["Claude judgment"]
+        IMPACT["Summarize changes<br/>in impact table"]
         MERGE["Read both versions,<br/>propose combined content"]
     end
 
     subgraph USER ["User decision"]
+        CONFIRM{"Proceed<br/>with pull?"}
         OPT{"Conflict:<br/>keep / take /<br/>merge / diff?"}
         NEW_OPT{"New file:<br/>accept / skip?"}
         RM_OPT{"Removed:<br/>keep / delete?"}
         APPROVE{"Approve<br/>merged content?"}
     end
 
+    CHANGELOG --> IMPACT --> CONFIRM
+    CONFIRM -->|"Yes"| START
+    CONFIRM -->|"No"| STOP["Stop"]
     START --> PLAN
     PLAN -->|"auto-update"| AUTO
     PLAN -->|"section-merge"| SM
@@ -155,6 +164,7 @@ flowchart TD
     KEEP --> FIN
     ACCEPT --> FIN
     DEL --> FIN
+    FIN --> BUDGET
 
     style DETERMINISTIC fill:#c8e6c9,stroke:#333,stroke-width:2px
     style STOCHASTIC fill:#fff3e0,stroke:#333,stroke-width:2px
@@ -217,6 +227,43 @@ flowchart TD
     style STOCHASTIC fill:#fff3e0,stroke:#333,stroke-width:2px
     style USER fill:#e3f2fd,stroke:#333,stroke-width:2px
 ```
+
+## Broadcast (Hub → All Nodes)
+
+`ccanvil-sync.sh broadcast` pushes hub updates to every registered downstream node in one pass. It runs only the deterministic phases — conflicts are collected and reported, not resolved.
+
+```mermaid
+flowchart TD
+    REG["Read registry.json"]
+    REG --> LOOP["For each node"]
+
+    subgraph PER_NODE ["Per node (deterministic)"]
+        CHECK["pre-check<br/><i>clean tree?</i>"]
+        PLAN["pull-plan<br/><i>classify changes</i>"]
+        AUTO["pull-auto<br/><i>auto-update clean files</i>"]
+        SM["pull-apply section-merge<br/><i>merge delimited files</i>"]
+        FIN["pull-finalize<br/><i>commit + version</i>"]
+        CHECK --> PLAN --> AUTO --> SM --> FIN
+    end
+
+    LOOP --> PER_NODE
+    CHECK -->|"fail"| SKIP["Skip node<br/><i>report reason</i>"]
+    FIN --> UPDATE["Update registry<br/><i>last_synced + version</i>"]
+    UPDATE --> LOOP
+
+    LOOP -->|"done"| SUMMARY["Summary<br/><i>synced / skipped / conflicts</i>"]
+
+    style PER_NODE fill:#c8e6c9,stroke:#333,stroke-width:2px
+    style SKIP fill:#ffcdd2
+    style SUMMARY fill:#e3f2fd
+```
+
+| Flag | Effect |
+|------|--------|
+| `--dry-run` | Runs full broadcast without modifying files in any node |
+| *(none)* | Applies auto-updates and section-merges, commits per node |
+
+Conflicts (files needing Claude judgment) are reported at the end. Run `/ccanvil-pull` in the specific project to resolve them.
 
 ## Sync Hardening: Guards and Dry-Run
 

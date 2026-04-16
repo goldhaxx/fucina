@@ -91,40 +91,70 @@ parse_metadata() {
   local status_field=""
   local spec_hash=""
   local plan_hash=""
-  local past_heading=false
 
-  while IFS= read -r line || [[ -n "$line" ]]; do
-    # Skip blank lines before heading
-    if [[ -z "$line" ]] && ! $past_heading; then
-      continue
-    fi
-    # Skip heading
-    if [[ "$line" =~ ^#\  ]] && ! $past_heading; then
-      past_heading=true
-      continue
-    fi
-    # After heading, skip blanks before blockquote
-    if $past_heading && [[ -z "$line" ]]; then
-      continue
-    fi
-    # Parse blockquote lines
-    if $past_heading && [[ "$line" =~ ^\> ]]; then
-      local value="${line#> }"
-      case "$value" in
-        Feature:*)    feature_id="${value#Feature: }" ;;
-        Created:*)    created="${value#Created: }" ;;
-        "Last updated:"*) last_updated="${value#Last updated: }" ;;
-        Status:*)     status_field="${value#Status: }" ;;
-        "Spec hash:"*) spec_hash="${value#Spec hash: }" ;;
-        "Plan hash:"*) plan_hash="${value#Plan hash: }" ;;
-      esac
-      continue
-    fi
-    # First non-blockquote line after heading = end of metadata
-    if $past_heading; then
-      break
-    fi
-  done < "$file"
+  # Detect YAML frontmatter: first non-empty line is ---
+  local first_line
+  first_line=$(head -1 "$file")
+  if [[ "$first_line" == "---" ]]; then
+    # YAML frontmatter mode: parse key: value lines until closing ---
+    local in_frontmatter=false
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      if [[ "$line" == "---" ]]; then
+        if $in_frontmatter; then
+          break  # closing delimiter
+        fi
+        in_frontmatter=true
+        continue
+      fi
+      if $in_frontmatter; then
+        local key="${line%%:*}"
+        local val="${line#*: }"
+        case "$key" in
+          [Ff]eature)        feature_id="$val" ;;
+          [Cc]reated)        created="$val" ;;
+          [Ss]tatus)         status_field="$val" ;;
+          "Last updated"|"last_updated") last_updated="$val" ;;
+          "Spec hash"|"spec_hash")       spec_hash="$val" ;;
+          "Plan hash"|"plan_hash")       plan_hash="$val" ;;
+        esac
+      fi
+    done < "$file"
+  else
+    # Blockquote mode: original parser
+    local past_heading=false
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      # Skip blank lines before heading
+      if [[ -z "$line" ]] && ! $past_heading; then
+        continue
+      fi
+      # Skip heading
+      if [[ "$line" =~ ^#\  ]] && ! $past_heading; then
+        past_heading=true
+        continue
+      fi
+      # After heading, skip blanks before blockquote
+      if $past_heading && [[ -z "$line" ]]; then
+        continue
+      fi
+      # Parse blockquote lines
+      if $past_heading && [[ "$line" =~ ^\> ]]; then
+        local value="${line#> }"
+        case "$value" in
+          Feature:*)    feature_id="${value#Feature: }" ;;
+          Created:*)    created="${value#Created: }" ;;
+          "Last updated:"*) last_updated="${value#Last updated: }" ;;
+          Status:*)     status_field="${value#Status: }" ;;
+          "Spec hash:"*) spec_hash="${value#Spec hash: }" ;;
+          "Plan hash:"*) plan_hash="${value#Plan hash: }" ;;
+        esac
+        continue
+      fi
+      # First non-blockquote line after heading = end of metadata
+      if $past_heading; then
+        break
+      fi
+    done < "$file"
+  fi
 
   # Build JSON
   local json="{"
@@ -148,6 +178,23 @@ parse_metadata() {
 
   json+="}"
   echo "$json"
+}
+
+# Update the Status field in a metadata file (handles both blockquote and YAML frontmatter)
+update_metadata_status() {
+  local file="$1"
+  local new_status="$2"
+  local first_line
+  first_line=$(head -1 "$file")
+  if [[ "$first_line" == "---" ]]; then
+    # YAML frontmatter: replace Status line between --- delimiters
+    sed -i '' "s/^[Ss]tatus: .*/Status: $new_status/" "$file" 2>/dev/null || \
+      sed -i "s/^[Ss]tatus: .*/Status: $new_status/" "$file"
+  else
+    # Blockquote format
+    sed -i '' "s/^> Status: .*/> Status: $new_status/" "$file" 2>/dev/null || \
+      sed -i "s/^> Status: .*/> Status: $new_status/" "$file"
+  fi
 }
 
 # doc_entry <file> <doc-name>
@@ -395,8 +442,8 @@ cmd_recommend() {
       next_action="Activate a spec: docs-check.sh activate $ready_spec"
       reason="No active spec. Ready specs available in docs/specs/."
     else
-      next_action="Mark a spec as Ready, then activate it"
-      reason="Specs exist in docs/specs/ but none are marked Ready."
+      next_action="Activate a spec: docs-check.sh activate <id>"
+      reason="Specs exist in docs/specs/ but none are activated."
     fi
 
   # No docs at all
@@ -721,8 +768,7 @@ cmd_activate() {
   }
 
   # Update status in specs/ to "In Progress"
-  sed -i '' "s/^> Status: .*/> Status: In Progress/" "$spec_file" 2>/dev/null || \
-    sed -i "s/^> Status: .*/> Status: In Progress/" "$spec_file"
+  update_metadata_status "$spec_file" "In Progress"
 
   # Copy spec to docs/spec.md (after status update so it gets the new status)
   cp "$spec_file" "$docs_dir/spec.md"
@@ -795,8 +841,7 @@ cmd_complete() {
   fi
 
   # Update status to Complete
-  sed -i '' "s/^> Status: .*/> Status: Complete/" "$spec_file" 2>/dev/null || \
-    sed -i "s/^> Status: .*/> Status: Complete/" "$spec_file"
+  update_metadata_status "$spec_file" "Complete"
 
   # Clear assumptions.md if it exists
   local assumptions_file="$docs_dir/assumptions.md"
@@ -918,7 +963,7 @@ merge_config() {
   fi
 }
 
-# cmd_config_get — Read a feature toggle from merged preset config.
+# cmd_config_get — Read a feature toggle from merged ccanvil config.
 #
 # Usage:
 #   docs-check.sh config-get <key> [project-dir]
@@ -1042,8 +1087,10 @@ cmd_idea_add() {
   local text="${1:?Usage: idea-add <text> [docs-dir]}"
   local docs_dir="${2:-$DEFAULT_DOCS_DIR}"
   local ideas_file="$docs_dir/ideas.md"
-  local date_str
-  date_str=$(date +%Y-%m-%d)
+  local uid epoch
+
+  uid=$(head -c 2 /dev/urandom | xxd -p)
+  epoch=$(date +%s)
 
   # Create file with header if it doesn't exist
   if [[ ! -f "$ideas_file" ]]; then
@@ -1052,7 +1099,7 @@ cmd_idea_add() {
     echo "" >> "$ideas_file"
   fi
 
-  echo "- [ ] ${date_str}: ${text} <!-- status:new -->" >> "$ideas_file"
+  echo "- [ ] ${uid} ${epoch}: ${text} <!-- status:new -->" >> "$ideas_file"
   echo "Captured: $text"
 }
 
@@ -1076,25 +1123,34 @@ cmd_idea_list() {
     return 0
   fi
 
-  local line_num=0
   local idea_num=0
   while IFS= read -r line; do
-    line_num=$((line_num + 1))
-    # Match idea lines: - [ ] or - [x] followed by date: text <!-- status:xxx -->
-    if [[ "$line" =~ ^-\ \[(.)\]\ ([0-9]{4}-[0-9]{2}-[0-9]{2}):\ (.*)\ \<!--\ status:([a-z:A-Z0-9_-]+)\ --\> ]]; then
+    local id="" created="" text="" status=""
+
+    # New format: - [ ] <uid> <epoch>: text <!-- status:xxx -->
+    if [[ "$line" =~ ^-\ \[(.)\]\ ([0-9a-f]{4})\ ([0-9]+):\ (.*)\ \<!--\ status:([a-z:A-Z0-9_-]+)\ --\> ]]; then
+      id="${BASH_REMATCH[2]}"
+      created="${BASH_REMATCH[3]}"
+      text="${BASH_REMATCH[4]}"
+      status="${BASH_REMATCH[5]}"
+    # Legacy format: - [ ] YYYY-MM-DD: text <!-- status:xxx -->
+    elif [[ "$line" =~ ^-\ \[(.)\]\ ([0-9]{4}-[0-9]{2}-[0-9]{2}):\ (.*)\ \<!--\ status:([a-z:A-Z0-9_-]+)\ --\> ]]; then
       idea_num=$((idea_num + 1))
-      local date="${BASH_REMATCH[2]}"
-      local text="${BASH_REMATCH[3]}"
-      local status="${BASH_REMATCH[4]}"
-
-      # Apply filter
-      if [[ -n "$filter_status" && "$status" != "$filter_status" ]]; then
-        continue
-      fi
-
-      result=$(echo "$result" | jq --arg d "$date" --arg t "$text" --arg s "$status" --argjson n "$idea_num" \
-        '. + [{"num": $n, "date": $d, "text": $t, "status": $s}]')
+      id="$idea_num"
+      created="${BASH_REMATCH[2]}"
+      text="${BASH_REMATCH[3]}"
+      status="${BASH_REMATCH[4]}"
+    else
+      continue
     fi
+
+    # Apply filter
+    if [[ -n "$filter_status" && "$status" != "$filter_status" ]]; then
+      continue
+    fi
+
+    result=$(echo "$result" | jq --arg i "$id" --arg c "$created" --arg t "$text" --arg s "$status" \
+      '. + [{"id": $i, "created": $c, "text": $t, "status": $s}]')
   done < "$ideas_file"
 
   echo "$result" | jq '.'
@@ -1128,30 +1184,46 @@ cmd_idea_count() {
 }
 
 cmd_idea_update() {
-  local idea_num="${1:?Usage: idea-update <idea-number> <status> [docs-dir]}"
-  local new_status="${2:?Usage: idea-update <idea-number> <status> [docs-dir]}"
+  local idea_ref="${1:?Usage: idea-update <uid-or-number> <status> [docs-dir]}"
+  local new_status="${2:?Usage: idea-update <uid-or-number> <status> [docs-dir]}"
   local docs_dir="${3:-$DEFAULT_DOCS_DIR}"
   local ideas_file="$docs_dir/ideas.md"
 
   [[ -f "$ideas_file" ]] || { echo "ERROR: $ideas_file not found" >&2; exit 1; }
 
-  # Find the Nth idea line and update it
-  local current_num=0
   local target_line=0
   local line_num=0
-  while IFS= read -r line; do
-    line_num=$((line_num + 1))
-    if [[ "$line" =~ ^-\ \[.\].*\<!--\ status: ]]; then
-      current_num=$((current_num + 1))
-      if [[ "$current_num" -eq "$idea_num" ]]; then
+
+  # Try UID match first (4-char hex), then fall back to numeric index
+  if [[ "$idea_ref" =~ ^[0-9a-f]{4}$ ]]; then
+    # UID lookup
+    while IFS= read -r line; do
+      line_num=$((line_num + 1))
+      if [[ "$line" =~ ^-\ \[.\]\ ${idea_ref}\  ]]; then
         target_line=$line_num
         break
       fi
-    fi
-  done < "$ideas_file"
+    done < "$ideas_file"
+  fi
+
+  # Fall back to numeric index if UID not found or ref is numeric
+  if [[ "$target_line" -eq 0 && "$idea_ref" =~ ^[0-9]+$ ]]; then
+    local current_num=0
+    line_num=0
+    while IFS= read -r line; do
+      line_num=$((line_num + 1))
+      if [[ "$line" =~ ^-\ \[.\].*\<!--\ status: ]]; then
+        current_num=$((current_num + 1))
+        if [[ "$current_num" -eq "$idea_ref" ]]; then
+          target_line=$line_num
+          break
+        fi
+      fi
+    done < "$ideas_file"
+  fi
 
   if [[ "$target_line" -eq 0 ]]; then
-    echo "ERROR: idea #$idea_num not found" >&2
+    echo "ERROR: idea '$idea_ref' not found" >&2
     exit 1
   fi
 
@@ -1161,7 +1233,7 @@ cmd_idea_update() {
   sed -i '' "${target_line}s/status:[a-zA-Z0-9:_-]*/status:${new_status}/" "$ideas_file" 2>/dev/null || \
     sed -i "${target_line}s/status:[a-zA-Z0-9:_-]*/status:${new_status}/" "$ideas_file"
 
-  echo "Updated idea #$idea_num to $new_status"
+  echo "Updated idea $idea_ref to $new_status"
 }
 
 # ---------------------------------------------------------------------------

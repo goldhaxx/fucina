@@ -1,44 +1,37 @@
-# [Project Name]
+# ccanvil
 
-[One-line description.]
+Configuration preset hub for Claude Code — spec-driven development, deterministic-first automation, bi-directional sync between hub and downstream project nodes.
 
 ## Tech Stack
-<!-- NODE-SPECIFIC: Replace with your project's actual tech stack -->
+- Runtime: Bash (preset automation scripts)
+- Testing: bats-core 1.13.0
+- Package Manager: Homebrew (brew install bats-core)
 
 ## Commands
-<!-- NODE-SPECIFIC: Replace with your project's actual commands -->
 ```bash
-bash .ccanvil/scripts/docs-check.sh activate <id> # Activate a spec → create branch + draft PR
-bash .ccanvil/scripts/docs-check.sh complete <id> # Mark spec complete, clean up, mark PR ready
-bash .ccanvil/scripts/docs-check.sh land           # Return to main after merge
-bash .ccanvil/scripts/docs-check.sh idea-add "text" # Capture an idea
-bash .ccanvil/scripts/docs-check.sh radar-gather    # Project state JSON for /radar
-bash .ccanvil/scripts/context-budget.sh check --text # Context budget
-bash .ccanvil/scripts/security-audit.sh              # PII/secrets scan
+bats hub/tests/                                           # Run all tests
+bash .ccanvil/scripts/docs-check.sh activate <id>         # Activate spec → branch + draft PR
+bash .ccanvil/scripts/docs-check.sh complete <id>         # Complete spec → cleanup + PR ready
+bash .ccanvil/scripts/docs-check.sh land                  # Return to main after merge
+bash .ccanvil/scripts/docs-check.sh idea-add "text"       # Capture an idea
+bash .ccanvil/scripts/docs-check.sh radar-gather          # Project state JSON for /radar
+bash .ccanvil/scripts/context-budget.sh check --text      # Context budget
+# Full command list: .ccanvil/guide/command-reference.md
 ```
 
 ## Architecture
-<!-- NODE-SPECIFIC: Replace with your project's actual architecture -->
 ```
-src/
-├── app/          # Entry points, routes, pages
-├── lib/          # Shared utilities and helpers
-├── services/     # Business logic (one file per domain)
-├── models/       # Data models, types, schemas
-└── __tests__/    # Test files mirror src/ structure
-docs/
-├── specs/        # Spec backlog (Draft/Ready/In Progress/Complete)
-├── spec.md       # Active feature specification (branch-local)
-├── plan.md       # Implementation plan (branch-local)
-├── checkpoint.md # Progress state for session continuity
-└── assumptions.md # Judgment calls made during implementation
-.claude/
-├── ccanvil.json       # Hub-tracked config (feature toggles, defaults)
-└── ccanvil.local.json # Node-only overrides (gitignored, deep-merged at read time)
-.ccanvil/
-├── scripts/      # Preset automation scripts (synced from hub)
-├── guide/        # Preset reference docs (synced from hub)
-└── templates/    # Format guides and GitHub templates
+.claude/                    # Rules, commands, agents, skills, hooks, settings
+.ccanvil/                   # Scripts, guide, templates — /init copies from here
+├── scripts/                # ccanvil-sync.sh, docs-check.sh, operations.sh
+├── guide/                  # Preset reference docs (12 section files)
+└── templates/              # Format guides, GitHub templates
+CLAUDE.md                   # Project template (node + hub-managed sections)
+hub/                        # Hub-only — NOT distributed
+├── tests/                  # bats-core test suite (11 .bats files)
+├── specs/                  # Completed spec archive
+└── meta/                   # SYSTEM_PROMPT.md, INIT_PROMPT.md
+docs/                       # Active feature lifecycle (branch-local)
 ```
 
 <!-- HUB-MANAGED-START -->
