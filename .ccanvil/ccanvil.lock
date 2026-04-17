@@ -479,6 +479,12 @@
       "hub_hash": "3b9830261ae91f2e20290febede5ded0c07dc651ef64ef06d64986cc40221aae",
       "local_hash": "3b9830261ae91f2e20290febede5ded0c07dc651ef64ef06d64986cc40221aae",
       "status": "clean"
+    },
+    ".claude/skills/ccanvil-pull-globals/SKILL.md": {
+      "origin": "hub",
+      "hub_hash": "27624bfb58859b9d68491eb1d990e69365a01acf46008554bf47b1b139ff8aed",
+      "local_hash": "27624bfb58859b9d68491eb1d990e69365a01acf46008554bf47b1b139ff8aed",
+      "status": "clean"
     }
   },
   "node_uuid": "c7bcdbe1-7e32-411a-8422-6d5fcf622c1a"
