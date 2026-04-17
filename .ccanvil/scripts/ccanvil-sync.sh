@@ -77,6 +77,34 @@ require_jq() {
 }
 
 # Validate jq output is non-empty valid JSON before mv — prevents lockfile corruption
+# commit_hub_file: auto-commit a single file in the hub repo.
+# No-op if: hub isn't a git repo, file unchanged, file not tracked.
+# On commit failure: prints a warning, returns 0 (AC-8 failure tolerance).
+# Usage: commit_hub_file <hub_path> <rel_file> <commit_message>
+commit_hub_file() {
+  local hub_path="$1"
+  local rel_file="$2"
+  local message="$3"
+
+  # Must be a git repo
+  git -C "$hub_path" rev-parse --git-dir >/dev/null 2>&1 || return 0
+
+  # Must actually have changes to the file (tracked-and-modified OR untracked)
+  if git -C "$hub_path" diff --quiet -- "$rel_file" 2>/dev/null && \
+     git -C "$hub_path" diff --cached --quiet -- "$rel_file" 2>/dev/null; then
+    # Not modified or staged. Check if untracked.
+    if ! git -C "$hub_path" ls-files --others --exclude-standard -- "$rel_file" 2>/dev/null | grep -q .; then
+      return 0
+    fi
+  fi
+
+  (cd "$hub_path" && \
+    ALLOW_MAIN=1 git add -- "$rel_file" && \
+    ALLOW_MAIN=1 git commit -m "$message" --quiet --only -- "$rel_file" 2>&1) || \
+    echo "WARNING: auto-commit of $rel_file failed (hub left dirty)" >&2
+  return 0
+}
+
 safe_lock_mv() {
   local tmp="$1"
   local target="$2"
@@ -1946,6 +1974,10 @@ cmd_register() {
   fi
 
   echo "REGISTERED: $node_name ($portable_path) [$node_uuid]"
+
+  # Auto-commit the registry mutation so the hub stays clean (AC-1, AC-6)
+  commit_hub_file "$hub_root" ".ccanvil/registry.json" \
+    "chore(registry): register $node_name [$node_uuid]"
 }
 
 # registry: List all registered downstream projects.
@@ -2008,6 +2040,12 @@ cmd_broadcast() {
   # Idempotent — entries already keyed by UUID are skipped.
   migrate_registry "$registry"
 
+  # Auto-commit any migration changes so the hub stays clean during the loop (AC-3, AC-7)
+  if ! $dry_run; then
+    commit_hub_file "$hub_root" ".ccanvil/registry.json" \
+      "chore(registry): migrate to UUID keys"
+  fi
+
   # Iterate over all registered nodes (keyed by UUID post-migration)
   while IFS= read -r entry_key; do
     local node_uuid node_name portable_path node_path
@@ -2057,10 +2095,24 @@ cmd_broadcast() {
     if echo "$precheck_out" | grep -q "^BOOTSTRAPPED:"; then
       echo "  Bootstrapped sync script — committing..."
       if ! $dry_run; then
-        (cd "$node_path" && \
-          git add .ccanvil/scripts/ccanvil-sync.sh .ccanvil/ccanvil.lock && \
-          git commit -m "chore(sync): bootstrap sync script from hub @ $hub_version" \
-            --no-gpg-sign --quiet 2>&1) | sed 's/^/  /'
+        # Only add files that aren't gitignored (AC-5).
+        # Some nodes gitignore the lockfile — still sync them, just skip that file.
+        local bootstrap_files=()
+        if ! (cd "$node_path" && git check-ignore -q .ccanvil/scripts/ccanvil-sync.sh 2>/dev/null); then
+          bootstrap_files+=(".ccanvil/scripts/ccanvil-sync.sh")
+        fi
+        if ! (cd "$node_path" && git check-ignore -q .ccanvil/ccanvil.lock 2>/dev/null); then
+          bootstrap_files+=(".ccanvil/ccanvil.lock")
+        fi
+
+        if [[ ${#bootstrap_files[@]} -gt 0 ]]; then
+          (cd "$node_path" && \
+            git add "${bootstrap_files[@]}" && \
+            git commit -m "chore(sync): bootstrap sync script from hub @ $hub_version" \
+              --no-gpg-sign --quiet 2>&1) | sed 's/^/  /' || true
+        else
+          echo "  (all bootstrap files gitignored — skipping commit)"
+        fi
       fi
       echo "  Re-checking..."
       precheck_out=$(cd "$node_path" && bash "$node_path/.ccanvil/scripts/ccanvil-sync.sh" pre-check 2>&1) || {
@@ -2153,6 +2205,10 @@ cmd_broadcast() {
         rm -f "$tmp"
       fi
     done <<< "$synced_uuids"
+
+    # Auto-commit the last_synced updates (AC-4, AC-7)
+    commit_hub_file "$hub_root" ".ccanvil/registry.json" \
+      "chore(registry): record broadcast sync @ $hub_version"
   fi
 
   # AC-9: Summary
@@ -2183,6 +2239,67 @@ cmd_broadcast() {
 # ---------------------------------------------------------------------------
 # Stack commands
 # ---------------------------------------------------------------------------
+
+cmd_pull_globals() {
+  local force=false
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --force) force=true; shift ;;
+      *) shift ;;
+    esac
+  done
+
+  [[ -n "${HOME:-}" ]] || die "\$HOME is not set"
+
+  require_lockfile
+  local hub_path
+  hub_path=$(get_hub_source)
+  local src_dir="$hub_path/global-commands"
+  local dst_dir="$HOME/.claude/commands"
+
+  mkdir -p "$dst_dir"
+
+  local copied=0 skipped=0 conflicts=0
+
+  # Iterate only ccanvil-*.md — user namespace is sacrosanct (AC-6)
+  shopt -s nullglob
+  local src
+  for src in "$src_dir"/ccanvil-*.md; do
+    [[ -f "$src" ]] || continue
+    local name dst
+    name=$(basename "$src")
+    dst="$dst_dir/$name"
+
+    if [[ ! -f "$dst" ]]; then
+      cp "$src" "$dst"
+      copied=$((copied + 1))
+      continue
+    fi
+
+    local hub_h local_h
+    hub_h=$(file_hash "$src")
+    local_h=$(file_hash "$dst")
+
+    if [[ "$hub_h" == "$local_h" ]]; then
+      skipped=$((skipped + 1))
+      continue
+    fi
+
+    # Hashes differ — conflict
+    if $force; then
+      cp "$src" "$dst"
+      copied=$((copied + 1))
+    else
+      echo "CONFLICT: $name (local differs from hub)" >&2
+      diff -u "$dst" "$src" >&2 || true
+      conflicts=$((conflicts + 1))
+    fi
+  done
+  shopt -u nullglob
+
+  jq -n --argjson c "$copied" --argjson s "$skipped" --argjson x "$conflicts" \
+    '{copied: $c, skipped: $s, conflicts: $x}'
+}
 
 cmd_stack_list() {
   require_lockfile
@@ -2431,6 +2548,9 @@ case "${1:-}" in
   stack-list)       cmd_stack_list ;;
   stack-apply)      shift; cmd_stack_apply "$@" ;;
 
+  # --- Global commands sync ---
+  pull-globals)     shift; cmd_pull_globals "$@" ;;
+
   *)
     echo "Usage: ccanvil-sync.sh <command> [args]"
     echo ""
@@ -2455,6 +2575,9 @@ case "${1:-}" in
     echo "Stack commands (distribute tech stack profiles):"
     echo "  stack-list                            List available stack profiles as JSON"
     echo "  stack-apply <stack-id>                Apply a stack profile to the current project"
+    echo ""
+    echo "Global commands sync:"
+    echo "  pull-globals [--force]                Pull hub's ccanvil-* global commands to ~/.claude/commands/"
     echo ""
     echo "Init commands (use for project initialization):"
     echo "  init-preflight <hub-path> [--stack id] Scan for conflicts, output merge plan as JSON"
