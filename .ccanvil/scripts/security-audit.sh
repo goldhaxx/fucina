@@ -64,6 +64,19 @@ ALLOWLIST_FILES=(
   '.bats'                          # Test fixtures contain fake tokens/secrets by design
 )
 
+# Load optional project-local allowlist. One substring pattern per line.
+# Lines starting with '#' and blank lines are ignored; whitespace is trimmed.
+# Semantics match the hardcoded ALLOWLIST_FILES above (substring match on file path).
+PROJECT_ALLOWLIST_FILE=".security-audit-allowlist"
+if [[ -f "$PROJECT_ALLOWLIST_FILE" ]]; then
+  while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
+    trimmed="${raw_line#"${raw_line%%[![:space:]]*}"}"
+    trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+    [[ -z "$trimmed" || "${trimmed:0:1}" == "#" ]] && continue
+    ALLOWLIST_FILES+=("$trimmed")
+  done < "$PROJECT_ALLOWLIST_FILE"
+fi
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -171,12 +184,23 @@ scan_git_history_pii() {
 
 scan_git_history_secrets() {
   echo "Scanning git history for secrets..." >&2
+
+  # Build pathspec exclusions from ALLOWLIST_FILES so the audit script's
+  # own pattern definitions (and other documentation containing example
+  # tokens) don't trigger false positives. Without this, -S matches the
+  # literal regex strings inside SECRET_PATTERNS when the script itself
+  # appears in a commit diff.
+  local pathspec_args=('.')
+  for allowed in "${ALLOWLIST_FILES[@]}"; do
+    pathspec_args+=(":(exclude,glob)**${allowed}*")
+  done
+
   for pattern in "${SECRET_PATTERNS[@]}"; do
     while IFS= read -r hash; do
       if [[ -n "$hash" ]]; then
         add_finding "CRITICAL" "secret" "commit:$hash" "Secret pattern found in commit diff"
       fi
-    done < <(git log --all -p --format='%h' -S "$pattern" 2>/dev/null | grep -E '^[0-9a-f]{7,}$' || true)
+    done < <(git log --all -p --format='%h' --pickaxe-regex -S "$pattern" -- "${pathspec_args[@]}" 2>/dev/null | grep -E '^[0-9a-f]{7,}$' || true)
   done
 }
 

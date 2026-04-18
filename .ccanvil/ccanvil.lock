@@ -1,7 +1,7 @@
 {
   "hub_source": "~/projects/ccanvil",
-  "hub_version": "45a971d",
-  "synced_at": "1776391980",
+  "hub_version": "4a2458e",
+  "synced_at": "1776546365",
   "files": {
     ".ccanvil/guide/command-reference.md": {
       "origin": "hub",
@@ -145,8 +145,8 @@
     },
     ".ccanvil/scripts/security-audit.sh": {
       "origin": "hub",
-      "hub_hash": "6a688ff2eadc1466a770b2009aef5b4f6a11f1f824365a612d219d6967fedfb6",
-      "local_hash": "6a688ff2eadc1466a770b2009aef5b4f6a11f1f824365a612d219d6967fedfb6",
+      "hub_hash": "e39c574df4bb444084d813ef2049cf25c18f0a0f101e9c880fa864ae1497a117",
+      "local_hash": "e39c574df4bb444084d813ef2049cf25c18f0a0f101e9c880fa864ae1497a117",
       "status": "clean",
       "sync": "tracked"
     },
