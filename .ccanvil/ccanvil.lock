@@ -1,12 +1,12 @@
 {
   "hub_source": "~/projects/ccanvil",
-  "hub_version": "5e6bd39",
-  "synced_at": "1776745134",
+  "hub_version": "9ef9d83",
+  "synced_at": "1776745567",
   "files": {
     ".ccanvil/guide/command-reference.md": {
       "origin": "hub",
-      "hub_hash": "b1d22469bde651ca9d429080a30012c51e0ae878f3430db9bb85af6e6a3ce0ce",
-      "local_hash": "b1d22469bde651ca9d429080a30012c51e0ae878f3430db9bb85af6e6a3ce0ce",
+      "hub_hash": "60b2055898e177fa2c9f542e7e18c11937710d331e90d4ba64da93fe86884de4",
+      "local_hash": "60b2055898e177fa2c9f542e7e18c11937710d331e90d4ba64da93fe86884de4",
       "status": "clean",
       "sync": "tracked"
     },
