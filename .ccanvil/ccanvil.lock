@@ -1,19 +1,19 @@
 {
   "hub_source": "~/projects/ccanvil",
-  "hub_version": "7cfe103",
-  "synced_at": "1776749789",
+  "hub_version": "6081f9d",
+  "synced_at": "1776807762",
   "files": {
     ".ccanvil/guide/command-reference.md": {
       "origin": "hub",
-      "hub_hash": "6cd8e8307357c48e4f1799346199d93fffc755ec0b767779d11e11dc8a7861b9",
-      "local_hash": "6cd8e8307357c48e4f1799346199d93fffc755ec0b767779d11e11dc8a7861b9",
+      "hub_hash": "4ab27f9b2b1fb15b3d0f0b8a47b241e4018d87daebc694e5c02f3e4fe30ee96b",
+      "local_hash": "4ab27f9b2b1fb15b3d0f0b8a47b241e4018d87daebc694e5c02f3e4fe30ee96b",
       "status": "clean",
       "sync": "tracked"
     },
     ".ccanvil/guide/configuration.md": {
       "origin": "hub",
-      "hub_hash": "8cdb56e9f089c46b150ced90cf117c02b386afcf757cedee7803ced238681c46",
-      "local_hash": "8cdb56e9f089c46b150ced90cf117c02b386afcf757cedee7803ced238681c46",
+      "hub_hash": "fb0e199d1ed6788c6df8efd47d575e0e0c293479deff7e770ecba66ea49ed464",
+      "local_hash": "fb0e199d1ed6788c6df8efd47d575e0e0c293479deff7e770ecba66ea49ed464",
       "status": "clean",
       "sync": "tracked"
     },
@@ -26,8 +26,8 @@
     },
     ".ccanvil/guide/decision-guide.md": {
       "origin": "hub",
-      "hub_hash": "89a6046d30a45423329bdb6c9f486362663584adf038983bb259dde5bc3f0965",
-      "local_hash": "89a6046d30a45423329bdb6c9f486362663584adf038983bb259dde5bc3f0965",
+      "hub_hash": "4b0d9a6fead769330e3fb5bacc614db44588b3ef232050f151c5a6ebc1121a45",
+      "local_hash": "4b0d9a6fead769330e3fb5bacc614db44588b3ef232050f151c5a6ebc1121a45",
       "status": "clean",
       "sync": "tracked"
     },
@@ -54,22 +54,22 @@
     },
     ".ccanvil/guide/index.md": {
       "origin": "hub",
-      "hub_hash": "31f6253da7cab281775a54c4054bec808cc9518f01cab3ceb30aba0510390fe1",
-      "local_hash": "31f6253da7cab281775a54c4054bec808cc9518f01cab3ceb30aba0510390fe1",
+      "hub_hash": "82e6b8397c92cb9e17c1a459e96d7018bc3e903d44d2bd46b5ff31e1749196a7",
+      "local_hash": "82e6b8397c92cb9e17c1a459e96d7018bc3e903d44d2bd46b5ff31e1749196a7",
       "status": "clean",
       "sync": "tracked"
     },
     ".ccanvil/guide/parallel-sessions.md": {
       "origin": "hub",
-      "hub_hash": "688a70bfea5105aa5d64c9d14bf54ac9412f9c060d38c64ddde99ff90320c559",
-      "local_hash": "688a70bfea5105aa5d64c9d14bf54ac9412f9c060d38c64ddde99ff90320c559",
+      "hub_hash": "4ec95cb92ce2de9bdfb42426f800650eb8b6336631df79bac9070d46fdc28cea",
+      "local_hash": "4ec95cb92ce2de9bdfb42426f800650eb8b6336631df79bac9070d46fdc28cea",
       "status": "clean",
       "sync": "tracked"
     },
     ".ccanvil/guide/session-management.md": {
       "origin": "hub",
-      "hub_hash": "186be31772743a2a22f3deeb72151a463109d8bb08c77ca0eae0242d434f5593",
-      "local_hash": "186be31772743a2a22f3deeb72151a463109d8bb08c77ca0eae0242d434f5593",
+      "hub_hash": "9058d68fe57bd632f07e6609c55d7589485a64d94a75d82b96d684a1b2d7a0c7",
+      "local_hash": "9058d68fe57bd632f07e6609c55d7589485a64d94a75d82b96d684a1b2d7a0c7",
       "status": "clean",
       "sync": "tracked"
     },
@@ -82,8 +82,8 @@
     },
     ".ccanvil/guide/system-overview.md": {
       "origin": "hub",
-      "hub_hash": "61479a83b236d64318d8f53941c0cc999cd7ec1900eeb108ac2dd78d6653b4dc",
-      "local_hash": "61479a83b236d64318d8f53941c0cc999cd7ec1900eeb108ac2dd78d6653b4dc",
+      "hub_hash": "bdc8e0c889152686cc6156c34ea8fc95f484acb25b3d2391626f780449bea4e6",
+      "local_hash": "bdc8e0c889152686cc6156c34ea8fc95f484acb25b3d2391626f780449bea4e6",
       "status": "clean",
       "sync": "tracked"
     },
@@ -103,8 +103,8 @@
     },
     ".ccanvil/scripts/docs-check.sh": {
       "origin": "hub",
-      "hub_hash": "010f2ee784cd6a83cbdd45e44ea8727c196933125988b86ff8442b2236e85883",
-      "local_hash": "010f2ee784cd6a83cbdd45e44ea8727c196933125988b86ff8442b2236e85883",
+      "hub_hash": "759c167218dfbb24daf53c44447d207d1060d289e80fe143545b596c20e08c7c",
+      "local_hash": "759c167218dfbb24daf53c44447d207d1060d289e80fe143545b596c20e08c7c",
       "status": "clean",
       "sync": "tracked"
     },
@@ -131,8 +131,8 @@
     },
     ".ccanvil/scripts/operations.sh": {
       "origin": "hub",
-      "hub_hash": "7b6a8fa1921300f5199c7bbff493c3b747460ea689c66eef83170be5075c016f",
-      "local_hash": "7b6a8fa1921300f5199c7bbff493c3b747460ea689c66eef83170be5075c016f",
+      "hub_hash": "3b416513ad89f4132ffa81e329cc14341c2bf0a8637bafb0cf72a9679dc7c933",
+      "local_hash": "3b416513ad89f4132ffa81e329cc14341c2bf0a8637bafb0cf72a9679dc7c933",
       "status": "clean",
       "sync": "tracked"
     },
@@ -229,8 +229,8 @@
     },
     ".claude/commands/ccanvil-audit.md": {
       "origin": "hub",
-      "hub_hash": "98226995c3460177b5cf1fdc5c70a844612cfddfdea6b6489f4627694dc4d06b",
-      "local_hash": "98226995c3460177b5cf1fdc5c70a844612cfddfdea6b6489f4627694dc4d06b",
+      "hub_hash": "840fcd772e097e5c5799bc02fb83584b406a895b356c507782b9d0f461d2d86e",
+      "local_hash": "840fcd772e097e5c5799bc02fb83584b406a895b356c507782b9d0f461d2d86e",
       "status": "clean",
       "sync": "tracked"
     },
@@ -257,8 +257,8 @@
     },
     ".claude/commands/ccanvil-pull.md": {
       "origin": "hub",
-      "hub_hash": "f60d38c8832eb0f368467a134f7926f072a8cae1621cf1b11f12edecfe8f9d2d",
-      "local_hash": "f60d38c8832eb0f368467a134f7926f072a8cae1621cf1b11f12edecfe8f9d2d",
+      "hub_hash": "d6114c23e9dc94a3fa95f9c4c28c90a78f8e76367305dfb01f98df53d9159b01",
+      "local_hash": "d6114c23e9dc94a3fa95f9c4c28c90a78f8e76367305dfb01f98df53d9159b01",
       "status": "clean",
       "sync": "tracked"
     },
@@ -306,8 +306,8 @@
     },
     ".claude/commands/pr.md": {
       "origin": "hub",
-      "hub_hash": "a3e723496666cb07c17aba8a8fe120af0c08bb7db9e3d34cf7843e7c38b378b1",
-      "local_hash": "a3e723496666cb07c17aba8a8fe120af0c08bb7db9e3d34cf7843e7c38b378b1",
+      "hub_hash": "5b0cd88c413bc743d058ea3e1c0bfb7954b413b235da99b26f2d6ec6bff427fa",
+      "local_hash": "5b0cd88c413bc743d058ea3e1c0bfb7954b413b235da99b26f2d6ec6bff427fa",
       "status": "clean",
       "sync": "tracked"
     },
@@ -390,8 +390,8 @@
     },
     ".claude/rules/self-review.md": {
       "origin": "hub",
-      "hub_hash": "59994f260b6e0e4e43cb149b8de6977ed2ad43a1bf47b0bcbd1effaf0f60f76c",
-      "local_hash": "59994f260b6e0e4e43cb149b8de6977ed2ad43a1bf47b0bcbd1effaf0f60f76c",
+      "hub_hash": "40c3e4154e1d75a224d78b66ee344a8365b3519b28e88b02c9169d10ddc4175c",
+      "local_hash": "40c3e4154e1d75a224d78b66ee344a8365b3519b28e88b02c9169d10ddc4175c",
       "status": "clean",
       "sync": "tracked"
     },
@@ -411,8 +411,8 @@
     },
     ".claude/rules/workflow.md": {
       "origin": "hub",
-      "hub_hash": "16db35e1b136ef7ac08f7873ab26230a118f7521b14d16fbfb49933a5e1d57c9",
-      "local_hash": "16db35e1b136ef7ac08f7873ab26230a118f7521b14d16fbfb49933a5e1d57c9",
+      "hub_hash": "a5ee60bcc8a660ce4b0fe2a018c62d164dd096a8f30aa5bb39dea338536fa5f7",
+      "local_hash": "a5ee60bcc8a660ce4b0fe2a018c62d164dd096a8f30aa5bb39dea338536fa5f7",
       "status": "clean",
       "sync": "tracked"
     },
@@ -425,8 +425,8 @@
     },
     ".claude/skills/tdd/SKILL.md": {
       "origin": "hub",
-      "hub_hash": "2d92b83542f9c335d1895c2965c72508f8606f9d3b55b97212f9f83fe16e8d3c",
-      "local_hash": "2d92b83542f9c335d1895c2965c72508f8606f9d3b55b97212f9f83fe16e8d3c",
+      "hub_hash": "655021d8f045c032a20c2efb9767d11892eadcf627c48854fd9b8daaf13c7d04",
+      "local_hash": "655021d8f045c032a20c2efb9767d11892eadcf627c48854fd9b8daaf13c7d04",
       "status": "clean",
       "sync": "tracked"
     },
