@@ -35,3 +35,6 @@ course-archive/github-repo/
 
 # Hub sync state — tracked in git for provenance.
 # Listed in .claudeignore so Claude uses the script to access them, not raw reads.
+.ccanvil/ideas.log
+.ccanvil/ideas-pending.log
+docs/ideas.md

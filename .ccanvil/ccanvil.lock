@@ -490,6 +490,12 @@
       "local_hash": "f676d2f894deb37ef288e0a7e910e2b4160e68fe49403634bd8086556a0b6235",
       "status": "clean",
       "sync": "tracked"
+    },
+    ".ccanvil/guide/ideas-migration.md": {
+      "origin": "hub",
+      "hub_hash": "97403d50800f77d80e261aa6e806a39562785dedf7ab872686261823a5c82ff5",
+      "local_hash": "97403d50800f77d80e261aa6e806a39562785dedf7ab872686261823a5c82ff5",
+      "status": "clean"
     }
   },
   "node_uuid": "c7bcdbe1-7e32-411a-8422-6d5fcf622c1a"
