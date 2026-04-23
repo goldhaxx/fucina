@@ -1,12 +1,12 @@
 {
   "hub_source": "~/projects/ccanvil",
-  "hub_version": "1b4295b",
-  "synced_at": "1776892678",
+  "hub_version": "fc94e10",
+  "synced_at": "1776903512",
   "files": {
     ".ccanvil/guide/command-reference.md": {
       "origin": "hub",
-      "hub_hash": "e46e87170230b6af4fd426e0b42dcd21f7b9224eeb8bb48b85d605b8440c11ef",
-      "local_hash": "e46e87170230b6af4fd426e0b42dcd21f7b9224eeb8bb48b85d605b8440c11ef",
+      "hub_hash": "5d1487203daa34450ceaa0ca392e2f08771127bf02c7223f17c347bea39c42fc",
+      "local_hash": "5d1487203daa34450ceaa0ca392e2f08771127bf02c7223f17c347bea39c42fc",
       "status": "clean",
       "sync": "tracked"
     },
@@ -103,8 +103,8 @@
     },
     ".ccanvil/scripts/docs-check.sh": {
       "origin": "hub",
-      "hub_hash": "510167b442a277a93e317367ff3edcc33426ec787e11545a7b1c498800797efe",
-      "local_hash": "510167b442a277a93e317367ff3edcc33426ec787e11545a7b1c498800797efe",
+      "hub_hash": "f10c020264063fb25f2b2c9569cf220b5ca0f53be7a27d154d540d60d36f5c14",
+      "local_hash": "f10c020264063fb25f2b2c9569cf220b5ca0f53be7a27d154d540d60d36f5c14",
       "status": "clean",
       "sync": "tracked"
     },
@@ -493,9 +493,10 @@
     },
     ".ccanvil/guide/ideas-migration.md": {
       "origin": "hub",
-      "hub_hash": "97403d50800f77d80e261aa6e806a39562785dedf7ab872686261823a5c82ff5",
-      "local_hash": "97403d50800f77d80e261aa6e806a39562785dedf7ab872686261823a5c82ff5",
-      "status": "clean"
+      "hub_hash": "d1dbb0dfc600d876b4f99f7a2656866ea2d8bfb4db419fc9045023195f2fd31e",
+      "local_hash": "d1dbb0dfc600d876b4f99f7a2656866ea2d8bfb4db419fc9045023195f2fd31e",
+      "status": "clean",
+      "sync": "tracked"
     }
   },
   "node_uuid": "c7bcdbe1-7e32-411a-8422-6d5fcf622c1a"
