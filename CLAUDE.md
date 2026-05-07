@@ -9,7 +9,8 @@ Configuration preset hub for Claude Code — spec-driven development, determinis
 
 ## Commands
 ```bash
-bats hub/tests/                                           # Run all tests
+bash .ccanvil/scripts/bats-report.sh --parallel           # Run full suite (parallel, ~75% faster)
+bats hub/tests/                                           # Run all tests (serial)
 bash .ccanvil/scripts/docs-check.sh activate <id>         # Activate spec → branch + draft PR
 bash .ccanvil/scripts/docs-check.sh complete <id>         # Complete spec → cleanup + PR ready
 bash .ccanvil/scripts/docs-check.sh land                  # Return to main after merge
@@ -35,7 +36,12 @@ hub/                        # Hub-only — NOT distributed
 ├── specs/                  # Completed spec archive
 └── meta/                   # SYSTEM_PROMPT.md, INIT_PROMPT.md
 docs/                       # Active feature lifecycle (branch-local)
+├── specs/                  # Per-feature spec archive (committed history)
+└── sessions/               # Per-session stasis archive (committed history — BTS-22)
 ```
+
+## Fork Setup
+`.mcp.json.example` is a template for forks that want the project-scoped Linear MCP server. To activate: rename to `.mcp.json` and complete OAuth via `/mcp`. Contributors who already have Linear wired up via their claude.ai account (`claude.ai Linear`) don't need this — it's a convenience for fresh clones.
 
 <!-- HUB-MANAGED-START -->
 <!-- Everything above is project-specific (name, stack, commands, architecture). -->
