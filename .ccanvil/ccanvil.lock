@@ -1,7 +1,7 @@
 {
   "hub_source": "~/projects/ccanvil",
-  "hub_version": "fc94e10",
-  "synced_at": "1776903512",
+  "hub_version": "6c73605",
+  "synced_at": "1778198329",
   "files": {
     ".ccanvil/guide/command-reference.md": {
       "origin": "hub",
@@ -526,9 +526,10 @@
     },
     ".ccanvil/scripts/linear-query.sh": {
       "origin": "hub",
-      "hub_hash": "d7a8867e0112a4e8bb608a47e750e0815c9c87929a3c4f3bf56991911dca404f",
-      "local_hash": "d7a8867e0112a4e8bb608a47e750e0815c9c87929a3c4f3bf56991911dca404f",
-      "status": "clean"
+      "hub_hash": "878ed41b59ad7749fe984c09e9f0739372d010a225b0332c7ee8a27fffa9aa44",
+      "local_hash": "878ed41b59ad7749fe984c09e9f0739372d010a225b0332c7ee8a27fffa9aa44",
+      "status": "clean",
+      "sync": "tracked"
     },
     ".ccanvil/scripts/module-manifest.sh": {
       "origin": "hub",
