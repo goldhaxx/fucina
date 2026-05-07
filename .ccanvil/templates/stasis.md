@@ -1,10 +1,16 @@
 # Stasis
 
-> Feature: [feature-id]
+> Feature: [feature-id or session-YYYY-MM-DD-<slug>-ship]
+> Work: [provider:id — only on feature-kind stasis; omit on session-kind]
+> Kind: [feature | session]
 > Last updated: [epoch]
-> Plan hash: [hash]
+> Session: [N — monotonic counter from .ccanvil/state/session-counter, sourced via `docs-check.sh session-info`. Omit if counter=0 (fresh node).]
+> Boundary: [ISO-8601 local timestamp from .ccanvil/state/session-boundary, e.g. 2026-04-26T18:44:36-07:00. Omit if unavailable.]
+> Plan hash: [hash — only on feature-kind stasis]
 > Session objective: [what we set out to do]
 <!-- Reminder: if no plan exists yet, run /plan before /stasis (plan before stasis). -->
+<!-- Kind: `feature` when an active spec+plan exists (mid-feature stasis); `session` when on main between features (ambient session-boundary stasis). Session-kind stasis is excluded from validator feature alignment. -->
+<!-- Work: mirrors the active spec's `> Work:` when Kind=feature; omitted when Kind=session. -->
 
 ## Accomplished
 
@@ -37,6 +43,16 @@
 - **candidates_found:** [count]
 - [For each candidate: **[operation]**: Claude [what happened]. Should be [deterministic replacement]. Impact: [high/medium/low].]
 - [If no candidates: "No candidates this session."]
+
+## Evidence Gaps
+
+[BTS-201: bug-shape captures from this session lacking the four evidence anchors (Command:, Output:, Exit:, Reproduce:). One bullet per gap: `- BTS-X — <title> — <reason>`. If no gaps: `No evidence gaps this session.` — keep this literal verbatim so /recall can parse the empty state.]
+
+No evidence gaps this session.
+
+## Manifest Coverage
+
+[BTS-239: Layer 2 self-describing-systems substrate coverage. Format: `<covered> / <total> (allowlist), drift incidents: <N>`. Populated by `bash .ccanvil/scripts/module-manifest.sh validate --json | jq -r '"\(.coverage.covered) / \(.coverage.total) (allowlist), drift incidents: \(.drift | length)"'`. When the allowlist is empty or absent, render the literal `Manifest coverage: N/A (no allowlist yet).`]
 
 ## Cross-Session Patterns
 

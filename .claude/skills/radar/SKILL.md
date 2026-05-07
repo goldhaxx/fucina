@@ -1,6 +1,31 @@
 ---
 name: radar
 description: Comprehensive project briefing — connects tactical work to strategic roadmap across all time horizons.
+manifest:
+  id: radar
+  purpose: Comprehensive strategic project briefing — synthesize git activity, active spec, completed specs, untriaged ideas, backlog state, roadmap themes, and current substrate posture into a structured macro-view (Shipped / In Flight / Up Next / Horizon). Connects tactical session work to strategic direction across all time horizons.
+  routes-by: /radar
+  input:
+    - "no positional args (synthesizes from gathered state)"
+    - "reads: docs-check.sh radar-gather, operations.sh exec backlog.list, docs/roadmap.md"
+  output:
+    - "stdout: structured briefing with Shipped / In Flight / Up Next / Horizon sections"
+  caller:
+    - .claude/rules/workflow.md
+  depends-on:
+    - docs-check.sh
+    - operations.sh
+  side-effect:
+    - reads-only-no-mutations
+  failure-mode:
+    - "missing-roadmap | exit=0 | visible=Horizon-section-omitted | mitigation=create-docs/roadmap.md-when-strategic-direction-firms-up"
+  contract:
+    - read-only
+    - never-implements
+    - backlog-list-not-idea-list-as-shipping-proxy
+  anchor:
+    - BTS-175 (backlog.list as canonical shipping proxy)
+    - BTS-252 (manifest seed)
 ---
 
 Scan the project's current state across all time horizons and produce a strategic briefing.
@@ -8,7 +33,9 @@ Scan the project's current state across all time horizons and produce a strategi
 ## Data gathering (deterministic)
 
 1. Run: `bash .ccanvil/scripts/docs-check.sh radar-gather`
-2. Run: `bash .ccanvil/scripts/operations.sh exec backlog.list` (if available — gracefully skip if not)
+2. Run: `bash .ccanvil/scripts/operations.sh exec backlog.list` (if available — gracefully skip if not). On Linear-routed projects this hits the http resolver (BTS-175) and returns the canonical Backlog-state items.
+
+  **Do NOT use `idea.list` here** (BTS-175). `idea.list` filters by `label=idea` and silently hides scaffold-labeled tickets — using it as a backlog proxy produces phantom "no work left" reports while real tickets sit in Backlog. `backlog.list` is the canonical "what's left to ship" surface.
 3. Read `docs/roadmap.md` (if it exists)
 
 ## Briefing (synthesis)
@@ -29,6 +56,8 @@ Longer-term items from roadmap "Horizon" section and backlog tickets that aren't
 
 ### Ideas
 If there are untriaged ideas (ideas.new > 0), list them and note any that connect to current themes. Suggest running `/idea triage` if count > 3.
+
+If `ideas.icebox_stale_count > 0`, surface it as an ambient re-evaluation nudge: "N icebox items older than 60 days — run `/idea review-icebox`." When the count is 0, stay silent (no noise).
 
 ### Health
 - Context budget status (run `bash .ccanvil/scripts/context-budget.sh check --text` if available)

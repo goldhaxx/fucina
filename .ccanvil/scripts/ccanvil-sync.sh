@@ -13,6 +13,14 @@
 #   ccanvil-sync.sh lock-update <file> <field> <value>  Update a lockfile field
 #   ccanvil-sync.sh section-merge <s> <l>  Merge hub/node sections of a delimited file
 #   ccanvil-sync.sh scan                   List all trackable files in the project
+#   ccanvil-sync.sh broadcast-resolve-auto [--dry-run]
+#                                          BTS-116: algorithmic resolution of
+#                                          .claude/ccanvil.json conflicts on
+#                                          the current node. Emits JSON; auto-
+#                                          applies content-identical (take-hub)
+#                                          and local-superset (keep-local)
+#                                          cases; exits 3 for value-divergence
+#                                          or local-removed-keys.
 
 set -euo pipefail
 
@@ -381,10 +389,33 @@ scan_hub_files() {
 # Commands
 # ---------------------------------------------------------------------------
 
+# @manifest
+# purpose: Initialize a ccanvil downstream node by classifying tracked files against the hub, computing per-file hashes, and writing the canonical lockfile that all subsequent sync verbs read
+# input: positional <hub-path> (defaults to $HOME/projects/ccanvil)
+# output: stdout human-readable summary (total + clean/modified/local-only/hub-only counts)
+# output: writes .ccanvil/ccanvil.lock (JSON: hub_source, hub_version, synced_at, files{})
+# output: exit-codes 0 ok, 1 hub-not-found
+# caller: global-commands/ccanvil-init.md
+# depends-on: jq
+# depends-on: file_hash
+# depends-on: scan_tracked_files
+# depends-on: scan_hub_files
+# depends-on: get_or_create_node_uuid
+# depends-on: persist_node_uuid
+# depends-on: cmd_register
+# depends-on: timestamp
+# depends-on: die
+# side-effect: writes-lockfile
+# side-effect: registers-with-hub
+# failure-mode: hub-not-found | exit=1 | visible=stderr-die-Hub-not-found-at | mitigation=pass-correct-hub-path
+# contract: idempotent-on-rerun
+# contract: never-modifies-tracked-files
+# anchor: BTS-243 (manifest seed)
 cmd_init() {
   local hub_path="${1:-$HOME/projects/ccanvil}"
   hub_path="${hub_path/#\~/$HOME}"
 
+  # @failure-mode: hub-not-found
   [[ -d "$hub_path" ]] || die "Hub not found at: $hub_path"
 
   # Resolve dist root (hub root where distributable files live)
@@ -437,6 +468,7 @@ cmd_init() {
 
   # Write lockfile (store ~ instead of absolute home path to avoid PII in tracked files)
   local display_path="${hub_path/#$HOME/~}"
+  # @side-effect: writes-lockfile
   jq -n --arg src "$display_path" --arg ver "$hub_version" --arg ts "$(timestamp)" --argjson files "$files_json" \
     '{hub_source: $src, hub_version: $ver, synced_at: $ts, files: $files}' > "$LOCKFILE"
 
@@ -459,6 +491,7 @@ cmd_init() {
   persist_node_uuid "$node_uuid"
 
   # Auto-register with the hub
+  # @side-effect: registers-with-hub
   cmd_register 2>/dev/null || echo "WARNING: Hub registration failed (non-fatal)"
 }
 
@@ -528,11 +561,34 @@ detect_project_mode() {
   echo "fresh"
 }
 
+# @manifest
+# purpose: Classify every hub-tracked, init-extra, GitHub-template, local, and stack file into a recommended-action plan (copy / skip / section-merge / section-merge-create-delimiters / review) so /ccanvil-init can preview changes before applying them
+# input: positional <hub-path>
+# input: --stack <id> (repeatable; also reads stacks[] from .claude/ccanvil.json)
+# output: stdout JSON {project_mode, summary{conflicts, auto, total}, plan[]}
+# output: exit-codes 0 ok, 1 hub-not-found
+# caller: cmd_retrofit_check
+# caller: global-commands/ccanvil-init.md
+# depends-on: jq
+# depends-on: scan_hub_files
+# depends-on: file_hash
+# depends-on: detect_project_mode
+# depends-on: classify_file
+# depends-on: die
+# side-effect: pure-no-mutations
+# failure-mode: hub-not-found | exit=1 | visible=stderr-die-Hub-not-found-at | mitigation=pass-correct-hub-path
+# failure-mode: missing-positional-hub | exit=1 | visible=stderr-Usage | mitigation=supply-hub-path
+# contract: read-only-classification
+# contract: emits-stable-json-shape-on-empty-plan
+# anchor: BTS-243 (manifest seed)
 cmd_init_preflight() {
+  # @failure-mode: missing-positional-hub
+  # @side-effect: pure-no-mutations
   local hub_path="${1:?Usage: ccanvil-sync.sh init-preflight <hub-path>}"
   hub_path="${hub_path/#\~/$HOME}"
   shift
 
+  # @failure-mode: hub-not-found
   [[ -d "$hub_path" ]] || die "Hub not found at: $hub_path"
 
   # Parse --stack flags
@@ -725,12 +781,46 @@ cmd_init_preflight() {
     '{"project_mode": $mode, "summary": {"conflicts": $conflicts, "auto": $auto, "total": $total}, "plan": $plan}'
 }
 
+# @manifest
+# purpose: Execute an init-preflight plan by copying, skipping, section-merging, or wrapping-then-merging files according to each entry's recommended_action so /ccanvil-init can move from preview to applied scaffolding
+# input: positional <hub-path> <plan-file>
+# output: stdout one log line per entry (COPIED/MERGED/SKIP/ERROR) and a final JSON summary {copied, skipped, merged, errors}
+# output: exit-codes 0 ok, 1 hub-not-found-or-plan-missing-or-invalid
+# caller: global-commands/ccanvil-init.md
+# depends-on: jq
+# depends-on: cmd_section_merge
+# depends-on: cp
+# depends-on: mkdir
+# depends-on: sed
+# depends-on: mktemp
+# depends-on: mv
+# depends-on: grep
+# depends-on: tail
+# depends-on: cat
+# depends-on: wc
+# depends-on: die
+# side-effect: writes-target-files
+# side-effect: creates-target-directories
+# side-effect: appends-hub-managed-section
+# failure-mode: hub-not-found | exit=1 | visible=stderr-die-Hub-not-found-at | mitigation=pass-correct-hub-path
+# failure-mode: plan-file-missing | exit=1 | visible=stderr-die-Plan-file-not-found | mitigation=run-init-preflight-first
+# failure-mode: plan-shape-invalid | exit=1 | visible=stderr-die-Invalid-plan-file | mitigation=regenerate-plan-via-preflight
+# failure-mode: hub-source-missing-per-entry | exit=0 | visible=stderr-ERROR-Hub-source-not-found | mitigation=increments-errors-counter-and-continues
+# failure-mode: section-merge-failure-per-entry | exit=0 | visible=stderr-ERROR-Section-merge-failed | mitigation=increments-errors-counter-and-continues
+# contract: applies-recommended-action-verbatim
+# contract: continues-past-per-entry-errors
+# contract: emits-summary-on-completion
+# anchor: BTS-243 (manifest seed)
 cmd_init_apply() {
+  # @failure-mode: hub-source-missing-per-entry
+  # @failure-mode: section-merge-failure-per-entry
   local hub_path="${1:?Usage: ccanvil-sync.sh init-apply <hub-path> <plan-file>}"
   local plan_file="${2:?Usage: ccanvil-sync.sh init-apply <hub-path> <plan-file>}"
   hub_path="${hub_path/#\~/$HOME}"
 
+  # @failure-mode: hub-not-found
   [[ -d "$hub_path" ]] || die "Hub not found at: $hub_path"
+  # @failure-mode: plan-file-missing
   [[ -f "$plan_file" ]] || die "Plan file not found: $plan_file"
 
   local dist_root
@@ -744,6 +834,7 @@ cmd_init_apply() {
   if jq -e 'type == "object" and has("plan")' "$plan_file" > /dev/null 2>&1; then
     plan_expr='.plan'
   elif ! jq -e 'type == "array"' "$plan_file" > /dev/null 2>&1; then
+    # @failure-mode: plan-shape-invalid
     die "Invalid plan file: expected JSON array or object with .plan key"
   fi
 
@@ -796,7 +887,9 @@ cmd_init_apply() {
           errors=$((errors + 1))
           i=$((i + 1)); continue
         fi
+        # @side-effect: creates-target-directories
         mkdir -p "$(dirname "$file")"
+        # @side-effect: writes-target-files
         cp "$hub_file" "$file"
         copied=$((copied + 1))
         echo "COPIED: $file"
@@ -858,6 +951,7 @@ cmd_init_apply() {
           }
         else
           # AC-6: wrap local as node section, append hub's delimiter-onwards.
+          # @side-effect: appends-hub-managed-section
           local tmp
           tmp=$(mktemp)
           cat "$file" > "$tmp"
@@ -916,13 +1010,50 @@ format_preflight_table() {
 # cmd_retrofit_check — AC-15
 # Thin wrapper around init-preflight that emits a human-readable table
 # instead of JSON. Read-only: no files created, no lockfile touched.
+# @manifest
+# purpose: Render init-preflight classification as a human-readable table for operators previewing scaffold-changes before committing to apply
+# input: positional <hub-path>
+# output: stdout formatted table (Detected mode + per-file rows: File, Hub, Local, Action, Reason)
+# output: exit-codes 0 ok, 1 hub-not-found-or-missing-positional
+# caller: global-commands/ccanvil-init.md
+# depends-on: cmd_init_preflight
+# depends-on: format_preflight_table
+# side-effect: pure-no-mutations
+# failure-mode: missing-positional-hub | exit=1 | visible=stderr-Usage | mitigation=supply-hub-path
+# failure-mode: preflight-failure-bubble | exit=1 | visible=stderr-from-cmd_init_preflight | mitigation=fix-hub-path-then-rerun
+# contract: read-only-passthrough
+# anchor: BTS-243 (manifest seed)
 cmd_retrofit_check() {
+  # @failure-mode: missing-positional-hub
+  # @side-effect: pure-no-mutations
   local hub_path="${1:?Usage: ccanvil-sync.sh retrofit-check <hub-path>}"
+  # @failure-mode: preflight-failure-bubble
   cmd_init_preflight "$hub_path" | format_preflight_table
   return 0
 }
 
+# @manifest
+# purpose: Read the ccanvil lockfile and emit per-file sync status (CLEAN / MODIFIED / LOCAL / PROMOTED / HUB-ONLY / NODE-ONLY) plus hub-version drift indicator so operators can see what's diverged at a glance
+# input: --json (machine-readable output)
+# input: --filter <status> (one of clean / modified / local-only / promoted / hub-only / non-clean)
+# output: stdout human-readable table (default) OR JSON {hub_source, hub_version, synced_at, files[]}
+# output: exit-codes 0 ok, 1 missing-lockfile-via-require_lockfile
+# caller: skill:/ccanvil-status
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: get_hub_source_raw
+# depends-on: get_hub_source_display
+# depends-on: get_sync_field
+# depends-on: git
+# side-effect: reads-lockfile
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-ccanvil-sync-init-first
+# contract: emits-empty-table-when-no-tracked-files
+# contract: surfaces-hub-version-drift-when-detectable
+# anchor: BTS-243 (manifest seed)
 cmd_status() {
+  # @failure-mode: missing-lockfile
+  # @side-effect: reads-lockfile
   require_lockfile
 
   # Parse flags
@@ -1022,11 +1153,32 @@ cmd_status() {
   echo "          NODE-ONLY=excluded from sync (use /ccanvil-ignore to set, ccanvil-sync.sh track to undo)"
 }
 
+# @manifest
+# purpose: Compute the hub-side commit window between the lockfile's last_version and current HEAD; emit commits + files-changed envelope so /ccanvil-pull can preview what new hub work would land
+# input: (none)
+# output: stdout JSON {status: up-to-date|behind, from, to, commit_count, commits[], files_changed[]}
+# output: exit-codes 0 ok, 1 missing-lockfile-or-hub-not-found-or-version-not-in-hub
+# caller: skill:/ccanvil-pull
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source_raw
+# depends-on: git
+# depends-on: die
+# side-effect: reads-lockfile-and-hub-git
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: hub-not-found | exit=1 | visible=stderr-die-Hub-not-found-at | mitigation=verify-hub-source-path
+# failure-mode: rewritten-history | exit=1 | visible=stderr-die-not-found-in-hub | mitigation=re-init-against-current-hub
+# contract: emits-up-to-date-envelope-when-versions-match
+# contract: read-only-git-inspection
+# anchor: BTS-243 (manifest seed)
 cmd_changelog() {
+  # @failure-mode: missing-lockfile
+  # @side-effect: reads-lockfile-and-hub-git
   require_lockfile
   local hub_root
   hub_root=$(get_hub_source_raw)
 
+  # @failure-mode: hub-not-found
   [[ -d "$hub_root" ]] || die "Hub not found at: $hub_root"
 
   local last_version
@@ -1044,6 +1196,7 @@ cmd_changelog() {
 
   # Validate last_version exists in hub repo
   if ! git -C "$hub_root" rev-parse "$last_version" >/dev/null 2>&1; then
+    # @failure-mode: rewritten-history
     die "Last synced version $last_version not found in hub repo. History may have been rewritten."
   fi
 
@@ -1070,7 +1223,29 @@ cmd_changelog() {
     '{"status":"behind","from":$from,"to":$to,"commit_count":$count,"commits":$commits,"files_changed":$files}'
 }
 
+# @manifest
+# purpose: Compute and render unified-diff between hub and local for one file or every modified file in the lockfile so operators can review pre-pull/push deltas
+# input: positional <file> (optional — when omitted, diffs all modified entries)
+# output: stdout unified-diff blocks (one per file, with === <file> === banner when iterating)
+# output: exit-codes 0 ok (diffs always pass-through), 1 missing-lockfile
+# caller: skill:/ccanvil-pull
+# caller: skill:/ccanvil-push
+# caller: .claude/agents/ccanvil-differ.md
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: file_hash
+# depends-on: diff
+# side-effect: reads-lockfile-and-hub-files
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: hub-file-missing | exit=0 | visible=stdout-File-not-in-hub | mitigation=informational-only
+# failure-mode: local-file-missing | exit=0 | visible=stdout-File-not-in-project | mitigation=informational-only
+# contract: read-only-diff-rendering
+# contract: skips-clean-and-unchanged-files-when-iterating
+# anchor: BTS-243 (manifest seed)
 cmd_diff() {
+  # @failure-mode: missing-lockfile
+  # @side-effect: reads-lockfile-and-hub-files
   require_lockfile
   local file="${1:-}"
   local hub_source
@@ -1080,11 +1255,13 @@ cmd_diff() {
     # Diff a specific file
     local hub_file="$hub_source/$file"
     if [[ ! -f "$hub_file" ]]; then
+      # @failure-mode: hub-file-missing
       echo "File not in hub: $file"
       [[ -f "$file" ]] && echo "(exists locally as local-only file)"
       return 0
     fi
     if [[ ! -f "$file" ]]; then
+      # @failure-mode: local-file-missing
       echo "File not in project: $file"
       echo "(exists in hub — run ccanvil-pull to add it)"
       return 0
@@ -1112,19 +1289,63 @@ cmd_diff() {
   fi
 }
 
+# @manifest
+# purpose: Emit the canonical sha256-prefix hash for a single file using file_hash so operators and substrate can compare local content against lockfile entries deterministically
+# input: positional <file>
+# output: stdout "<hash>  <file>" (sha256-prefix format from file_hash)
+# output: exit-codes 0 ok, 1 missing-positional-file
+# depends-on: file_hash
+# side-effect: pure-no-mutations
+# failure-mode: missing-positional-file | exit=1 | visible=stderr-Usage | mitigation=supply-file-arg
+# contract: pure-hash-emission
+# anchor: BTS-243 (manifest seed)
 cmd_hash() {
+  # @failure-mode: missing-positional-file
+  # @side-effect: pure-no-mutations
   local file="${1:?Usage: ccanvil-sync.sh hash <file>}"
   echo "$(file_hash "$file")  $file"
 }
 
+# @manifest
+# purpose: Read a single lockfile entry by file-path key and emit its full descriptor (origin, hub_hash, local_hash, status, sync) or the literal "not found" so substrate consumers can probe per-file state without parsing the lockfile themselves
+# input: positional <file>
+# output: stdout JSON object (entry descriptor) or "not found" string
+# output: exit-codes 0 ok, 1 missing-lockfile-or-missing-positional
+# depends-on: jq
+# depends-on: require_lockfile
+# side-effect: reads-lockfile
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-file-arg
+# contract: never-mutates-state
+# anchor: BTS-244 (manifest seed)
 cmd_lock_get() {
+  # @failure-mode: missing-lockfile
+  # @side-effect: reads-lockfile
   require_lockfile
+  # @failure-mode: missing-positional
   local file="${1:?Usage: ccanvil-sync.sh lock-get <file>}"
   jq --arg f "$file" '.files[$f] // "not found"' "$LOCKFILE"
 }
 
+# @manifest
+# purpose: Set a single field on a single lockfile entry to either null (when value is the literal "null") or a string value, then write atomically via safe_lock_mv so partial-write torn-state never reaches consumers
+# input: positional <file> <field> <value>
+# output: writes lockfile entry field
+# output: exit-codes 0 ok, 1 missing-lockfile-or-missing-positional
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: safe_lock_mv
+# depends-on: mktemp
+# side-effect: writes-lockfile-field
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-file-field-value
+# contract: atomic-write-via-safe_lock_mv
+# contract: null-literal-stores-json-null-not-string-null
+# anchor: BTS-244 (manifest seed)
 cmd_lock_update() {
+  # @failure-mode: missing-lockfile
   require_lockfile
+  # @failure-mode: missing-positional
   local file="${1:?Usage: ccanvil-sync.sh lock-update <file> <field> <value>}"
   local field="${2:?}"
   local value="${3:?}"
@@ -1136,11 +1357,30 @@ cmd_lock_update() {
   else
     jq --arg f "$file" --arg k "$field" --arg v "$value" '.files[$f][$k] = $v' "$LOCKFILE" > "$tmp" || true
   fi
+  # @side-effect: writes-lockfile-field
   safe_lock_mv "$tmp" "$LOCKFILE" "lock-update $file $field"
 }
 
+# @manifest
+# purpose: Insert or replace a lockfile entry with a fully-formed descriptor (origin + hub_hash + local_hash + status); branches on null hub_hash vs null local_hash so callers can express hub-only or local-only entries explicitly
+# input: positional <file> <origin> <hub_hash> <local_hash> <status>
+# output: writes lockfile entry
+# output: exit-codes 0 ok, 1 missing-lockfile-or-missing-positional
+# caller: cmd_pull_apply
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: safe_lock_mv
+# depends-on: mktemp
+# side-effect: writes-lockfile-entry
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-all-positional-args
+# contract: replaces-existing-entry-on-collision
+# contract: atomic-write-via-safe_lock_mv
+# anchor: BTS-244 (manifest seed)
 cmd_lock_add() {
+  # @failure-mode: missing-lockfile
   require_lockfile
+  # @failure-mode: missing-positional
   local file="${1:?Usage: ccanvil-sync.sh lock-add <file> <origin> <hub_hash> <local_hash> <status>}"
   local origin="${2:?}"
   local hub_hash="${3}"
@@ -1159,34 +1399,98 @@ cmd_lock_add() {
     jq --arg f "$file" --arg o "$origin" --arg sh "$hub_hash" --arg lh "$local_hash" --arg st "$status" \
       '.files[$f] = {"origin": $o, "hub_hash": $sh, "local_hash": $lh, "status": $st}' "$LOCKFILE" > "$tmp" || true
   fi
+  # @side-effect: writes-lockfile-entry
   safe_lock_mv "$tmp" "$LOCKFILE" "lock-add $file"
 }
 
+# @manifest
+# purpose: Delete a lockfile entry by file-path key so cmd_pull_apply's delete action can remove tracked entries that have been removed from the hub
+# input: positional <file>
+# output: writes lockfile (entry removed)
+# output: exit-codes 0 ok, 1 missing-lockfile-or-missing-positional
+# caller: cmd_pull_apply
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: safe_lock_mv
+# depends-on: mktemp
+# side-effect: removes-lockfile-entry
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-file-arg
+# contract: idempotent-on-already-missing
+# contract: atomic-write-via-safe_lock_mv
+# anchor: BTS-244 (manifest seed)
 cmd_lock_remove() {
+  # @failure-mode: missing-lockfile
   require_lockfile
+  # @failure-mode: missing-positional
   local file="${1:?Usage: ccanvil-sync.sh lock-remove <file>}"
 
   local tmp
   tmp=$(mktemp)
   jq --arg f "$file" 'del(.files[$f])' "$LOCKFILE" > "$tmp" || true
+  # @side-effect: removes-lockfile-entry
   safe_lock_mv "$tmp" "$LOCKFILE" "lock-remove $file"
 }
 
+# @manifest
+# purpose: Stamp the lockfile's hub_version + synced_at with the supplied version + current timestamp so cmd_pull_finalize and cmd_push_finalize can record a coherent post-sync version pin
+# input: positional <version>
+# output: writes lockfile hub_version + synced_at
+# output: exit-codes 0 ok, 1 missing-lockfile-or-missing-positional
+# caller: cmd_pull_finalize
+# caller: cmd_push_finalize
+# caller: cmd_promote
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: safe_lock_mv
+# depends-on: timestamp
+# depends-on: mktemp
+# side-effect: writes-lockfile-version
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-version-arg
+# contract: atomic-write-via-safe_lock_mv
+# anchor: BTS-244 (manifest seed)
 cmd_lock_set_version() {
+  # @failure-mode: missing-lockfile
   require_lockfile
+  # @failure-mode: missing-positional
   local version="${1:?Usage: ccanvil-sync.sh lock-set-version <version>}"
 
   local tmp
   tmp=$(mktemp)
   jq --arg v "$version" --arg ts "$(timestamp)" '.hub_version = $v | .synced_at = $ts' "$LOCKFILE" > "$tmp" || true
+  # @side-effect: writes-lockfile-version
   safe_lock_mv "$tmp" "$LOCKFILE" "lock-set-version"
 }
 
+# @manifest
+# purpose: Compose a merged markdown file by taking the hub-managed section from the hub source and the node-specific section from the local file using exact-line delimiters (NODE-SPECIFIC-START or HUB-MANAGED-START) so /ccanvil-pull and init-apply can preserve project content while updating hub-owned content
+# input: positional <hub-file> <local-file>
+# output: stdout merged-file content (hub-section + delimiter + node-section, or vice-versa depending on delimiter shape)
+# output: exit-codes 0 ok, 1 missing-positional-or-files-or-no-delimiter
+# caller: cmd_init_apply
+# caller: cmd_pull_apply
+# depends-on: sed
+# depends-on: grep
+# depends-on: cat
+# depends-on: die
+# side-effect: pure-no-mutations
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-both-args
+# failure-mode: hub-file-missing | exit=1 | visible=stderr-die-Hub-file-not-found | mitigation=verify-hub-path
+# failure-mode: local-file-missing | exit=1 | visible=stderr-die-Local-file-not-found | mitigation=verify-local-path
+# failure-mode: no-section-delimiter | exit=1 | visible=stderr-ERROR-No-section-delimiter | mitigation=add-NODE-SPECIFIC-START-or-HUB-MANAGED-START-to-hub-source
+# contract: stdout-merged-content-never-mutates-input-files
+# contract: handles-local-without-delimiter-by-wrapping-as-node-section
+# anchor: BTS-243 (manifest seed)
 cmd_section_merge() {
+  # @failure-mode: missing-positional
+  # @side-effect: pure-no-mutations
   local hub_file="${1:?Usage: ccanvil-sync.sh section-merge <hub-file> <local-file>}"
   local local_file="${2:?Usage: ccanvil-sync.sh section-merge <hub-file> <local-file>}"
 
+  # @failure-mode: hub-file-missing
   [[ -f "$hub_file" ]] || die "Hub file not found: $hub_file"
+  # @failure-mode: local-file-missing
   [[ -f "$local_file" ]] || die "Local file not found: $local_file"
 
   # Detect which delimiter the hub file uses
@@ -1197,6 +1501,7 @@ cmd_section_merge() {
     delimiter="<!-- HUB-MANAGED-START -->"
   else
     # No delimiter in hub file — not a section-merge file
+    # @failure-mode: no-section-delimiter
     echo "ERROR: No section delimiter found in hub file" >&2
     return 1
   fi
@@ -1247,13 +1552,35 @@ cmd_section_merge() {
 # ---------------------------------------------------------------------------
 
 # Node-only classification commands
+# @manifest
+# purpose: Mark a tracked lockfile entry as node-only so subsequent pull/push/promote operations skip it; idempotent on already-classified entries
+# input: positional <file>
+# output: stdout NODE-ONLY status line (or SKIP when already node-only)
+# output: writes lockfile sync field for the entry
+# output: exit-codes 0 ok, 1 missing-lockfile-or-file-not-tracked-or-missing-positional
+# caller: skill:/ccanvil-ignore
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_sync_field
+# depends-on: safe_lock_mv
+# depends-on: mktemp
+# depends-on: die
+# side-effect: writes-lockfile-sync-field
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-file-arg
+# failure-mode: file-not-tracked | exit=1 | visible=stderr-die-File-not-tracked | mitigation=run-pull-or-init-to-track-first
+# contract: idempotent-on-already-node-only
+# anchor: BTS-243 (manifest seed)
 cmd_node_only() {
+  # @failure-mode: missing-lockfile
   require_lockfile
+  # @failure-mode: missing-positional
   local file="${1:?Usage: ccanvil-sync.sh node-only <file>}"
 
   # Verify file exists in lockfile
   local exists
   exists=$(jq -r --arg f "$file" '.files[$f] // "null"' "$LOCKFILE")
+  # @failure-mode: file-not-tracked
   [[ "$exists" != "null" ]] || die "File not tracked in lockfile: $file"
 
   local current_sync
@@ -1265,17 +1592,40 @@ cmd_node_only() {
 
   local tmp; tmp=$(mktemp)
   jq --arg f "$file" '.files[$f].sync = "node-only"' "$LOCKFILE" > "$tmp" || true
+  # @side-effect: writes-lockfile-sync-field
   safe_lock_mv "$tmp" "$LOCKFILE" "node-only $file"
 
   echo "NODE-ONLY: $file (excluded from future pull/push)"
 }
 
+# @manifest
+# purpose: Restore a previously node-only lockfile entry to tracked sync so subsequent pull/push operations include it again; idempotent on already-tracked entries
+# input: positional <file>
+# output: stdout TRACKED status line (or SKIP when already tracked)
+# output: writes lockfile sync field for the entry
+# output: exit-codes 0 ok, 1 missing-lockfile-or-file-not-tracked-or-missing-positional
+# caller: skill:/ccanvil-ignore
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_sync_field
+# depends-on: safe_lock_mv
+# depends-on: mktemp
+# depends-on: die
+# side-effect: writes-lockfile-sync-field
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-file-arg
+# failure-mode: file-not-tracked | exit=1 | visible=stderr-die-File-not-tracked | mitigation=verify-file-was-pulled-or-init
+# contract: idempotent-on-already-tracked
+# anchor: BTS-243 (manifest seed)
 cmd_track() {
+  # @failure-mode: missing-lockfile
   require_lockfile
+  # @failure-mode: missing-positional
   local file="${1:?Usage: ccanvil-sync.sh track <file>}"
 
   local exists
   exists=$(jq -r --arg f "$file" '.files[$f] // "null"' "$LOCKFILE")
+  # @failure-mode: file-not-tracked
   [[ "$exists" != "null" ]] || die "File not tracked in lockfile: $file"
 
   local current_sync
@@ -1287,6 +1637,7 @@ cmd_track() {
 
   local tmp; tmp=$(mktemp)
   jq --arg f "$file" '.files[$f].sync = "tracked"' "$LOCKFILE" > "$tmp" || true
+  # @side-effect: writes-lockfile-sync-field
   safe_lock_mv "$tmp" "$LOCKFILE" "track $file"
 
   echo "TRACKED: $file (re-included in future pull/push)"
@@ -1294,7 +1645,22 @@ cmd_track() {
 
 # classify: list all modified/local files that need classification
 # Output: JSON array of {file, status, origin, sync} for unclassified files
+# @manifest
+# purpose: Walk every lockfile entry and emit the subset that's modified or local-only AND not yet node-only so /ccanvil-push can present an actionable classification queue
+# input: (none)
+# output: stdout JSON array [{file, status, origin}] (empty array when nothing pending)
+# output: exit-codes 0 ok, 1 missing-lockfile
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_sync_field
+# side-effect: reads-lockfile
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# contract: emits-empty-array-when-no-candidates
+# contract: filters-out-node-only-and-clean-entries
+# anchor: BTS-243 (manifest seed)
 cmd_classify() {
+  # @failure-mode: missing-lockfile
+  # @side-effect: reads-lockfile
   require_lockfile
   local candidates="[]"
 
@@ -1315,13 +1681,44 @@ cmd_classify() {
 }
 
 # Pre-check: verify hub repo is clean and accessible
+# @manifest
+# purpose: Gate sync verbs on a clean hub working tree, a clean node working tree, and an up-to-date local sync script (auto-bootstrapping the script when the hub copy differs) so pull/push never operate over dirty state
+# input: (none)
+# output: stdout OK on clean state, BOOTSTRAPPED on script update, ERROR-prefixed lines on dirty state
+# output: writes .ccanvil/scripts/ccanvil-sync.sh + lockfile when bootstrap fires
+# output: exit-codes 0 ok-or-bootstrapped, 1 dirty-hub-or-dirty-node-or-missing-lockfile-or-hub-not-found
+# caller: skill:/ccanvil-pull
+# caller: skill:/ccanvil-push
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: get_hub_source_raw
+# depends-on: file_hash
+# depends-on: safe_lock_mv
+# depends-on: mktemp
+# depends-on: cp
+# depends-on: git
+# depends-on: die
+# side-effect: reads-hub-and-node-git-status
+# side-effect: bootstraps-sync-script
+# side-effect: writes-lockfile-on-bootstrap
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: hub-not-found | exit=1 | visible=stderr-die-Hub-not-found-at | mitigation=verify-hub-source-path
+# failure-mode: dirty-hub | exit=1 | visible=stderr-ERROR-Hub-repo-has-uncommitted-changes | mitigation=commit-or-stash-in-hub
+# failure-mode: dirty-node | exit=1 | visible=stderr-ERROR-This-project-has-uncommitted-changes | mitigation=commit-or-stash-in-node
+# contract: bootstrap-exits-0-and-asks-rerun
+# contract: emits-OK-only-when-fully-clean
+# anchor: BTS-243 (manifest seed)
 cmd_pre_check() {
+  # @failure-mode: missing-lockfile
+  # @side-effect: reads-hub-and-node-git-status
   require_lockfile
   local hub_source
   hub_source=$(get_hub_source)
   local hub_root
   hub_root=$(get_hub_source_raw)
 
+  # @failure-mode: hub-not-found
   [[ -d "$hub_source" ]] || die "Hub not found at: $hub_source"
 
   # Check hub repo is clean
@@ -1329,6 +1726,7 @@ cmd_pre_check() {
     local dirty
     dirty=$(git -C "$hub_root" status --porcelain 2>/dev/null)
     if [[ -n "$dirty" ]]; then
+      # @failure-mode: dirty-hub
       echo "ERROR: Hub repo has uncommitted changes:" >&2
       echo "$dirty" >&2
       echo "" >&2
@@ -1342,6 +1740,7 @@ cmd_pre_check() {
     local node_dirty
     node_dirty=$(git status --porcelain 2>/dev/null)
     if [[ -n "$node_dirty" ]]; then
+      # @failure-mode: dirty-node
       echo "ERROR: This project has uncommitted changes:" >&2
       echo "$node_dirty" >&2
       echo "" >&2
@@ -1358,6 +1757,7 @@ cmd_pre_check() {
     hub_hash=$(file_hash "$hub_script")
     local_hash=$(file_hash "$local_script")
     if [[ "$hub_hash" != "$local_hash" ]]; then
+      # @side-effect: bootstraps-sync-script
       cp "$hub_script" "$local_script"
       # Update lockfile hashes so status shows clean after bootstrap
       local new_hash
@@ -1366,6 +1766,7 @@ cmd_pre_check() {
       jq --arg f "$local_script" --arg h "$new_hash" \
         '.files[$f].hub_hash = $h | .files[$f].local_hash = $h | .files[$f].status = "clean"' \
         "$LOCKFILE" > "$tmp" || true
+      # @side-effect: writes-lockfile-on-bootstrap
       safe_lock_mv "$tmp" "$LOCKFILE" "bootstrap hash update"
       echo "BOOTSTRAPPED: Updated .ccanvil/scripts/ccanvil-sync.sh from hub"
       echo "  Re-run your command to use the updated script."
@@ -1379,7 +1780,28 @@ cmd_pre_check() {
 # pull-plan: Compute the full pull plan as JSON
 # Output: JSON array of {file, action, reason} objects
 # Actions: auto-update, section-merge, conflict, new, removed, skip
+# @manifest
+# purpose: Walk every tracked lockfile entry plus every hub-tracked file not yet in the lockfile and classify each into a pull action (auto-update, section-merge, conflict, new, removed, adopt-clean, adopt-conflict) so /ccanvil-pull can preview every change before applying
+# input: (none)
+# output: stdout JSON array [{file, action, reason, local_hash}]
+# output: exit-codes 0 ok, 1 missing-lockfile
+# caller: skill:/ccanvil-pull
+# caller: cmd_pull_auto
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: file_hash
+# depends-on: is_node_only
+# depends-on: scan_hub_files
+# depends-on: grep
+# side-effect: reads-lockfile-and-hub-files
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# contract: read-only-classification
+# contract: skips-node-only-and-local-only-and-non-hub-origins
+# anchor: BTS-243 (manifest seed)
 cmd_pull_plan() {
+  # @failure-mode: missing-lockfile
+  # @side-effect: reads-lockfile-and-hub-files
   require_lockfile
   local hub_source
   hub_source=$(get_hub_source)
@@ -1503,12 +1925,35 @@ cmd_pull_plan() {
 # pull-auto: Execute all auto-updates in one pass
 # Processes only files with action "auto-update" from pull-plan
 # Usage: pull-auto [--dry-run]
+# @manifest
+# purpose: Apply every auto-update and adopt-clean action from a fresh pull-plan in one batch — copy hub files into the node tree and refresh lockfile hashes — so /ccanvil-pull's safe path completes without per-file operator interaction
+# input: --dry-run (optional; describe-only mode)
+# output: stdout one AUTO-UPDATED log line per applied file plus a final summary banner
+# output: writes target files + lockfile entries
+# output: exit-codes 0 ok, 1 missing-lockfile
+# caller: skill:/ccanvil-pull
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: cmd_pull_plan
+# depends-on: file_hash
+# depends-on: safe_lock_mv
+# depends-on: mktemp
+# depends-on: mkdir
+# depends-on: cp
+# side-effect: writes-target-files
+# side-effect: writes-lockfile-entries
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# contract: dry-run-makes-no-mutations
+# contract: skips-non-auto-actions
+# anchor: BTS-243 (manifest seed)
 cmd_pull_auto() {
   local dry_run=false
   if [[ "${1:-}" == "--dry-run" ]]; then
     dry_run=true
   fi
 
+  # @failure-mode: missing-lockfile
   require_lockfile
   local hub_source
   hub_source=$(get_hub_source)
@@ -1533,6 +1978,7 @@ cmd_pull_auto() {
     mkdir -p "$(dirname "$file")"
 
     # Copy hub version
+    # @side-effect: writes-target-files
     cp "$hub_file" "$file"
 
     # Update lockfile in one pass (works for both existing and new entries)
@@ -1541,6 +1987,7 @@ cmd_pull_auto() {
     jq --arg f "$file" --arg h "$new_hash" \
       '.files[$f].hub_hash = $h | .files[$f].local_hash = $h | .files[$f].status = "clean" | .files[$f].origin = "hub" | .files[$f].sync = "tracked"' \
       "$LOCKFILE" > "$tmp" || true
+    # @side-effect: writes-lockfile-entries
     safe_lock_mv "$tmp" "$LOCKFILE" "pull-auto $file"
 
     # Log
@@ -1559,8 +2006,49 @@ cmd_pull_auto() {
 # pull-apply: Apply a specific resolution for a single file
 # Usage: pull-apply <file> <action> [merged-content-file] [--dry-run]
 # Actions: take-hub, keep-local, section-merge, accept-new, adopt-conflict, delete, write-merged <path>
+# @manifest
+# purpose: Execute the operator-chosen resolution action for a single file in a pull-plan (take-hub, keep-local, section-merge, accept-new, adopt-conflict, delete, write-merged) so /ccanvil-pull can drive per-file conflict handling without re-deriving plan logic
+# input: positional <file> <action> [merged-content-file]
+# input: --dry-run (optional; describe-only mode)
+# input: env PLAN_LOCAL_HASH (optional; gates against post-plan local mutation)
+# input: env PLAN_LOCAL_STATUS (optional; gates against post-plan lockfile mutation for delete)
+# output: stdout APPLIED log line per applied action; DRY-RUN line in dry-run mode
+# output: writes target files + lockfile entries (or rm + lock-remove for delete)
+# output: exit-codes 0 ok, 1 missing-args-or-hub-file-or-unknown-action-or-stale-plan-hash
+# caller: skill:/ccanvil-pull
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: cmd_section_merge
+# depends-on: cmd_lock_add
+# depends-on: cmd_lock_remove
+# depends-on: cmd_stack_apply
+# depends-on: file_hash
+# depends-on: safe_lock_mv
+# depends-on: guard_fail
+# depends-on: mktemp
+# depends-on: mkdir
+# depends-on: cp
+# depends-on: rm
+# depends-on: die
+# side-effect: writes-target-files
+# side-effect: writes-lockfile-entries
+# side-effect: removes-target-files-on-delete
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-file-and-action
+# failure-mode: hub-file-missing | exit=1 | visible=stderr-die-Hub-file-not-found | mitigation=verify-hub-source
+# failure-mode: stale-plan-local-hash | exit=1 | visible=stderr-from-guard_fail | mitigation=re-run-pull-plan
+# failure-mode: stale-plan-local-status | exit=1 | visible=stderr-from-guard_fail | mitigation=re-run-pull-plan
+# failure-mode: accept-new-on-existing-file | exit=1 | visible=stderr-die-Refusing-to-overwrite | mitigation=use-take-hub-or-section-merge
+# failure-mode: missing-merged-file | exit=1 | visible=stderr-die-Merged-content-file-not-found | mitigation=supply-valid-merged-path
+# failure-mode: unknown-action | exit=1 | visible=stderr-die-Unknown-action | mitigation=use-documented-action-name
+# contract: dry-run-makes-no-mutations
+# contract: stack-reapply-runs-after-take-hub-on-settings-json
+# anchor: BTS-243 (manifest seed)
 cmd_pull_apply() {
+  # @failure-mode: missing-lockfile
   require_lockfile
+  # @failure-mode: missing-positional
   local file="${1:?Usage: ccanvil-sync.sh pull-apply <file> <action> [merged-content-file]}"
   local action="${2:?}"
   local merged_file=""
@@ -1585,6 +2073,7 @@ cmd_pull_apply() {
     local current_hash
     current_hash=$(file_hash "$file")
     if [[ "$current_hash" != "$PLAN_LOCAL_HASH" ]]; then
+      # @failure-mode: stale-plan-local-hash
       guard_fail "cp" "$file" "file changed after plan (expected $PLAN_LOCAL_HASH, got $current_hash)"
     fi
   fi
@@ -1597,8 +2086,10 @@ cmd_pull_apply() {
 
   case "$action" in
     take-hub)
+      # @failure-mode: hub-file-missing
       [[ -f "$hub_file" ]] || die "Hub file not found: $hub_file"
       mkdir -p "$(dirname "$file")"
+      # @side-effect: writes-target-files
       cp "$hub_file" "$file"
       local new_hash
       new_hash=$(file_hash "$file")
@@ -1606,6 +2097,7 @@ cmd_pull_apply() {
       jq --arg f "$file" --arg h "$new_hash" \
         '.files[$f].hub_hash = $h | .files[$f].local_hash = $h | .files[$f].status = "clean"' \
         "$LOCKFILE" > "$tmp" || true
+      # @side-effect: writes-lockfile-entries
       safe_lock_mv "$tmp" "$LOCKFILE" "pull-apply take-hub $file"
       echo "APPLIED: $file (took hub)"
 
@@ -1675,6 +2167,7 @@ cmd_pull_apply() {
       [[ -f "$hub_file" ]] || die "Hub file not found: $hub_file"
       if [[ -f "$file" ]]; then
         echo "WARNING: $file already exists locally. Use 'take-hub', 'adopt-conflict', or 'section-merge' instead." >&2
+        # @failure-mode: accept-new-on-existing-file
         die "Refusing to overwrite existing file with accept-new. File: $file"
       fi
       mkdir -p "$(dirname "$file")"
@@ -1692,10 +2185,12 @@ cmd_pull_apply() {
         local current_status
         current_status=$(jq -r --arg f "$file" '.files[$f].status // "unknown"' "$LOCKFILE")
         if [[ "$current_status" != "$PLAN_LOCAL_STATUS" ]]; then
+          # @failure-mode: stale-plan-local-status
           guard_fail "rm" "$file" "lockfile status changed after plan (expected $PLAN_LOCAL_STATUS, got $current_status)"
         fi
       fi
       if [[ -f "$file" ]]; then
+        # @side-effect: removes-target-files-on-delete
         rm "$file"
       fi
       cmd_lock_remove "$file"
@@ -1704,6 +2199,7 @@ cmd_pull_apply() {
 
     write-merged)
       [[ -n "$merged_file" ]] || die "Usage: pull-apply <file> write-merged <merged-content-file>"
+      # @failure-mode: missing-merged-file
       [[ -f "$merged_file" ]] || die "Merged content file not found: $merged_file"
       mkdir -p "$(dirname "$file")"
       cp "$merged_file" "$file"
@@ -1720,6 +2216,7 @@ cmd_pull_apply() {
       ;;
 
     *)
+      # @failure-mode: unknown-action
       die "Unknown action: $action. Use: take-hub, keep-local, section-merge, accept-new, delete, write-merged"
       ;;
   esac
@@ -1727,12 +2224,36 @@ cmd_pull_apply() {
 
 # pull-finalize: Update version, commit all changes, output summary
 # Usage: pull-finalize [--dry-run]
+# @manifest
+# purpose: Stamp the lockfile with the current hub HEAD version, stage every node-side change from the pull, and create a single chore(sync) commit summarizing the file delta so /ccanvil-pull leaves the node tree in a committed, audit-friendly state
+# input: --dry-run (optional; describe-only mode)
+# output: stdout DRY-RUN preview lines OR a Committed status with the new short-sha and a final summary
+# output: writes lockfile hub_version + synced_at; creates one git commit on the current branch
+# output: exit-codes 0 ok, 1 missing-lockfile
+# caller: skill:/ccanvil-pull
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: get_hub_source_raw
+# depends-on: get_hub_source_display
+# depends-on: cmd_lock_set_version
+# depends-on: git
+# depends-on: wc
+# depends-on: tr
+# depends-on: sort
+# depends-on: grep
+# side-effect: writes-lockfile-version
+# side-effect: stages-and-commits-pull
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# contract: dry-run-makes-no-mutations
+# contract: skips-commit-when-no-file-changes
+# anchor: BTS-243 (manifest seed)
 cmd_pull_finalize() {
   local dry_run=false
   if [[ "${1:-}" == "--dry-run" ]]; then
     dry_run=true
   fi
 
+  # @failure-mode: missing-lockfile
   require_lockfile
   local hub_source
   hub_source=$(get_hub_source)
@@ -1747,6 +2268,7 @@ cmd_pull_finalize() {
   fi
 
   if ! $dry_run; then
+    # @side-effect: writes-lockfile-version
     cmd_lock_set_version "$new_version"
   fi
 
@@ -1785,6 +2307,7 @@ cmd_pull_finalize() {
 
         local head_before
         head_before=$(git rev-parse HEAD)
+        # @side-effect: stages-and-commits-pull
         git add -A
         git commit -m "chore(sync): pull from hub @ $new_version" -m "$commit_body" \
           || true
@@ -1810,7 +2333,25 @@ cmd_pull_finalize() {
 
 # push-candidates: List files eligible for push with current state
 # Output: JSON array of {file, status, has_diff, first_lines}
+# @manifest
+# purpose: List every modified, local-only, or already-promoted lockfile entry that's eligible for hub-side promotion (with hub-vs-local has_diff flag) so /ccanvil-push can present an actionable classification queue
+# input: positional <file> (optional; restrict listing to one entry)
+# output: stdout JSON array [{file, status, has_diff}]
+# output: exit-codes 0 ok, 1 missing-lockfile
+# caller: skill:/ccanvil-push
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: is_node_only
+# depends-on: diff
+# side-effect: reads-lockfile-and-hub-files
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# contract: emits-empty-array-when-no-candidates
+# contract: skips-node-only-and-clean-entries
+# anchor: BTS-243 (manifest seed)
 cmd_push_candidates() {
+  # @failure-mode: missing-lockfile
+  # @side-effect: reads-lockfile-and-hub-files
   require_lockfile
   local hub_source
   hub_source=$(get_hub_source)
@@ -1856,8 +2397,35 @@ cmd_push_candidates() {
 
 # push-apply: Push a single file to the hub
 # Usage: push-apply <file> [description] [--dry-run]
+# @manifest
+# purpose: Copy one node-side file into the hub tree and update the lockfile (status promoted for local-only origin, clean for modified) so /ccanvil-push can stage promotion-candidate files in batches before the hub-side commit
+# input: positional <file> [description]
+# input: --dry-run (optional; describe-only mode)
+# output: stdout PUSHED log line per applied push; DRY-RUN line in dry-run mode
+# output: writes hub-side file + lockfile entry
+# output: exit-codes 0 ok, 1 missing-lockfile-or-file-not-found-or-missing-positional
+# caller: skill:/ccanvil-push
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: file_hash
+# depends-on: safe_lock_mv
+# depends-on: mktemp
+# depends-on: mkdir
+# depends-on: cp
+# depends-on: die
+# side-effect: writes-hub-files
+# side-effect: writes-lockfile-entries
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-file-arg
+# failure-mode: file-not-found | exit=1 | visible=stderr-die-File-not-found | mitigation=verify-local-path
+# contract: dry-run-makes-no-mutations
+# contract: status-transition-depends-on-prior-origin
+# anchor: BTS-243 (manifest seed)
 cmd_push_apply() {
+  # @failure-mode: missing-lockfile
   require_lockfile
+  # @failure-mode: missing-positional
   local file="${1:?Usage: ccanvil-sync.sh push-apply <file> [description]}"
   local description=""
   local dry_run=false
@@ -1878,6 +2446,7 @@ cmd_push_apply() {
   local status
   status=$(jq -r --arg f "$file" '.files[$f].status // "unknown"' "$LOCKFILE")
 
+  # @failure-mode: file-not-found
   [[ -f "$file" ]] || die "File not found: $file"
 
   if $dry_run; then
@@ -1889,6 +2458,7 @@ cmd_push_apply() {
   mkdir -p "$(dirname "$hub_source/$file")"
 
   # Copy to hub
+  # @side-effect: writes-hub-files
   cp "$file" "$hub_source/$file"
 
   # Update lockfile based on current status
@@ -1907,6 +2477,7 @@ cmd_push_apply() {
       '.files[$f].hub_hash = $h | .files[$f].local_hash = $h | .files[$f].status = "clean"' \
       "$LOCKFILE" > "$tmp" || true
   fi
+  # @side-effect: writes-lockfile-entries
   safe_lock_mv "$tmp" "$LOCKFILE" "push-apply $file"
 
   echo "PUSHED: $file ($status → pushed)"
@@ -1914,7 +2485,29 @@ cmd_push_apply() {
 
 # push-finalize: Commit in hub repo, update version
 # Usage: push-finalize <commit-message> [--dry-run]
+# @manifest
+# purpose: Stage and commit every staged push in the hub working tree with the operator-supplied message, then stamp the lockfile with the new hub HEAD so /ccanvil-push leaves both sides on a matching version
+# input: positional <commit-message>
+# input: --dry-run (optional; describe-only mode)
+# output: stdout Committed-in-hub status line + Push finalized banner with new version
+# output: writes hub git commit + lockfile hub_version + synced_at
+# output: exit-codes 0 ok, 1 missing-lockfile-or-missing-message
+# caller: skill:/ccanvil-push
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: get_hub_source_raw
+# depends-on: cmd_lock_set_version
+# depends-on: git
+# depends-on: die
+# side-effect: writes-hub-commit
+# side-effect: writes-lockfile-version
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-message | exit=1 | visible=stderr-die-Usage | mitigation=supply-commit-message
+# contract: dry-run-makes-no-mutations
+# contract: warns-when-no-new-commit-produced
+# anchor: BTS-243 (manifest seed)
 cmd_push_finalize() {
+  # @failure-mode: missing-lockfile
   require_lockfile
   local message=""
   local dry_run=false
@@ -1926,6 +2519,7 @@ cmd_push_finalize() {
       message="$arg"
     fi
   done
+  # @failure-mode: missing-message
   [[ -n "$message" ]] || die "Usage: ccanvil-sync.sh push-finalize <commit-message>"
 
   local hub_source
@@ -1942,6 +2536,7 @@ cmd_push_finalize() {
   # Stage and commit in hub
   local head_before
   head_before=$(git -C "$hub_root" rev-parse HEAD)
+  # @side-effect: writes-hub-commit
   git -C "$hub_root" add -A
   git -C "$hub_root" commit -m "$message" || true
   local head_after
@@ -1960,6 +2555,7 @@ cmd_push_finalize() {
     new_version="unknown"
   fi
 
+  # @side-effect: writes-lockfile-version
   cmd_lock_set_version "$new_version"
 
   echo "Push finalized. Hub version: $new_version"
@@ -1967,8 +2563,41 @@ cmd_push_finalize() {
 
 # promote: Full promote workflow for a single file
 # Usage: promote <file>
+# @manifest
+# purpose: Run the end-to-end promote-a-local-only-file workflow — copy the file into the hub tree, flip the lockfile entry to origin=hub status=promoted, commit in the hub repo, then stamp the lockfile version — so operators can promote in one verb without orchestrating push-apply + push-finalize manually
+# input: positional <file>
+# output: stdout PROMOTED log line with new hub version (or SKIP when already clean/promoted)
+# output: writes hub-side file + lockfile entry + hub commit + lockfile hub_version
+# output: exit-codes 0 ok-or-skip, 1 missing-lockfile-or-missing-positional-or-non-local-only-status-or-file-not-found
+# caller: skill:/ccanvil-promote
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: get_hub_source_raw
+# depends-on: file_hash
+# depends-on: safe_lock_mv
+# depends-on: cmd_lock_set_version
+# depends-on: mktemp
+# depends-on: mkdir
+# depends-on: cp
+# depends-on: basename
+# depends-on: pwd
+# depends-on: git
+# depends-on: die
+# side-effect: writes-hub-files
+# side-effect: writes-lockfile-entries
+# side-effect: writes-hub-commit
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-file-arg
+# failure-mode: status-not-local-only | exit=1 | visible=stderr-die-Cannot-promote | mitigation=use-push-apply-for-modified-files
+# failure-mode: file-not-found | exit=1 | visible=stderr-die-File-not-found | mitigation=verify-local-path
+# contract: idempotent-on-already-promoted-or-clean
+# contract: end-to-end-promote-in-one-call
+# anchor: BTS-243 (manifest seed)
 cmd_promote() {
+  # @failure-mode: missing-lockfile
   require_lockfile
+  # @failure-mode: missing-positional
   local file="${1:?Usage: ccanvil-sync.sh promote <file>}"
 
   local status
@@ -1980,9 +2609,11 @@ cmd_promote() {
   fi
 
   if [[ "$status" != "local-only" ]]; then
+    # @failure-mode: status-not-local-only
     die "Cannot promote: $file has status '$status'. Only local-only files can be promoted."
   fi
 
+  # @failure-mode: file-not-found
   [[ -f "$file" ]] || die "File not found: $file"
 
   local hub_source
@@ -1992,6 +2623,7 @@ cmd_promote() {
 
   # Copy to hub
   mkdir -p "$(dirname "$hub_source/$file")"
+  # @side-effect: writes-hub-files
   cp "$file" "$hub_source/$file"
 
   # Update lockfile
@@ -2001,9 +2633,11 @@ cmd_promote() {
   jq --arg f "$file" --arg h "$new_hash" \
     '.files[$f].origin = "hub" | .files[$f].hub_hash = $h | .files[$f].local_hash = $h | .files[$f].status = "promoted"' \
     "$LOCKFILE" > "$tmp" || true
+  # @side-effect: writes-lockfile-entries
   safe_lock_mv "$tmp" "$LOCKFILE" "promote $file"
 
   # Commit in hub
+  # @side-effect: writes-hub-commit
   git -C "$hub_root" add -A
   git -C "$hub_root" commit -m "chore(sync): add $(basename "$file") from $(basename "$(pwd)")"
 
@@ -2017,8 +2651,28 @@ cmd_promote() {
 
 # demote: Full demote workflow for a single file
 # Usage: demote <file>
+# @manifest
+# purpose: Flip a clean lockfile entry to status=modified so the next /ccanvil-pull surfaces a diff instead of auto-updating — operators use this to take ownership of a hub-tracked file without immediately diverging the content
+# input: positional <file>
+# output: stdout DEMOTED log line (or SKIP when already modified/local-only)
+# output: writes lockfile status field for the entry
+# output: exit-codes 0 ok-or-skip, 1 missing-lockfile-or-missing-positional-or-non-clean-status
+# caller: skill:/ccanvil-demote
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: safe_lock_mv
+# depends-on: mktemp
+# depends-on: die
+# side-effect: writes-lockfile-status
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-file-arg
+# failure-mode: status-not-clean | exit=1 | visible=stderr-die-Cannot-demote | mitigation=only-clean-files-can-be-demoted
+# contract: idempotent-on-already-modified-or-local-only
+# anchor: BTS-243 (manifest seed)
 cmd_demote() {
+  # @failure-mode: missing-lockfile
   require_lockfile
+  # @failure-mode: missing-positional
   local file="${1:?Usage: ccanvil-sync.sh demote <file>}"
 
   local status
@@ -2030,12 +2684,14 @@ cmd_demote() {
   fi
 
   if [[ "$status" != "clean" ]]; then
+    # @failure-mode: status-not-clean
     die "Cannot demote: $file has status '$status'. Only clean files can be demoted."
   fi
 
   # Mark as modified (prevents auto-update on future pulls)
   local tmp; tmp=$(mktemp)
   jq --arg f "$file" '.files[$f].status = "modified"' "$LOCKFILE" > "$tmp" || true
+  # @side-effect: writes-lockfile-status
   safe_lock_mv "$tmp" "$LOCKFILE" "demote $file"
 
   # Log
@@ -2043,7 +2699,22 @@ cmd_demote() {
   echo "DEMOTED: $file (future pulls will show diff instead of auto-updating)"
 }
 
+# @manifest
+# purpose: List every tracked file in the current project plus (if a lockfile is present) every tracked file in the hub source — diagnostic verb operators run when the lockfile classification is unclear or when verifying a scan_*-helper change
+# input: (none)
+# output: stdout two indented sections (Tracked files in project / Tracked files in hub) with one path per line
+# output: exit-codes 0 ok
+# depends-on: scan_tracked_files
+# depends-on: scan_hub_files
+# depends-on: get_hub_source
+# side-effect: pure-no-mutations
+# failure-mode: hub-section-omitted | exit=0 | visible=stdout-section-absent | mitigation=run-init-first-to-create-lockfile
+# contract: project-section-always-emitted
+# contract: hub-section-conditional-on-lockfile-presence
+# anchor: BTS-244 (manifest seed)
 cmd_scan() {
+  # @side-effect: pure-no-mutations
+  # @failure-mode: hub-section-omitted
   echo "Tracked files in project:"
   scan_tracked_files | while IFS= read -r f; do
     echo "  $f"
@@ -2062,7 +2733,33 @@ cmd_scan() {
 
 # migrate: Copy all hub-managed files to the current project, handle renames, re-init lockfile.
 # Usage: migrate <hub-path> [--dry-run]
+# @manifest
+# purpose: First-time-setup or major-restructuring verb that copies every hub-tracked file into the current project (section-merging delimited markdown, plain-copying everything else), removes legacy stale-named files, renames pre-ccanvil scaffold.json → ccanvil.json, and re-runs cmd_init to rebuild the lockfile in one shot
+# input: positional <hub-path>
+# input: --dry-run (optional; describe-only mode)
+# output: stdout per-file COPIED/MERGED/REMOVED/RENAMED lines plus a final MIGRATE banner
+# output: writes target files + lockfile (rebuilt by cmd_init)
+# output: exit-codes 0 ok, 1 hub-not-found-or-missing-positional
+# depends-on: cmd_init
+# depends-on: cmd_section_merge
+# depends-on: scan_hub_files
+# depends-on: grep
+# depends-on: rm
+# depends-on: mv
+# depends-on: mkdir
+# depends-on: cp
+# depends-on: die
+# side-effect: writes-target-files
+# side-effect: removes-stale-files
+# side-effect: renames-scaffold-json
+# side-effect: rebuilds-lockfile
+# failure-mode: hub-not-found | exit=1 | visible=stderr-die-Hub-not-found-at | mitigation=verify-hub-path
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-hub-path
+# contract: dry-run-makes-no-mutations
+# contract: destructive-warning-emitted-before-execution
+# anchor: BTS-244 (manifest seed)
 cmd_migrate() {
+  # @failure-mode: missing-positional
   local hub_path="${1:?Usage: ccanvil-sync.sh migrate <hub-path> [--dry-run]}"
   hub_path="${hub_path/#\~/$HOME}"
   local dry_run=false
@@ -2076,6 +2773,7 @@ cmd_migrate() {
     echo "" >&2
   fi
 
+  # @failure-mode: hub-not-found
   [[ -d "$hub_path" ]] || die "Hub not found at: $hub_path"
 
   local dist_root
@@ -2092,6 +2790,7 @@ cmd_migrate() {
       if $dry_run; then
         echo "DRY-RUN: would remove stale file $stale"
       else
+        # @side-effect: removes-stale-files
         rm "$stale"
         echo "REMOVED: $stale (stale name)"
       fi
@@ -2103,6 +2802,7 @@ cmd_migrate() {
     if $dry_run; then
       echo "DRY-RUN: would rename .claude/scaffold.json → .claude/ccanvil.json"
     else
+      # @side-effect: renames-scaffold-json
       mv ".claude/scaffold.json" ".claude/ccanvil.json"
       echo "RENAMED: .claude/scaffold.json → .claude/ccanvil.json"
     fi
@@ -2135,6 +2835,7 @@ cmd_migrate() {
 
     # Plain copy for non-delimited files or new files
     mkdir -p "$(dirname "$file")"
+    # @side-effect: writes-target-files
     cp "$hub_file" "$file"
     echo "COPIED: $file"
     count=$((count + 1))
@@ -2150,6 +2851,7 @@ cmd_migrate() {
   echo "MIGRATE: copied $count files from hub."
 
   # Re-init lockfile
+  # @side-effect: rebuilds-lockfile
   cmd_init "$hub_path"
   echo ""
   echo "MIGRATE complete. Run 'git add -A && git commit' to finalize."
@@ -2157,7 +2859,39 @@ cmd_migrate() {
 
 # register: Add the current project to the hub's registry.
 # Run from a downstream project. Reads hub path from lockfile.
+# @manifest
+# purpose: Register the current downstream project with the hub by upserting an entry keyed by node UUID into hub's .ccanvil/registry.json (preserving last_synced fields), auto-committing the local UUID file so broadcast's dirty-tree pre-check passes, and appending a register event to the hub's events log
+# input: (none)
+# output: stdout REGISTERED status line with name + portable path + node UUID
+# output: writes hub registry.json + hub events log + commits local node UUID file
+# output: exit-codes 0 ok, 1 missing-lockfile-or-registry-write-failure
+# caller: cmd_init
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source_raw
+# depends-on: get_or_create_node_uuid
+# depends-on: persist_node_uuid
+# depends-on: normalize_path
+# depends-on: timestamp
+# depends-on: commit_node_file
+# depends-on: append_event
+# depends-on: basename
+# depends-on: pwd
+# depends-on: mktemp
+# depends-on: mkdir
+# depends-on: mv
+# depends-on: rm
+# depends-on: die
+# side-effect: writes-hub-registry
+# side-effect: appends-hub-events-log
+# side-effect: commits-local-node-uuid
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: registry-write-failure | exit=1 | visible=stderr-die-Failed-to-update-registry | mitigation=verify-hub-write-permissions
+# contract: idempotent-by-node-uuid-key
+# contract: preserves-existing-last_synced-fields
+# anchor: BTS-244 (manifest seed)
 cmd_register() {
+  # @failure-mode: missing-lockfile
   require_lockfile
   local hub_root
   hub_root=$(get_hub_source_raw)
@@ -2190,19 +2924,23 @@ cmd_register() {
     '.nodes[$u] = ((.nodes[$u] // {}) + {"name": $n, "path": $p, "registered_at": $t})' \
     "$registry" > "$tmp" || true
   if [[ -s "$tmp" ]] && jq empty "$tmp" 2>/dev/null; then
+    # @side-effect: writes-hub-registry
     mv "$tmp" "$registry"
   else
     rm -f "$tmp"
+    # @failure-mode: registry-write-failure
     die "Failed to update registry"
   fi
 
   echo "REGISTERED: $node_name ($portable_path) [$node_uuid]"
 
   # Auto-commit the node UUID file so broadcast's dirty-tree pre-check passes
+  # @side-effect: commits-local-node-uuid
   commit_node_file ".claude/ccanvil.local.json" \
     "chore(ccanvil): register node $node_name [$node_uuid]"
 
   # Record a register event in the hub's local events log
+  # @side-effect: appends-hub-events-log
   append_event "$hub_root" "$(jq -nc \
     --arg u "$node_uuid" --arg n "$node_name" --arg p "$portable_path" \
     '{event:"register",node_uuid:$u,node_name:$n,path:$p}')"
@@ -2212,9 +2950,29 @@ cmd_register() {
 # Renames ~/.claude/projects/<old-encoded> → <new-encoded> (new = $(pwd))
 # and rewrites embedded "cwd":"<old-path>" fields in every .jsonl session file.
 # Usage: ccanvil-sync.sh relocate <old-absolute-path>
+# @manifest
+# purpose: After an operator runs `mv` to relocate a project directory, re-associate Claude Code's per-project conversation history by renaming ~/.claude/projects/<old-encoded>/ → <new-encoded>/ and rewriting embedded `cwd:` fields inside every captured session jsonl so /recall and /stasis continue to find prior history
+# input: positional <old-absolute-path>
+# output: stdout RELOCATED log line; "No history dir found" line when already relocated
+# output: writes ~/.claude/projects/<new-encoded>/ directory rename + sed rewrites of cwd fields in jsonl files
+# output: exit-codes 0 ok-or-already-relocated, 1 destination-exists-or-rename-failure, 2 missing-or-non-absolute-old-path
+# depends-on: sed
+# depends-on: find
+# depends-on: pwd
+# depends-on: mv
+# side-effect: renames-history-dir
+# side-effect: rewrites-cwd-fields-in-jsonl
+# failure-mode: missing-or-non-absolute-arg | exit=2 | visible=stderr-ERROR-relocate-requires | mitigation=supply-absolute-path
+# failure-mode: destination-exists | exit=1 | visible=stderr-ERROR-destination-history-dir-already-exists | mitigation=resolve-collision-manually
+# failure-mode: rename-failed | exit=1 | visible=stderr-ERROR-rename-failed | mitigation=verify-permissions
+# failure-mode: cwd-rewrite-warning | exit=1 | visible=stderr-WARNING-cwd-rewrite-failed | mitigation=inspect-jsonl-permissions
+# contract: idempotent-on-already-relocated
+# contract: cowardly-refuses-merge
+# anchor: BTS-244 (manifest seed)
 cmd_relocate() {
   local old_path="${1:-}"
   if [[ -z "$old_path" || "$old_path" != /* ]]; then
+    # @failure-mode: missing-or-non-absolute-arg
     echo "ERROR: relocate requires an absolute <old-path>" >&2
     echo "Usage: ccanvil-sync.sh relocate <old-absolute-path>" >&2
     return 2
@@ -2237,17 +2995,22 @@ cmd_relocate() {
   fi
 
   if [[ -d "$new_dir" ]]; then
+    # @failure-mode: destination-exists
     echo "ERROR: destination history dir already exists: $new_dir" >&2
     echo "       Cowardly refusing to merge. Resolve manually." >&2
     return 1
   fi
 
+  # @side-effect: renames-history-dir
+  # @failure-mode: rename-failed
   mv "$old_dir" "$new_dir" || { echo "ERROR: rename failed" >&2; return 1; }
 
   local rc=0
   local old_field="\"cwd\":\"${old_path}\""
   local new_field="\"cwd\":\"${new_path}\""
   while IFS= read -r -d '' jsonl; do
+    # @side-effect: rewrites-cwd-fields-in-jsonl
+    # @failure-mode: cwd-rewrite-warning
     sed -i '' "s|${old_field}|${new_field}|g" "$jsonl" 2>/dev/null || \
       sed -i "s|${old_field}|${new_field}|g" "$jsonl" || \
       { echo "WARNING: cwd rewrite failed for $jsonl" >&2; rc=1; }
@@ -2270,6 +3033,23 @@ cmd_relocate() {
 #      file, now removed).
 #
 # Exit: 0 on success or no-op; 1 on ambiguous both-exist state.
+# @manifest
+# purpose: One-time idempotent migration that renames the prior-vocabulary stasis artifact to the current name and removes the prior-vocabulary recall command file (using git mv when paths are tracked so history follows); intended for downstream nodes upgrading past the BTS-22 vocabulary rollover
+# input: (none)
+# output: stdout MIGRATED + REMOVED log lines per applied action
+# output: writes file rename + file removal + single commit when either action fires
+# output: exit-codes 0 ok-or-no-op, 1 ambiguous-both-old-and-new-exist
+# depends-on: git
+# depends-on: mv
+# depends-on: rm
+# depends-on: pwd
+# side-effect: renames-stasis-artifact
+# side-effect: removes-retired-command-file
+# side-effect: writes-migration-commit
+# failure-mode: ambiguous-both-exist | exit=1 | visible=stderr-ERROR-both-files-exist | mitigation=remove-one-manually-then-rerun
+# contract: idempotent-on-already-migrated
+# contract: single-commit-captures-both-actions
+# anchor: BTS-244 (manifest seed)
 cmd_migrate_stasis_artifact() {
   local project_dir
   project_dir=$(pwd)
@@ -2282,6 +3062,7 @@ cmd_migrate_stasis_artifact() {
 
   # Step 1/2: artifact rename (or conflict detection)
   if [[ -f "$old_artifact" && -f "$new_artifact" ]]; then
+    # @failure-mode: ambiguous-both-exist
     echo "ERROR: both docs/checkpoint.md and docs/stasis.md exist." >&2
     echo "       Migration can't choose between them. Resolve manually:" >&2
     echo "       1. Decide which content to keep." >&2
@@ -2293,6 +3074,7 @@ cmd_migrate_stasis_artifact() {
   if [[ -f "$old_artifact" && ! -f "$new_artifact" ]]; then
     # Prefer git mv for history preservation; fall back to plain mv if git fails
     # (e.g., file not tracked).
+    # @side-effect: renames-stasis-artifact
     if git -C "$project_dir" ls-files --error-unmatch "docs/checkpoint.md" >/dev/null 2>&1; then
       (cd "$project_dir" && git mv "docs/checkpoint.md" "docs/stasis.md") || {
         mv "$old_artifact" "$new_artifact"
@@ -2307,6 +3089,7 @@ cmd_migrate_stasis_artifact() {
 
   # Step 3: remove legacy catchup command
   if [[ -f "$old_catchup" ]]; then
+    # @side-effect: removes-retired-command-file
     if git -C "$project_dir" ls-files --error-unmatch ".claude/commands/catchup.md" >/dev/null 2>&1; then
       (cd "$project_dir" && git rm -q ".claude/commands/catchup.md") || {
         rm -f "$old_catchup"
@@ -2320,6 +3103,7 @@ cmd_migrate_stasis_artifact() {
 
   # Single commit captures both actions if either occurred.
   if $did_work; then
+    # @side-effect: writes-migration-commit
     (cd "$project_dir" && \
       ALLOW_MAIN=1 git -c commit.gpgsign=false commit -q \
         -m "chore(stasis-migration): rename checkpoint/catchup artifacts" \
@@ -2331,13 +3115,29 @@ cmd_migrate_stasis_artifact() {
 
 # registry: List all registered downstream projects.
 # Can be run from anywhere with a lockfile.
+# @manifest
+# purpose: Read the hub-side .ccanvil/registry.json and render every registered downstream node (name, UUID, portable path, registered_at, last_synced, version) so operators can audit the live downstream-node fleet
+# input: (none)
+# output: stdout formatted human-readable listing
+# output: exit-codes 0 ok-or-no-registry, 1 missing-lockfile
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source_raw
+# side-effect: reads-hub-registry
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: no-registry-yet | exit=0 | visible=stdout-No-registry-found | mitigation=register-first-downstream-node
+# contract: read-only
+# anchor: BTS-244 (manifest seed)
 cmd_registry() {
+  # @failure-mode: missing-lockfile
+  # @side-effect: reads-hub-registry
   require_lockfile
   local hub_root
   hub_root=$(get_hub_source_raw)
   local registry="$hub_root/.ccanvil/registry.json"
 
   if [[ ! -f "$registry" ]]; then
+    # @failure-mode: no-registry-yet
     echo "No registry found. Run 'ccanvil-sync.sh register' from a downstream project."
     return 0
   fi
@@ -2352,6 +3152,22 @@ cmd_registry() {
 # The events log is machine-local audit state (gitignored) — previously,
 # these events were git commits on main; now they live in .ccanvil/events.log.
 # Usage: ccanvil-sync.sh events [--event TYPE] [--node UUID|NAME] [--since EPOCH]
+# @manifest
+# purpose: Read the hub's machine-local events log (gitignored audit trail of register/broadcast/etc. operations) and emit filtered JSONL — supports filtering by event type, node UUID/name, and minimum timestamp so operators can audit hub history without parsing the file directly
+# input: --event <type>
+# input: --node <uuid-or-name>
+# input: --since <epoch>
+# output: stdout newline-delimited JSON (one object per matching event)
+# output: exit-codes 0 ok-or-no-events-log, 2 unknown-flag
+# depends-on: jq
+# depends-on: get_hub_source_raw
+# depends-on: pwd
+# side-effect: reads-hub-events-log
+# failure-mode: unknown-flag | exit=2 | visible=stderr-Unknown-events-flag | mitigation=use-documented-flag-name
+# failure-mode: no-events-log | exit=0 | visible=empty-stdout | mitigation=register-or-broadcast-first
+# contract: read-only
+# contract: emits-empty-when-log-missing
+# anchor: BTS-244 (manifest seed)
 cmd_events() {
   local filter_event="" filter_node="" filter_since=""
   while [[ $# -gt 0 ]]; do
@@ -2359,6 +3175,7 @@ cmd_events() {
       --event) filter_event="$2"; shift 2 ;;
       --node)  filter_node="$2";  shift 2 ;;
       --since) filter_since="$2"; shift 2 ;;
+      # @failure-mode: unknown-flag
       *) echo "Unknown events flag: $1" >&2; return 2 ;;
     esac
   done
@@ -2370,6 +3187,8 @@ cmd_events() {
     hub_root=$(pwd)
   fi
   local log_file="$hub_root/.ccanvil/events.log"
+  # @failure-mode: no-events-log
+  # @side-effect: reads-hub-events-log
   [[ -f "$log_file" ]] || return 0
 
   local jq_filter='.'
@@ -2384,6 +3203,37 @@ cmd_events() {
 # Runs deterministic phases only (auto-update, section-merge, finalize).
 # Conflicts are collected and reported, not resolved.
 # Usage: broadcast [--dry-run]
+# @manifest
+# purpose: Push hub updates to every registered downstream node by iterating registry.json — for each node runs pre-check, stasis-rename migration, pull-plan classification, then deterministic auto-update + section-merge phases — collects conflicts and skip reasons for reporting and stamps registry's last_synced + last_synced_version per synced node so the operator can audit fleet-wide hub broadcast in one verb
+# input: --dry-run (optional; describe-only mode)
+# output: stdout per-node section banner + per-action log lines + final Broadcast Summary (Synced / Skipped / Unreachable + skip reasons + pending conflicts)
+# output: writes registry.json (per-node last_synced fields) + appends hub events log
+# output: exit-codes 0 ok-or-no-registered-nodes
+# depends-on: jq
+# depends-on: get_hub_source_raw
+# depends-on: migrate_registry
+# depends-on: append_event
+# depends-on: expand_path
+# depends-on: timestamp
+# depends-on: git
+# depends-on: bash
+# depends-on: pwd
+# depends-on: head
+# depends-on: sed
+# depends-on: grep
+# depends-on: mktemp
+# depends-on: mv
+# depends-on: rm
+# side-effect: writes-per-node-pull-output
+# side-effect: writes-registry-last-synced
+# side-effect: appends-hub-events-log
+# failure-mode: no-registry | exit=0 | visible=stdout-No-registered-nodes | mitigation=register-first-downstream-node
+# failure-mode: empty-registry | exit=0 | visible=stdout-No-registered-nodes | mitigation=register-first-downstream-node
+# failure-mode: per-node-pre-check-failure | exit=0 | visible=stdout-SKIP-pre-check-failed | mitigation=clean-the-failing-node-tree-and-retry
+# failure-mode: per-node-stasis-rename-ambiguous | exit=0 | visible=stdout-SKIP-stasis-migration | mitigation=resolve-the-ambiguous-stasis-state-on-the-node
+# contract: dry-run-makes-no-mutations
+# contract: registry-update-batched-after-loop-to-avoid-mid-broadcast-dirty-tree
+# anchor: BTS-244 (manifest seed)
 cmd_broadcast() {
   local dry_run=false
   if [[ "${1:-}" == "--dry-run" ]]; then
@@ -2400,6 +3250,7 @@ cmd_broadcast() {
 
   local registry="$hub_root/.ccanvil/registry.json"
   if [[ ! -f "$registry" ]]; then
+    # @failure-mode: no-registry
     echo "No registered nodes. Run 'ccanvil-sync.sh register' from a downstream project."
     return 0
   fi
@@ -2407,6 +3258,7 @@ cmd_broadcast() {
   local node_count
   node_count=$(jq '.nodes | length' "$registry")
   if [[ "$node_count" -eq 0 ]]; then
+    # @failure-mode: empty-registry
     echo "No registered nodes."
     return 0
   fi
@@ -2468,6 +3320,7 @@ cmd_broadcast() {
     # AC-2: run pre-check in node subshell
     local precheck_out
     precheck_out=$(cd "$node_path" && bash "$node_path/.ccanvil/scripts/ccanvil-sync.sh" pre-check 2>&1) || {
+      # @failure-mode: per-node-pre-check-failure
       echo "  SKIP: pre-check failed"
       echo "  $precheck_out" | head -5
       skipped=$((skipped + 1))
@@ -2514,6 +3367,7 @@ cmd_broadcast() {
     # skip the node so the user can resolve manually.
     local migration_out
     migration_out=$(cd "$node_path" && bash "$node_path/.ccanvil/scripts/ccanvil-sync.sh" migrate-stasis-artifact 2>&1) || {
+      # @failure-mode: per-node-stasis-rename-ambiguous
       echo "  SKIP: stasis-migration refused (both docs/checkpoint.md and docs/stasis.md exist)"
       echo "  $migration_out" | head -6
       skipped=$((skipped + 1))
@@ -2523,6 +3377,7 @@ cmd_broadcast() {
     if echo "$migration_out" | grep -qE "^(MIGRATED|REMOVED):"; then
       echo "$migration_out" | sed 's/^/  /'
       if ! $dry_run; then
+        # @side-effect: appends-hub-events-log
         append_event "$hub_root" "$(jq -nc \
           --arg u "$node_uuid" \
           --arg n "$node_name" \
@@ -2579,6 +3434,7 @@ cmd_broadcast() {
     auto_count=$(echo "$plan" | jq '[.[] | select(.action == "auto-update" or .action == "adopt-clean")] | length')
     if [[ "$auto_count" -gt 0 ]]; then
       echo "  Auto-updating $auto_count files..."
+      # @side-effect: writes-per-node-pull-output
       (cd "$node_path" && bash "$node_path/.ccanvil/scripts/ccanvil-sync.sh" pull-auto $dry_flag 2>&1) | sed 's/^/  /'
     fi
 
@@ -2620,6 +3476,7 @@ cmd_broadcast() {
         '.nodes[$u].last_synced = $t | .nodes[$u].last_synced_version = $v' \
         "$registry" > "$tmp" || true
       if [[ -s "$tmp" ]] && jq empty "$tmp" 2>/dev/null; then
+        # @side-effect: writes-registry-last-synced
         mv "$tmp" "$registry"
       else
         rm -f "$tmp"
@@ -2658,9 +3515,195 @@ cmd_broadcast() {
 }
 
 # ---------------------------------------------------------------------------
+# BTS-116: broadcast-resolve-auto — algorithmic resolution of
+# .claude/ccanvil.json conflicts. Classifies the divergence between local
+# and hub copies into four states: take-hub (content-identical), keep-local
+# (local strictly extends hub), requires-review (value-divergence or
+# local-removed-keys), no-conflict (both files match or both missing).
+# Auto-applies the deterministic resolutions via the existing pull-apply
+# primitives; surfaces the rest as JSON for manual review.
+#
+# Out of scope: other file types, hub-side --all iteration, auto-commit.
+# Per spec (BTS-116). Reuses file_hash + cmd_pull_apply; no new primitives.
+# ---------------------------------------------------------------------------
+
+# @manifest
+# purpose: Algorithmically classify divergence between local and hub copies of .claude/ccanvil.json into one of four resolution states (take-hub when content-identical, keep-local when local strictly extends hub, requires-review on value-divergence or local-removed-keys, no-conflict when both sides match or both missing) and auto-apply deterministic resolutions via cmd_pull_apply so /ccanvil-broadcast can resolve config conflicts without operator interaction
+# input: --dry-run (optional; describe-only mode)
+# output: stdout single JSON envelope {file, resolution, applied, reason, hub_hash, local_hash, +optional removed_keys/divergent_keys}
+# output: writes target ccanvil.json + lockfile entry on take-hub or keep-local
+# output: exit-codes 0 ok-or-no-conflict, 2 not-a-ccanvil-node, 3 requires-review-or-one-side-missing
+# depends-on: jq
+# depends-on: get_hub_source
+# depends-on: file_hash
+# depends-on: cmd_pull_apply
+# side-effect: writes-target-files-on-resolve
+# side-effect: writes-lockfile-entries-on-resolve
+# failure-mode: not-a-ccanvil-node | exit=2 | visible=stderr-broadcast-resolve-auto-not-a-ccanvil-node | mitigation=run-init-first
+# failure-mode: one-side-missing | exit=3 | visible=stdout-resolution-requires-review | mitigation=manually-decide-which-side-to-keep
+# failure-mode: requires-review-divergence | exit=3 | visible=stdout-resolution-requires-review | mitigation=manually-merge-divergent-or-removed-keys
+# contract: dry-run-makes-no-mutations
+# contract: emits-stable-json-envelope-shape
+# anchor: BTS-244 (manifest seed)
+cmd_broadcast_resolve_auto() {
+  local dry_run=false
+  if [[ "${1:-}" == "--dry-run" ]]; then
+    dry_run=true
+  fi
+
+  if [[ ! -f "$LOCKFILE" ]]; then
+    # @failure-mode: not-a-ccanvil-node
+    echo "broadcast-resolve-auto: not a ccanvil node (no .ccanvil/ccanvil.lock)" >&2
+    exit 2
+  fi
+
+  local file=".claude/ccanvil.json"
+  local hub_root
+  hub_root=$(get_hub_source)
+  local hub_file="$hub_root/$file"
+  local local_file="$file"
+
+  local local_hash hub_hash
+  local_hash=$(file_hash "$local_file")
+  hub_hash=$(file_hash "$hub_file")
+
+  # No-conflict: both files missing.
+  if [[ "$local_hash" == "MISSING" && "$hub_hash" == "MISSING" ]]; then
+    jq -n --arg f "$file" --arg lh "$local_hash" --arg hh "$hub_hash" '{
+      file: $f,
+      resolution: "no-conflict",
+      applied: false,
+      reason: "no-conflict",
+      hub_hash: $hh,
+      local_hash: $lh
+    }'
+    return 0
+  fi
+
+  # Take-hub: byte-identical content (also covers the no-conflict case
+  # where the file is identical on both sides — same outcome from the
+  # operator's perspective: nothing to merge).
+  if [[ "$local_hash" == "$hub_hash" ]]; then
+    local applied_val=false
+    if ! $dry_run; then
+      # @side-effect: writes-target-files-on-resolve
+      # @side-effect: writes-lockfile-entries-on-resolve
+      if cmd_pull_apply "$file" take-hub >/dev/null 2>&1; then
+        applied_val=true
+      fi
+    fi
+    jq -n --arg f "$file" --arg lh "$local_hash" --arg hh "$hub_hash" --argjson applied "$applied_val" '{
+      file: $f,
+      resolution: "take-hub",
+      applied: $applied,
+      reason: "content-identical",
+      hub_hash: $hh,
+      local_hash: $lh
+    }'
+    return 0
+  fi
+
+  # Both files must exist for the structural superset / divergence checks.
+  if [[ "$local_hash" == "MISSING" || "$hub_hash" == "MISSING" ]]; then
+    # @failure-mode: one-side-missing
+    jq -n --arg f "$file" --arg lh "$local_hash" --arg hh "$hub_hash" '{
+      file: $f,
+      resolution: "requires-review",
+      applied: false,
+      reason: "one-side-missing",
+      hub_hash: $hh,
+      local_hash: $lh
+    }'
+    exit 3
+  fi
+
+  # Compute structural diff between hub and local objects.
+  # removed_keys: in hub but not in local (top-level key set difference).
+  # divergent_keys: in both, but values are not deep-equal.
+  local removed_keys divergent_keys
+  removed_keys=$(jq -n --slurpfile h "$hub_file" --slurpfile l "$local_file" \
+    '($h[0] | keys_unsorted) - ($l[0] | keys_unsorted)')
+  divergent_keys=$(jq -n --slurpfile h "$hub_file" --slurpfile l "$local_file" '
+    [($h[0] | keys_unsorted)[] as $k | select(($l[0] | has($k)) and ($h[0][$k] != $l[0][$k])) | $k]
+  ')
+
+  local removed_count divergent_count
+  removed_count=$(echo "$removed_keys" | jq 'length')
+  divergent_count=$(echo "$divergent_keys" | jq 'length')
+
+  # Keep-local: hub keys are all present in local with deep-equal values
+  # (no removed keys, no divergent keys). Local-superset is the case
+  # where local additions sit alongside hub-canonical content.
+  if [[ "$removed_count" -eq 0 && "$divergent_count" -eq 0 ]]; then
+    local applied_val=false
+    if ! $dry_run; then
+      if cmd_pull_apply "$file" keep-local >/dev/null 2>&1; then
+        applied_val=true
+      fi
+    fi
+    jq -n --arg f "$file" --arg lh "$local_hash" --arg hh "$hub_hash" --argjson applied "$applied_val" '{
+      file: $f,
+      resolution: "keep-local",
+      applied: $applied,
+      reason: "local-superset-of-hub",
+      hub_hash: $hh,
+      local_hash: $lh
+    }'
+    return 0
+  fi
+
+  # Requires-review: prefer the most-specific reason (removed > divergent).
+  # @failure-mode: requires-review-divergence
+  if [[ "$removed_count" -gt 0 ]]; then
+    jq -n --arg f "$file" --arg lh "$local_hash" --arg hh "$hub_hash" --argjson removed "$removed_keys" '{
+      file: $f,
+      resolution: "requires-review",
+      applied: false,
+      reason: "local-removed-keys",
+      hub_hash: $hh,
+      local_hash: $lh,
+      removed_keys: $removed
+    }'
+  else
+    jq -n --arg f "$file" --arg lh "$local_hash" --arg hh "$hub_hash" --argjson divergent "$divergent_keys" '{
+      file: $f,
+      resolution: "requires-review",
+      applied: false,
+      reason: "value-divergence",
+      hub_hash: $hh,
+      local_hash: $lh,
+      divergent_keys: $divergent
+    }'
+  fi
+  exit 3
+}
+
+# ---------------------------------------------------------------------------
 # Stack commands
 # ---------------------------------------------------------------------------
 
+# @manifest
+# purpose: Sync hub's global-commands/ccanvil-*.md files into the operator's user-level ~/.claude/commands/ directory — copies new files, skips byte-identical, surfaces conflicts (or overwrites with --force) so global slash commands stay aligned with the hub without polluting the user namespace
+# input: --force (optional; overwrite conflicts instead of reporting)
+# output: stdout per-conflict diff lines + final JSON {copied, skipped, conflicts}
+# output: writes ~/.claude/commands/ccanvil-*.md files
+# output: exit-codes 0 ok, 1 missing-lockfile-or-no-HOME
+# caller: skill:/ccanvil-pull-globals
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: file_hash
+# depends-on: basename
+# depends-on: mkdir
+# depends-on: cp
+# depends-on: diff
+# depends-on: die
+# side-effect: writes-user-global-commands
+# failure-mode: missing-HOME | exit=1 | visible=stderr-die-HOME-is-not-set | mitigation=ensure-HOME-is-exported
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# contract: only-touches-ccanvil-prefixed-files
+# contract: skips-byte-identical-without-warning
+# anchor: BTS-244 (manifest seed)
 cmd_pull_globals() {
   local force=false
   while [[ $# -gt 0 ]]; do
@@ -2670,8 +3713,10 @@ cmd_pull_globals() {
     esac
   done
 
+  # @failure-mode: missing-HOME
   [[ -n "${HOME:-}" ]] || die "\$HOME is not set"
 
+  # @failure-mode: missing-lockfile
   require_lockfile
   local hub_path
   hub_path=$(get_hub_source)
@@ -2692,6 +3737,7 @@ cmd_pull_globals() {
     dst="$dst_dir/$name"
 
     if [[ ! -f "$dst" ]]; then
+      # @side-effect: writes-user-global-commands
       cp "$src" "$dst"
       copied=$((copied + 1))
       continue
@@ -2722,7 +3768,22 @@ cmd_pull_globals() {
     '{copied: $c, skipped: $s, conflicts: $x}'
 }
 
+# @manifest
+# purpose: Walk every stack profile under hub/stacks/ and emit a JSON array of {id, description, files} envelopes so /ccanvil-init and operators can preview available tech-stack overlays before applying one
+# input: (none)
+# output: stdout JSON array (empty array when no stacks dir or no manifests)
+# output: exit-codes 0 ok, 1 missing-lockfile
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# side-effect: reads-stack-manifests
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# contract: read-only
+# contract: emits-empty-array-when-no-stacks-dir
+# anchor: BTS-244 (manifest seed)
 cmd_stack_list() {
+  # @failure-mode: missing-lockfile
+  # @side-effect: reads-stack-manifests
   require_lockfile
   local hub_path
   hub_path=$(get_hub_source)
@@ -2743,14 +3804,53 @@ cmd_stack_list() {
   echo "$result"
 }
 
+# @manifest
+# purpose: Apply a tech-stack overlay to the current node — copies stack-owned files (skipping locally-customized targets per the patch-flow rule), section-merges a CLAUDE.md block bracketed by STACK:<id>-START/END markers, merges PreToolUse hooks into settings.json (deduping by command), and registers the stack in ccanvil.json's stacks[] so /ccanvil-init and re-pull workflows preserve the overlay
+# input: positional <stack-id>
+# output: stdout per-warning lines + final JSON {copied, skipped, errors}
+# output: writes target files + lockfile entries + CLAUDE.md section + settings.json hooks + ccanvil.json stacks[]
+# output: exit-codes 0 ok, 1 missing-lockfile-or-stack-not-found-or-missing-positional
+# caller: cmd_pull_apply
+# depends-on: jq
+# depends-on: require_lockfile
+# depends-on: get_hub_source
+# depends-on: file_hash
+# depends-on: bash
+# depends-on: awk
+# depends-on: grep
+# depends-on: cat
+# depends-on: cp
+# depends-on: chmod
+# depends-on: mkdir
+# depends-on: mv
+# depends-on: rm
+# depends-on: mktemp
+# depends-on: die
+# side-effect: writes-target-files
+# side-effect: writes-lockfile-entries
+# side-effect: writes-claude-md-section
+# side-effect: writes-settings-json-hooks
+# side-effect: writes-ccanvil-json-stacks
+# failure-mode: missing-lockfile | exit=1 | visible=stderr-die-from-require_lockfile | mitigation=run-init-first
+# failure-mode: missing-positional | exit=1 | visible=stderr-Usage | mitigation=supply-stack-id
+# failure-mode: stack-not-found | exit=1 | visible=stderr-die-Stack-not-found | mitigation=run-stack-list-first
+# failure-mode: missing-stack-source-per-entry | exit=0 | visible=stderr-WARNING-Missing-source | mitigation=increments-errors-counter-and-continues
+# failure-mode: invalid-settings-merge | exit=0 | visible=stderr-WARNING-settings-json-merge-produced-invalid-JSON | mitigation=increments-errors-counter
+# failure-mode: invalid-ccanvil-update | exit=0 | visible=stderr-WARNING-ccanvil-json-update-failed | mitigation=increments-errors-counter
+# contract: idempotent-on-already-applied-stack
+# contract: skips-locally-customized-files
+# anchor: BTS-244 (manifest seed)
 cmd_stack_apply() {
+  # @failure-mode: missing-positional
   local stack_id="${1:?Usage: ccanvil-sync.sh stack-apply <stack-id>}"
+  # @failure-mode: missing-lockfile
   require_lockfile
   local hub_path
   hub_path=$(get_hub_source)
   local stack_dir="$hub_path/hub/stacks/$stack_id"
   local manifest="$stack_dir/manifest.json"
 
+  # @failure-mode: stack-not-found
   [[ -f "$manifest" ]] || die "Stack not found: $stack_id (no manifest at $manifest)"
 
   local copied=0 skipped=0 errors=0
@@ -2765,6 +3865,7 @@ cmd_stack_apply() {
     action=$(jq -r ".files[$i].action" "$manifest")
 
     local source_path="$stack_dir/$source"
+    # @failure-mode: missing-stack-source-per-entry
     [[ -f "$source_path" ]] || { echo "WARNING: Missing source: $source" >&2; errors=$((errors + 1)); continue; }
 
     case "$action" in
@@ -2786,6 +3887,7 @@ cmd_stack_apply() {
           fi
         fi
         mkdir -p "$(dirname "$target")"
+        # @side-effect: writes-target-files
         cp "$source_path" "$target"
         # Preserve executable bit
         [[ -x "$source_path" ]] && chmod +x "$target"
@@ -2802,6 +3904,7 @@ cmd_stack_apply() {
     local hub_h local_h
     hub_h=$(file_hash "$source_path")
     local_h=$(file_hash "$target")
+    # @side-effect: writes-lockfile-entries
     bash "$0" lock-add "$target" "stack:$stack_id" "$hub_h" "$local_h" "clean"
   done
 
@@ -2840,6 +3943,7 @@ cmd_stack_apply() {
         mv "$tmp" "CLAUDE.md"
       else
         # Append to end
+        # @side-effect: writes-claude-md-section
         printf '\n' >> "CLAUDE.md"
         cat "$section_tmp" >> "CLAUDE.md"
       fi
@@ -2882,9 +3986,11 @@ cmd_stack_apply() {
         ' "$settings_path" > "$tmp"
       fi
       if [[ -s "$tmp" ]] && jq empty "$tmp" 2>/dev/null; then
+        # @side-effect: writes-settings-json-hooks
         mv "$tmp" "$settings_path"
       else
         rm -f "$tmp"
+        # @failure-mode: invalid-settings-merge
         echo "WARNING: settings.json merge produced invalid JSON" >&2
         errors=$((errors + 1))
       fi
@@ -2903,9 +4009,11 @@ cmd_stack_apply() {
     .stacks = ((.stacks // []) | if index($s) then . else . + [$s] end)
   ' "$ccanvil_json" > "$tmp"
   if [[ -s "$tmp" ]] && jq empty "$tmp" 2>/dev/null; then
+    # @side-effect: writes-ccanvil-json-stacks
     mv "$tmp" "$ccanvil_json"
   else
     rm -f "$tmp"
+    # @failure-mode: invalid-ccanvil-update
     echo "WARNING: ccanvil.json update failed" >&2
     errors=$((errors + 1))
   fi
@@ -2919,6 +4027,315 @@ cmd_stack_apply() {
 # ---------------------------------------------------------------------------
 
 require_jq
+
+# ---------------------------------------------------------------------------
+# BTS-21: drift-watchdog substrate primitives.
+# Read-only — never mutates the registry, never visits downstream filesystems,
+# never commits. Drift detection is purely commit-graph-based: compare each
+# registered node's last_synced_version against the current hub HEAD.
+# ---------------------------------------------------------------------------
+
+# @manifest
+# purpose: Compute per-node drift envelopes by walking the hub's registry.json — for each registered node compares last_synced_version to current HEAD, intersects touched paths with hub's distributable file set, and emits a drift record (node UUID, name, drift_key, paths_drifted, commits_behind, summary) so /drift-watchdog can present a fleet-wide drift view without firing per-node Linear writes
+# input: env CCANVIL_REGISTRY (optional path override; defaults to .ccanvil/registry.json)
+# output: stdout JSON array of drift records (empty array when registry missing or no drift)
+# output: exit-codes 0 ok-or-no-registry-or-no-head
+# caller: skill:/drift-watchdog
+# depends-on: jq
+# depends-on: git
+# depends-on: scan_hub_files
+# depends-on: comm
+# depends-on: grep
+# depends-on: sort
+# depends-on: shasum
+# depends-on: cut
+# depends-on: pwd
+# side-effect: reads-registry-and-git-history
+# failure-mode: missing-registry | exit=0 | visible=stdout-empty-array | mitigation=register-first-downstream-node
+# failure-mode: missing-head | exit=0 | visible=stdout-empty-array | mitigation=run-from-git-repo
+# contract: filters-out-hub-private-paths-via-tracked_set-intersection
+# contract: skips-up-to-date-nodes
+# anchor: BTS-244 (manifest seed)
+cmd_drift_watchdog_list() {
+  # @side-effect: reads-registry-and-git-history
+  local registry="${CCANVIL_REGISTRY:-.ccanvil/registry.json}"
+  if [[ ! -f "$registry" ]]; then
+    # @failure-mode: missing-registry
+    echo "[]"
+    return 0
+  fi
+  local head_hash
+  head_hash=$(git rev-parse HEAD 2>/dev/null || echo "")
+  if [[ -z "$head_hash" ]]; then
+    # @failure-mode: missing-head
+    echo "[]"
+    return 0
+  fi
+
+  # Build the canonical set of distributable paths (currently in hub +
+  # matching TRACKED_PATTERNS). Used to filter touched paths so the watchdog
+  # surfaces only paths that downstream nodes actually receive — hub-private
+  # paths (hub/, docs/specs/, docs/sessions/, etc.) are noise here.
+  local hub_root
+  hub_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+  local tracked_set
+  tracked_set=$(scan_hub_files "$hub_root" 2>/dev/null | sort -u || true)
+
+  # Iterate nodes; for each drifted node, build a record.
+  local records="[]"
+  local uuid name last_v all_touched filtered paths_json count drift_key summary
+  while IFS= read -r uuid; do
+    name=$(jq -r --arg u "$uuid" '.nodes[$u].name // ""' "$registry")
+    last_v=$(jq -r --arg u "$uuid" '.nodes[$u].last_synced_version // ""' "$registry")
+    if [[ -z "$last_v" || "$last_v" == "$head_hash" ]]; then
+      continue
+    fi
+    # Touched paths between last_v..HEAD, deduplicated.
+    all_touched=$(git log --name-only --pretty=format: "${last_v}..HEAD" 2>/dev/null \
+      | grep -v '^$' | sort -u || true)
+    # Intersect with tracked_set so noise from hub-private files is removed.
+    if [[ -n "$tracked_set" && -n "$all_touched" ]]; then
+      filtered=$(comm -12 <(echo "$all_touched") <(echo "$tracked_set") || true)
+    else
+      filtered="$all_touched"
+    fi
+    if [[ -z "$filtered" ]]; then
+      continue
+    fi
+    paths_json=$(echo "$filtered" | jq -R . | jq -s . 2>/dev/null || echo "[]")
+    count=$(git rev-list --count "${last_v}..HEAD" 2>/dev/null || echo 0)
+    drift_key=$(printf '%s:%s' "$name" "$(echo "$paths_json" | jq -r '. | join("\n")')" \
+      | shasum -a 256 | cut -c1-16)
+    summary="$count commits behind, $(echo "$paths_json" | jq 'length') tracked paths touched"
+    records=$(echo "$records" | jq --arg uuid "$uuid" --arg name "$name" \
+      --arg dk "$drift_key" --argjson paths "$paths_json" \
+      --argjson cb "$count" --arg summary "$summary" \
+      '. + [{node_uuid: $uuid, node_name: $name, drift_key: $dk,
+             paths_drifted: $paths, commits_behind: $cb, summary: $summary}]')
+  done < <(jq -r '.nodes | keys[]' "$registry" 2>/dev/null)
+
+  echo "$records"
+}
+
+# @manifest
+# purpose: Probe the runtime preconditions /drift-watchdog needs (Claude CLI in $PATH for headless invocation, and a working linear-query.sh viewer call) so the launchd-scheduled run can fail fast with a clear cause when either dependency is missing
+# input: env CCANVIL_LINEAR_QUERY (optional path override)
+# output: stdout JSON {claude_p_available, linear_query_works}
+# output: exit-codes 0 ok
+# caller: skill:/drift-watchdog
+# depends-on: jq
+# depends-on: bash
+# depends-on: command
+# side-effect: pure-no-mutations
+# failure-mode: never-fails | exit=0 | visible=stdout-bool-flags | mitigation=consumer-checks-flags
+# contract: emits-stable-shape-regardless-of-availability
+# anchor: BTS-244 (manifest seed)
+cmd_drift_watchdog_preflight() {
+  # @failure-mode: never-fails
+  # @side-effect: pure-no-mutations
+  local linear_query="${CCANVIL_LINEAR_QUERY:-.ccanvil/scripts/linear-query.sh}"
+  local claude_ok="false" linear_ok="false"
+  if command -v claude >/dev/null 2>&1; then
+    claude_ok="true"
+  fi
+  if [[ -x "$linear_query" ]] || [[ -f "$linear_query" ]]; then
+    if output=$(bash "$linear_query" viewer 2>/dev/null) && echo "$output" | jq -e '.' >/dev/null 2>&1; then
+      linear_ok="true"
+    fi
+  elif command -v linear-query.sh >/dev/null 2>&1; then
+    if output=$(linear-query.sh viewer 2>/dev/null) && echo "$output" | jq -e '.' >/dev/null 2>&1; then
+      linear_ok="true"
+    fi
+  fi
+  jq -n --argjson cp "$claude_ok" --argjson lq "$linear_ok" \
+    '{claude_p_available: $cp, linear_query_works: $lq}'
+}
+
+# @manifest
+# purpose: Idempotently install or reload the drift-watchdog launchd LaunchAgent — generates the plist via cmd_drift_watchdog_launchd_print, lints with plutil, optionally unloads the prior entry, copies into ~/Library/LaunchAgents/, loads with launchctl, and verifies via launchctl print so /drift-watchdog's weekly schedule survives operator reboots
+# input: --reload (optional; unload the prior entry before installing)
+# output: stdout JSON {installed, reloaded, plist_path, verified, +optional error}
+# output: writes ~/Library/LaunchAgents/com.ccanvil.drift-watchdog.plist + launchctl state
+# output: exit-codes 0 installed-and-verified, 2 plist-generation-or-lint-failed, 3 verify-failed
+# caller: skill:/drift-watchdog
+# depends-on: jq
+# depends-on: cmd_drift_watchdog_launchd_print
+# depends-on: launchctl
+# depends-on: plutil
+# depends-on: command
+# depends-on: cp
+# depends-on: rm
+# depends-on: mkdir
+# depends-on: mktemp
+# depends-on: id
+# depends-on: grep
+# side-effect: writes-launchd-plist
+# side-effect: loads-launchd-job
+# failure-mode: plist-generation-failed | exit=2 | visible=stdout-error-plist-generation-failed | mitigation=verify-print-substrate
+# failure-mode: plist-lint-failed | exit=2 | visible=stdout-error-plist-lint-failed | mitigation=inspect-printed-plist
+# failure-mode: verify-failed-launchctl-print-rc | exit=3 | visible=stdout-error-verify-failed | mitigation=inspect-launchctl-output
+# failure-mode: no-state-in-print-output | exit=3 | visible=stdout-error-no-state-in-print-output | mitigation=manual-launchctl-load
+# contract: idempotent-on-already-installed
+# contract: workspace-fence-bypass-required
+# anchor: BTS-244 (manifest seed)
+cmd_drift_watchdog_launchd_install() {
+  # BTS-199: idempotent install/reload of the drift-watchdog launchd entry.
+  # Wraps the four-step recipe (generate + lint + optional unload + cp + load
+  # + verify) into one atomic call. Replaces operator prose that was
+  # reformulated by hand 4 separate times during BTS-21 activation.
+  #
+  # NOTE: writes to ~/Library/LaunchAgents/ which is OUTSIDE the workspace.
+  # Operators must invoke with ALLOW_OUTSIDE_WORKSPACE=1 so the workspace-
+  # fence hook (guard-workspace.sh) does not block the cp + launchctl steps.
+  #
+  # Exit codes:
+  #   0 — installed + verified
+  #   2 — plist-generation-failed | plist-lint-failed (refuses launchctl ops)
+  #   3 — verify-failed (entry not loaded after launchctl load)
+  local reload=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --reload) reload=1; shift ;;
+      *) shift ;;
+    esac
+  done
+
+  local plist_path="$HOME/Library/LaunchAgents/com.ccanvil.drift-watchdog.plist"
+  local tmp_plist
+  tmp_plist=$(mktemp -t drift-watchdog-plist.XXXXXX)
+
+  # 1. Generate plist
+  if [[ "${DRIFT_WATCHDOG_PLIST_FORCE_EMPTY:-0}" == "1" ]]; then
+    : > "$tmp_plist"
+  else
+    cmd_drift_watchdog_launchd_print > "$tmp_plist" 2>/dev/null || true
+  fi
+
+  if [[ ! -s "$tmp_plist" ]]; then
+    rm -f "$tmp_plist"
+    # @failure-mode: plist-generation-failed
+    jq -n '{installed:false, reloaded:false, error:"plist-generation-failed"}'
+    return 2
+  fi
+
+  # 2. Lint with plutil (skip if not available)
+  if command -v plutil >/dev/null 2>&1; then
+    if ! plutil -lint "$tmp_plist" >/dev/null 2>&1; then
+      rm -f "$tmp_plist"
+      # @failure-mode: plist-lint-failed
+      jq -n '{installed:false, reloaded:false, error:"plist-lint-failed"}'
+      return 2
+    fi
+  else
+    echo "WARN: plutil not available, skipping lint" >&2
+  fi
+
+  # 3. Optional unload
+  local reloaded=false
+  if (( reload )); then
+    launchctl unload "$plist_path" 2>/dev/null || true
+    reloaded=true
+  fi
+
+  # 4. Copy plist into place
+  mkdir -p "$(dirname "$plist_path")"
+  # @side-effect: writes-launchd-plist
+  cp "$tmp_plist" "$plist_path"
+  rm -f "$tmp_plist"
+
+  # 5. Load (load -w; second invocation may exit non-zero but verify is authoritative)
+  # @side-effect: loads-launchd-job
+  launchctl load -w "$plist_path" >/dev/null 2>&1 || true
+
+  # 6. Verify via launchctl print. `set -e` is active at script-level — wrap
+  # the call in `if !` so a non-zero rc does not abort before we can emit JSON.
+  local print_out
+  if ! print_out=$(launchctl print "gui/$(id -u)/com.ccanvil.drift-watchdog" 2>&1); then
+    # @failure-mode: verify-failed-launchctl-print-rc
+    jq -n --arg p "$plist_path" --argjson r "$reloaded" \
+      '{installed:true, reloaded:$r, plist_path:$p, verified:false, error:"verify-failed-launchctl-print-rc"}'
+    return 3
+  fi
+
+  if ! echo "$print_out" | grep -q 'state'; then
+    # @failure-mode: no-state-in-print-output
+    jq -n --arg p "$plist_path" --argjson r "$reloaded" \
+      '{installed:true, reloaded:$r, plist_path:$p, verified:false, error:"no-state-in-print-output"}'
+    return 3
+  fi
+
+  jq -n --arg p "$plist_path" --argjson r "$reloaded" \
+    '{installed:true, reloaded:$r, plist_path:$p, verified:true}'
+}
+
+# @manifest
+# purpose: Render the drift-watchdog launchd LaunchAgent plist on stdout — bakes in the operator's current $PATH (so claude resolves under launchd's sparse environment), the hub's working dir, and a Mondays-9:13 schedule — so cmd_drift_watchdog_launchd_install has a deterministic plist source
+# input: env PATH (embedded into the rendered plist)
+# output: stdout XML plist content
+# output: exit-codes 0 ok
+# caller: cmd_drift_watchdog_launchd_install
+# depends-on: git
+# depends-on: pwd
+# depends-on: sed
+# depends-on: cat
+# side-effect: pure-no-mutations
+# failure-mode: never-fails | exit=0 | visible=stdout-plist | mitigation=consumer-checks-plist-not-empty
+# contract: stable-shape-across-invocations
+# contract: escapes-XML-special-chars-in-PATH
+# anchor: BTS-244 (manifest seed)
+cmd_drift_watchdog_launchd_print() {
+  # @side-effect: pure-no-mutations
+  # @failure-mode: never-fails
+  local hub_dir
+  hub_dir=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+  # launchd's default PATH excludes Homebrew (and most user-installed bins) —
+  # `bash -lc` doesn't reliably pick up the operator's profile under launchd.
+  # Embed the operator's current PATH at print time so `claude` and friends
+  # resolve. The .plist is per-machine anyway; baking in PATH is correct.
+  local launchd_path="${PATH:-/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin}"
+  # Escape XML special chars (& < >) — PATH typically has none of these but
+  # be defensive.
+  local launchd_path_xml
+  launchd_path_xml=$(printf '%s' "$launchd_path" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')
+  cat <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ccanvil.drift-watchdog</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>${launchd_path_xml}</string>
+  </dict>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>cd "${hub_dir}" &amp;&amp; claude --model claude-opus-4-7 -p "/drift-watchdog" --max-budget-usd 5.00</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>${hub_dir}</string>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key>
+    <integer>1</integer>
+    <key>Hour</key>
+    <integer>9</integer>
+    <key>Minute</key>
+    <integer>13</integer>
+  </dict>
+  <key>RunAtLoad</key>
+  <false/>
+  <key>StandardOutPath</key>
+  <string>${hub_dir}/.ccanvil/drift-watchdog.log</string>
+  <key>StandardErrorPath</key>
+  <string>${hub_dir}/.ccanvil/drift-watchdog.err</string>
+</dict>
+</plist>
+PLIST
+}
 
 # Allow sourcing for tests: `source ccanvil-sync.sh --source-only`
 if [[ "${1:-}" == "--source-only" ]]; then
@@ -2967,6 +4384,13 @@ case "${1:-}" in
   registry)         cmd_registry ;;
   events)           shift; cmd_events "$@" ;;
   broadcast)        shift; cmd_broadcast "$@" ;;
+  broadcast-resolve-auto) shift; cmd_broadcast_resolve_auto "$@" ;;
+
+  # --- Drift watchdog (BTS-21) ---
+  drift-watchdog-list)          cmd_drift_watchdog_list ;;
+  drift-watchdog-preflight)     cmd_drift_watchdog_preflight ;;
+  drift-watchdog-launchd-print) cmd_drift_watchdog_launchd_print ;;
+  drift-watchdog-launchd-install) shift; cmd_drift_watchdog_launchd_install "$@" ;;
 
   # --- Stack commands ---
   stack-list)       cmd_stack_list ;;

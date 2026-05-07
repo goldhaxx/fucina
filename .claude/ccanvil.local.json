@@ -7,7 +7,22 @@
     "providers": {
       "linear": {
         "team": "Blocktech Solutions",
-        "project": "fucina"
+        "project": "fucina",
+        "team_id": "6d92fa03-7933-435c-81a4-95ad8b8b732a",
+        "project_id": "f071b94f-4a20-4f7f-987f-26ba3960a020",
+        "state_ids": {
+          "triage": "53b10a02-ce3c-4990-aebc-e105c7229a37",
+          "backlog": "0dc23450-abcf-4c08-a9d3-bcf787c62fbd",
+          "icebox": "58121463-93c3-4ed1-a26e-7c0c5c2a2ce4",
+          "todo": "ad05cdc6-d68c-4372-9827-5dee471b3a42",
+          "in_progress": "84f6426b-28d9-4b19-b82c-0f0df1d10ec3",
+          "done": "bc6aa160-258d-4eae-b3b5-a2575732a188",
+          "duplicate": "7523382f-5a58-421b-a316-fe4c74245fab",
+          "canceled": "11c6b96a-14ef-4428-ad92-95ec80a11d0d"
+        },
+        "label_ids": {
+          "idea": "eb860048-3010-49b7-94d5-7079006d7e94"
+        }
       }
     }
   }

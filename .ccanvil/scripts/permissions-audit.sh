@@ -30,30 +30,78 @@ LOG_FILE=""  # set after parsing args; defaults to SETTINGS_DIR/permissions-log.
 CMD=""
 TEXT_MODE=false
 VERBOSE=false
+DECISIONS_FILE=""
+# BTS-159: decision-append flags.
+BUFFER_FILE=""
+PERMISSION=""
+DECISION=""
+RISK=""
+RATIONALE=""
+EFFICIENCY=""
+REVIEWER=""
+# BTS-161: entry-context positional permission arg.
+ENTRY_CONTEXT_PERM=""
 
 usage() {
-  echo "Usage: permissions-audit.sh <check|init> [--settings-dir DIR] [--log FILE] [--text] [--verbose]" >&2
+  echo "Usage: permissions-audit.sh <check|init|promote-review|apply|decision-append|entry-context> [flags...]" >&2
+  echo "  decision-append --buffer FILE --permission PERM --decision delete|promote|keep-local|accept-danger [accept-danger fields]" >&2
+  echo "  entry-context <permission> [--settings-dir DIR]" >&2
   exit 2
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    check|init)
+    check|init|promote-review|apply|decision-append|entry-context)
       CMD="$1"; shift ;;
     --settings-dir)
       SETTINGS_DIR="$2"; shift 2 ;;
     --log)
       LOG_FILE="$2"; shift 2 ;;
+    --decisions)
+      DECISIONS_FILE="$2"; shift 2 ;;
     --text)
       TEXT_MODE=true; shift ;;
+    --json)
+      TEXT_MODE=false; shift ;;
     --verbose)
       VERBOSE=true; shift ;;
+    --buffer)
+      BUFFER_FILE="$2"; shift 2 ;;
+    --permission)
+      PERMISSION="$2"; shift 2 ;;
+    --decision)
+      DECISION="$2"; shift 2 ;;
+    --risk)
+      RISK="$2"; shift 2 ;;
+    --rationale)
+      RATIONALE="$2"; shift 2 ;;
+    --efficiency)
+      EFFICIENCY="$2"; shift 2 ;;
+    --reviewer)
+      REVIEWER="$2"; shift 2 ;;
     -h|--help)
       usage ;;
     *)
-      echo "Unknown option: $1" >&2; usage ;;
+      # BTS-161: entry-context takes one positional permission argument.
+      if [[ "$CMD" == "entry-context" && -z "$ENTRY_CONTEXT_PERM" && "$1" != -* ]]; then
+        ENTRY_CONTEXT_PERM="$1"; shift
+      else
+        echo "Unknown option: $1" >&2; usage
+      fi ;;
   esac
 done
+
+# Emit a JSON error envelope on stdout (when not in --text mode), then exit.
+# Always echoes the human-readable message to stderr too.
+emit_error_envelope() {
+  local msg="$1"
+  local code="$2"
+  echo "ERROR: $msg" >&2
+  if [[ "$TEXT_MODE" != "true" ]]; then
+    jq -n --arg e "$msg" --argjson c "$code" '{error: $e, exit: $c}'
+  fi
+  exit "$code"
+}
 
 [[ -z "$CMD" ]] && usage
 
@@ -123,8 +171,23 @@ strip_bash_wrapper() {
   echo "$perm"
 }
 
+# BTS-154: bash control-flow keywords are grammar tokens, not executable
+# commands. Bare `Bash(<keyword>)` and `Bash(<keyword>:*)` shapes carry no
+# risk surface — exempt them BEFORE running DANGER patterns. Word-anchored
+# (^...$) so substring shapes like `Bash(done-something)` / `Bash(fish)` /
+# `Bash(forever)` fall through to the normal classifier path.
+BASH_KEYWORD_REGEX='^(for|while|until|if|then|else|elif|fi|do|done|case|esac|in|function|select|time)(:\*)?$'
+
+is_safe_bash_keyword() {
+  local inner="$1"
+  echo "$inner" | grep -qE "$BASH_KEYWORD_REGEX"
+}
+
 # Check if a permission matches any dangerous pattern.
 # Returns the pattern label if matched, empty string if safe.
+# Note: bash control-flow keyword exemption (BTS-154) is enforced one
+# layer up in the main classify loop — entries that match the keyword
+# regex never reach check_danger.
 check_danger() {
   local inner="$1"
 
@@ -146,14 +209,35 @@ check_danger() {
 # Commands
 # ---------------------------------------------------------------------------
 
+# @manifest
+# purpose: Read .claude/settings.json + .claude/settings.local.json, deduplicate Bash permission entries, and classify each as DANGER / UNREVIEWED / REVIEWED based on regex pattern matching and the operator-maintained permissions decision log so /permissions-review can present a triage queue
+# input: --settings-dir <path>
+# input: --log <file>
+# input: --json (machine-readable output)
+# output: stdout JSON envelope or human-readable table (per --json flag) with classification + counts (danger, unreviewed, reviewed)
+# output: exit-codes 0 all-reviewed, 1 unreviewed-present, 2 danger-present-or-parse-error
+# caller: skill:/permissions-review
+# caller: skill:/stasis
+# caller: skill:/recall
+# depends-on: jq
+# depends-on: parse_settings_file
+# depends-on: emit_error_envelope
+# side-effect: reads-settings-files
+# side-effect: reads-permissions-log
+# failure-mode: settings-file-missing | exit=2 | visible=stderr-error-envelope | mitigation=ensure-settings-json-exists
+# failure-mode: log-file-invalid-json | exit=2 | visible=stderr-error-envelope | mitigation=fix-or-rerun-init
+# contract: read-only-classification
+# anchor: BTS-246 (manifest seed)
 cmd_check() {
+  # @side-effect: reads-settings-files
+  # @side-effect: reads-permissions-log
   local settings_file="$SETTINGS_DIR/settings.json"
   local settings_local_file="$SETTINGS_DIR/settings.local.json"
 
   # settings.json must exist
   if [[ ! -f "$settings_file" ]]; then
-    echo "ERROR: $settings_file not found" >&2
-    exit 2
+    # @failure-mode: settings-file-missing
+    emit_error_envelope "$settings_file not found" 2
   fi
 
   # Parse both files
@@ -176,8 +260,8 @@ cmd_check() {
     log_missing=true
     echo "NOTE: $LOG_FILE not found — run permissions-audit.sh init" >&2
   elif ! jq empty "$LOG_FILE" 2>/dev/null; then
-    echo "ERROR: $LOG_FILE is not valid JSON" >&2
-    exit 2
+    # @failure-mode: log-file-invalid-json
+    emit_error_envelope "$LOG_FILE is not valid JSON" 2
   else
     log_data=$(jq '.entries // {}' "$LOG_FILE")
   fi
@@ -204,13 +288,51 @@ cmd_check() {
 
     local inner matched_pattern
     inner=$(strip_bash_wrapper "$perm")
+
+    # BTS-154: bash control-flow keywords classify as REVIEWED with a
+    # built-in rationale. Short-circuits both DANGER and UNREVIEWED paths,
+    # so operators don't need accept_danger overrides for grammar tokens.
+    if is_safe_bash_keyword "$inner"; then
+      reviewed_count=$((reviewed_count + 1))
+      classified=$(echo "$classified" | jq --arg p "$perm" --argjson s "$sources" \
+        '. + [{permission: $p, source: $s, status: "REVIEWED", rationale: "bash control-flow keyword (BTS-154 grammar exemption)"}]')
+      continue
+    fi
+
     matched_pattern=$(check_danger "$inner" || true)
 
     if [[ -n "$matched_pattern" ]]; then
-      # DANGER takes precedence regardless of log status
-      danger_count=$((danger_count + 1))
-      classified=$(echo "$classified" | jq --arg p "$perm" --argjson s "$sources" --arg mp "$matched_pattern" \
-        '. + [{permission: $p, source: $s, status: "DANGER", matched_pattern: $mp}]')
+      # BTS-143: check for explicit accept_danger override before DANGER classification.
+      # When the log entry has accept_danger:true AND all four required fields are filled,
+      # reclassify as REVIEWED with risk_accepted:true preserved for the audit trail.
+      # Otherwise, DANGER takes precedence (preserves prior behavior for log entries
+      # without accept_danger or with stub fields).
+      local log_entry override
+      log_entry=$(echo "$log_data" | jq -c --arg p "$perm" '.[$p] // null')
+      override=$(echo "$log_entry" | jq '
+        if . == null then false
+        elif .accept_danger != true then false
+        elif .risk == "" or .risk == "TODO" then false
+        elif .rationale == "" or .rationale == "TODO" then false
+        elif .efficiency_justification == "" or .efficiency_justification == "TODO" then false
+        elif .reviewer == "" or .reviewer == "TODO" then false
+        else true
+        end
+      ')
+
+      if [[ "$override" == "true" ]]; then
+        reviewed_count=$((reviewed_count + 1))
+        local risk rationale
+        risk=$(echo "$log_entry" | jq -r '.risk')
+        rationale=$(echo "$log_entry" | jq -r '.rationale')
+        classified=$(echo "$classified" | jq --arg p "$perm" --argjson s "$sources" \
+          --arg mp "$matched_pattern" --arg risk "$risk" --arg rationale "$rationale" \
+          '. + [{permission: $p, source: $s, status: "REVIEWED", matched_pattern: $mp, risk: $risk, rationale: $rationale, risk_accepted: true}]')
+      else
+        danger_count=$((danger_count + 1))
+        classified=$(echo "$classified" | jq --arg p "$perm" --argjson s "$sources" --arg mp "$matched_pattern" \
+          '. + [{permission: $p, source: $s, status: "DANGER", matched_pattern: $mp}]')
+      fi
     else
       # Check log for review status
       local log_entry is_reviewed
@@ -295,11 +417,21 @@ print_text_report() {
     echo ""
   fi
 
-  # REVIEWED entries (only with --verbose)
+  # REVIEWED entries — risk-accepted always visible (BTS-143), clean entries verbose-only
+  local has_risk_accepted
+  has_risk_accepted=$(echo "$entries" | jq '[.[] | select(.status == "REVIEWED" and .risk_accepted == true)] | length > 0')
+  if [[ "$has_risk_accepted" == "true" ]]; then
+    echo "--- REVIEWED (risk-accepted) ---"
+    echo "$entries" | jq -r '
+      [.[] | select(.status == "REVIEWED" and .risk_accepted == true)] | .[] |
+      "  \(.permission)  [\(.matched_pattern)] [risk-accepted] \(.rationale // "")  (from: \(.source | join(", ")))"
+    '
+    echo ""
+  fi
   if [[ "$VERBOSE" == "true" && "$reviewed_count" -gt 0 ]]; then
     echo "--- REVIEWED ---"
     echo "$entries" | jq -r '
-      [.[] | select(.status == "REVIEWED")] | .[] |
+      [.[] | select(.status == "REVIEWED" and (.risk_accepted // false) == false)] | .[] |
       "  \(.permission)  [\(.risk // "?")] \(.rationale // "")  (from: \(.source | join(", ")))"
     '
     echo ""
@@ -310,12 +442,31 @@ print_text_report() {
 # Init command
 # ---------------------------------------------------------------------------
 
+# @manifest
+# purpose: Initialize or refresh .ccanvil/permissions-log.json by reading every Bash permission entry from settings.json + settings.local.json and seeding stub entries (rationale TODO, reviewer empty) for newly-encountered permissions while preserving every previously-reviewed entry verbatim so /permissions-review's interactive triage flow has a complete inventory to walk
+# input: --settings-dir <path>
+# input: --log <file>
+# output: stdout single status line (Initialized $LOG_FILE: N entries (M new stubs, rest preserved))
+# output: writes .ccanvil/permissions-log.json
+# output: exit-codes 0 ok, 2 settings-missing-or-log-invalid-json
+# caller: skill:/permissions-review
+# depends-on: jq
+# depends-on: parse_settings_file
+# side-effect: writes-permissions-log
+# side-effect: reads-settings-files
+# failure-mode: settings-file-missing | exit=2 | visible=stderr-ERROR-not-found | mitigation=ensure-settings-json-exists
+# failure-mode: log-file-invalid-json | exit=2 | visible=stderr-ERROR-not-valid-JSON | mitigation=delete-or-fix-log-file
+# contract: preserves-existing-reviewed-entries
+# contract: idempotent-on-rerun
+# anchor: BTS-246 (manifest seed)
 cmd_init() {
+  # @side-effect: reads-settings-files
   local settings_file="$SETTINGS_DIR/settings.json"
   local settings_local_file="$SETTINGS_DIR/settings.local.json"
 
   # settings.json must exist
   if [[ ! -f "$settings_file" ]]; then
+    # @failure-mode: settings-file-missing
     echo "ERROR: $settings_file not found" >&2
     exit 2
   fi
@@ -334,6 +485,7 @@ cmd_init() {
   local existing="{}"
   if [[ -f "$LOG_FILE" ]]; then
     if ! jq empty "$LOG_FILE" 2>/dev/null; then
+      # @failure-mode: log-file-invalid-json
       echo "ERROR: $LOG_FILE is not valid JSON" >&2
       exit 2
     fi
@@ -351,6 +503,7 @@ cmd_init() {
   ')
 
   # Write the log file
+  # @side-effect: writes-permissions-log
   jq -n --argjson entries "$merged" '{entries: $entries}' > "$LOG_FILE"
 
   local total
@@ -366,11 +519,621 @@ cmd_init() {
 }
 
 # ---------------------------------------------------------------------------
+# Promote-review command (BTS-144)
+#
+# Lists settings.local.json entries not in settings.json and classifies each
+# deterministically: DELETE (redundant covered by broader, dead-path, or
+# env-prefix one-shot) or TRIAGE (needs human judgment). PROMOTE is reserved
+# for the future --apply flow.
+#
+# Output: JSON {candidates: [...], counts: {delete, promote, triage, total}}
+# Exit: always 0 (read-only review tooling).
+# ---------------------------------------------------------------------------
+
+# @manifest
+# purpose: List every permission entry that exists only in settings.local.json (not in settings.json) and classify each as DELETE (redundant via wildcard cover, dead-path, or env-prefix one-shot whose verb is now broadly allowed) or TRIAGE (needs human judgment) — surfaces the cleanup queue /permissions-review walks at the start of each session
+# input: --settings-dir <path>
+# input: --json (machine-readable output)
+# output: stdout JSON {candidates[], counts{delete, promote, triage, total}} or human-readable table
+# output: exit-codes 0 always (read-only)
+# caller: skill:/permissions-review
+# caller: skill:/stasis
+# caller: skill:/recall
+# depends-on: jq
+# depends-on: parse_settings_file
+# side-effect: reads-settings-files
+# failure-mode: never-fails | exit=0 | visible=empty-or-empty-counts-envelope | mitigation=consumer-checks-counts-total
+# contract: read-only-never-mutates-files
+# contract: empty-output-when-local-file-missing
+# anchor: BTS-246 (manifest seed)
+cmd_promote_review() {
+  # @failure-mode: never-fails
+  # @side-effect: reads-settings-files
+  local main_file="$SETTINGS_DIR/settings.json"
+  local local_file="$SETTINGS_DIR/settings.local.json"
+
+  # Empty/missing local file → empty output.
+  if [[ ! -f "$local_file" ]]; then
+    jq -n '{candidates: [], counts: {delete: 0, promote: 0, triage: 0, total: 0}}'
+    return 0
+  fi
+
+  # Both files must exist for delta. Treat missing main as empty allow list.
+  local main_entries local_entries
+  if [[ -f "$main_file" ]]; then
+    main_entries=$(parse_settings_file "$main_file" "settings.json")
+  else
+    main_entries="[]"
+  fi
+  local_entries=$(parse_settings_file "$local_file" "settings.local.json")
+
+  # Filter local entries to those NOT in main (string equality).
+  local main_set
+  main_set=$(echo "$main_entries" | jq -c '[.[].permission]')
+  local candidates_raw
+  candidates_raw=$(jq -nc --argjson l "$local_entries" --argjson m "$main_set" \
+    '$l | map(select(.permission as $p | $m | index($p) | not))')
+
+  # Pre-extract main wildcard list (Bash(<word>:*)) for AC-3.
+  local main_wildcards
+  main_wildcards=$(echo "$main_entries" | jq -r '.[].permission | select(test("^Bash\\(([^:)]+):\\*\\)$"))')
+
+  local classified="[]"
+  local d_count=0 t_count=0
+
+  local n
+  n=$(echo "$candidates_raw" | jq 'length')
+  local i
+  for ((i=0; i<n; i++)); do
+    local perm rec reason
+    perm=$(echo "$candidates_raw" | jq -r ".[$i].permission")
+    rec="TRIAGE"
+    reason="manual review required"
+
+    # AC-3: redundant — broader Bash(<word>:*) wildcard in main covers this entry.
+    # Regex stored in vars to dodge bash's = ~ + paren parsing weirdness.
+    local broader=""
+    local _wildcard_re='^Bash\(([^:)]+):\*\)$'
+    if [[ -n "$main_wildcards" ]]; then
+      while IFS= read -r main_p; do
+        [[ -z "$main_p" ]] && continue
+        if [[ "$main_p" =~ $_wildcard_re ]]; then
+          local word="${BASH_REMATCH[1]}"
+          if [[ "$perm" == "Bash($word "* || "$perm" == "Bash($word:"* ]]; then
+            broader="$main_p"
+            break
+          fi
+        fi
+      done <<< "$main_wildcards"
+    fi
+
+    local _envprefix_re='^Bash\(ALLOW_[A-Z_]+=1 (bash|rm|cp|mv|chmod|chown) '
+    if [[ -n "$broader" ]]; then
+      rec="DELETE"
+      reason="redundant: covered by '$broader' in settings.json"
+    elif [[ "$perm" == *"preset/"* ]]; then
+      # AC-4: dead path — pre-BTS-67 preset/ directory removed during flatten.
+      rec="DELETE"
+      reason="dead path: pre-BTS-67 preset/ structure removed"
+    elif [[ "$perm" =~ $_envprefix_re ]]; then
+      # AC-5: env-prefix one-shot — underlying verb broadly allowed in main.
+      local verb="${BASH_REMATCH[1]}"
+      if echo "$main_entries" | jq -e --arg v "Bash($verb:*)" '.[] | select(.permission == $v)' >/dev/null 2>&1; then
+        rec="DELETE"
+        reason="one-shot bypass: underlying command now broadly allowed"
+      fi
+    fi
+
+    classified=$(echo "$classified" | jq --arg p "$perm" --arg r "$rec" --arg rs "$reason" \
+      '. + [{permission: $p, source: ["settings.local.json"], recommendation: $r, reason: $rs}]')
+
+    if [[ "$rec" == "DELETE" ]]; then
+      d_count=$((d_count + 1))
+    else
+      t_count=$((t_count + 1))
+    fi
+  done
+
+  if [[ "$TEXT_MODE" == "true" ]]; then
+    if [[ "$d_count" -eq 0 && "$t_count" -eq 0 ]]; then
+      echo "No promote-review candidates."
+      return 0
+    fi
+    if [[ "$d_count" -gt 0 ]]; then
+      echo "--- DELETE ---"
+      echo "$classified" | jq -r '
+        [.[] | select(.recommendation == "DELETE")] | .[] |
+        "  \(.permission)  — \(.reason)"
+      '
+      echo ""
+    fi
+    if [[ "$t_count" -gt 0 ]]; then
+      echo "--- TRIAGE ---"
+      echo "$classified" | jq -r '
+        [.[] | select(.recommendation == "TRIAGE")] | .[] |
+        "  \(.permission)  — \(.reason)"
+      '
+      echo ""
+    fi
+    echo "Summary: $d_count DELETE, $t_count TRIAGE"
+  else
+    jq -n --argjson c "$classified" --argjson d "$d_count" --argjson t "$t_count" \
+      '{candidates: $c, counts: {delete: $d, promote: 0, triage: $t, total: ($c | length)}}'
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# BTS-149 — apply --decisions <jsonl>: interactive triage substrate
+# ---------------------------------------------------------------------------
+
+# Globals used by the ERR trap installed during cmd_apply's mutation pass.
+# Set immediately before mutations start so the trap can restore from .bak
+# on any failure mid-stream (AC-4 atomicity).
+_APPLY_LOCAL_FILE=""
+_APPLY_MAIN_FILE=""
+
+apply_restore_and_exit() {
+  [[ -n "$_APPLY_LOCAL_FILE" && -f "$_APPLY_LOCAL_FILE.bak" ]] && mv "$_APPLY_LOCAL_FILE.bak" "$_APPLY_LOCAL_FILE"
+  [[ -n "$_APPLY_MAIN_FILE"  && -f "$_APPLY_MAIN_FILE.bak"  ]] && mv "$_APPLY_MAIN_FILE.bak"  "$_APPLY_MAIN_FILE"
+  exit 3
+}
+
+# @manifest
+# purpose: Apply a JSONL decisions file to settings.json + settings.local.json + permissions-log.json — pre-validates every line before any mutation, then mutates atomically with .bak rollback via ERR trap (AC-4 atomicity) so /permissions-review's interactive flow can ship a triage batch without partial-write risk
+# input: --decisions <jsonl-file>
+# input: --settings-dir <path>
+# input: --log <file>
+# output: stdout JSON summary {applied, skipped, errors}
+# output: writes settings.json + settings.local.json + permissions-log.json
+# output: exit-codes 0 ok, 2 validation-error-pre-mutation, 3 mid-mutation-failure-rolled-back-via-ERR-trap
+# caller: skill:/permissions-review
+# depends-on: jq
+# depends-on: emit_error_envelope
+# depends-on: apply_restore_and_exit
+# depends-on: mv
+# depends-on: cp
+# side-effect: writes-settings-files
+# side-effect: writes-permissions-log
+# failure-mode: missing-decisions-flag | exit=2 | visible=stderr-error-envelope | mitigation=supply-decisions-flag
+# failure-mode: decisions-file-missing | exit=2 | visible=stderr-error-envelope | mitigation=verify-path
+# failure-mode: malformed-json-line | exit=2 | visible=stderr-error-envelope | mitigation=fix-line
+# failure-mode: missing-permission-field | exit=2 | visible=stderr-error-envelope | mitigation=add-permission-key
+# failure-mode: accept-danger-incomplete | exit=2 | visible=stderr-error-envelope-required-non-empty | mitigation=fill-risk-rationale-efficiency_justification-reviewer
+# failure-mode: mid-mutation-rollback | exit=3 | visible=ERR-trap-restores-from-bak | mitigation=re-run-after-fix
+# contract: pre-validates-every-line-before-any-mutation
+# contract: atomic-rollback-via-bak-files-on-mid-stream-failure
+# anchor: BTS-246 (manifest seed)
+cmd_apply() {
+  if [[ -z "$DECISIONS_FILE" ]]; then
+    # @failure-mode: missing-decisions-flag
+    emit_error_envelope "apply requires --decisions <file>" 2
+  fi
+  if [[ ! -f "$DECISIONS_FILE" ]]; then
+    # @failure-mode: decisions-file-missing
+    emit_error_envelope "decisions file not found: $DECISIONS_FILE" 2
+  fi
+
+  # Pre-flight validation: parse every non-blank line as JSON, check for
+  # required `permission` field, and verify `decision` is in the known set.
+  # Any error → exit 2 BEFORE any backup or mutation. AC-2: no partial
+  # mutation on validation errors.
+  local line_no=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line_no=$((line_no+1))
+    [[ -z "$line" ]] && continue
+
+    if ! echo "$line" | jq -e . >/dev/null 2>&1; then
+      # @failure-mode: malformed-json-line
+      emit_error_envelope "decisions:$line_no: malformed JSON" 2
+    fi
+
+    local perm dec
+    perm=$(echo "$line" | jq -r '.permission // ""')
+    dec=$(echo "$line" | jq -r '.decision // ""')
+
+    if [[ -z "$perm" ]]; then
+      # @failure-mode: missing-permission-field
+      emit_error_envelope "decisions:$line_no: missing 'permission' field" 2
+    fi
+
+    case "$dec" in
+      delete|promote|keep-local) ;;
+      accept-danger)
+        # AC-5: all 4 required fields must be non-empty and not "TODO".
+        local _f
+        for _f in risk rationale efficiency_justification reviewer; do
+          local _v
+          _v=$(echo "$line" | jq -r --arg k "$_f" '.[$k] // ""')
+          if [[ -z "$_v" || "$_v" == "TODO" ]]; then
+            # @failure-mode: accept-danger-incomplete
+            emit_error_envelope "decisions:$line_no: accept-danger requires non-empty '$_f' (got empty or 'TODO')" 2
+          fi
+        done
+        ;;
+      "")
+        emit_error_envelope "decisions:$line_no: missing 'decision' field" 2 ;;
+      *)
+        emit_error_envelope "decisions:$line_no: unknown decision '$dec' (expected delete|promote|keep-local|accept-danger)" 2 ;;
+    esac
+  done < "$DECISIONS_FILE"
+
+  # Determine which target files need backup based on decision verbs.
+  local local_file="$SETTINGS_DIR/settings.local.json"
+  local main_file="$SETTINGS_DIR/settings.json"
+  local needs_local_bak=0 needs_main_bak=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "$line" ]] && continue
+    local dec
+    dec=$(echo "$line" | jq -r '.decision')
+    case "$dec" in
+      delete)  needs_local_bak=1 ;;
+      promote) needs_local_bak=1; needs_main_bak=1 ;;
+    esac
+  done < "$DECISIONS_FILE"
+
+  # Refuse to run if stale .bak files exist (recovery from previous
+  # failed apply). Investigate manually rather than silently overwrite.
+  if [[ "$needs_local_bak" -eq 1 && -f "$local_file.bak" ]]; then
+    emit_error_envelope "$local_file.bak exists — recovery file from previous failed apply; investigate and remove manually" 3
+  fi
+  if [[ "$needs_main_bak" -eq 1 && -f "$main_file.bak" ]]; then
+    emit_error_envelope "$main_file.bak exists — recovery file from previous failed apply; investigate and remove manually" 3
+  fi
+
+  # Create backups for the files we're about to mutate. Skip if the
+  # source file doesn't exist (no need to back up nothing). Install the
+  # ERR trap BEFORE the cp commands so a partial-backup failure (e.g.,
+  # second cp fails after first succeeds) is restored, not orphaned.
+  _APPLY_LOCAL_FILE="$local_file"
+  _APPLY_MAIN_FILE="$main_file"
+  # @failure-mode: mid-mutation-rollback
+  trap apply_restore_and_exit ERR
+  if [[ "$needs_local_bak" -eq 1 && -f "$local_file" ]]; then
+    cp "$local_file" "$local_file.bak"
+  fi
+  if [[ "$needs_main_bak" -eq 1 && -f "$main_file" ]]; then
+    cp "$main_file" "$main_file.bak"
+  fi
+
+  # Execution pass. delete is implemented in step 4; promote/accept-danger
+  # land in steps 5-6.
+  local applied=0 skipped=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "$line" ]] && continue
+    local dec perm
+    dec=$(echo "$line" | jq -r '.decision')
+    perm=$(echo "$line" | jq -r '.permission')
+    case "$dec" in
+      keep-local)
+        skipped=$((skipped+1))
+        ;;
+      delete)
+        if [[ ! -f "$local_file" ]]; then
+          skipped=$((skipped+1))
+          continue
+        fi
+        # Skip if the permission isn't actually present in local.
+        if ! jq -e --arg p "$perm" '.permissions.allow | index($p) != null' "$local_file" >/dev/null 2>&1; then
+          skipped=$((skipped+1))
+          continue
+        fi
+        local tmp
+        tmp=$(mktemp)
+        jq --arg p "$perm" '.permissions.allow |= map(select(. != $p))' "$local_file" > "$tmp"
+        # @side-effect: writes-settings-files
+        mv "$tmp" "$local_file"
+        applied=$((applied+1))
+        ;;
+      promote)
+        local tmp_main tmp_local already_main
+        # Append to main if not already present (idempotent).
+        if [[ -f "$main_file" ]]; then
+          already_main=$(jq --arg p "$perm" '.permissions.allow | index($p) != null' "$main_file")
+          if [[ "$already_main" != "true" ]]; then
+            tmp_main=$(mktemp)
+            jq --arg p "$perm" '.permissions.allow += [$p]' "$main_file" > "$tmp_main"
+            mv "$tmp_main" "$main_file"
+          fi
+        else
+          tmp_main=$(mktemp)
+          jq -n --arg p "$perm" '{permissions:{allow:[$p]}}' > "$tmp_main"
+          mv "$tmp_main" "$main_file"
+        fi
+        # Remove from local if present.
+        if [[ -f "$local_file" ]]; then
+          tmp_local=$(mktemp)
+          jq --arg p "$perm" '.permissions.allow |= map(select(. != $p))' "$local_file" > "$tmp_local"
+          mv "$tmp_local" "$local_file"
+        fi
+        applied=$((applied+1))
+        ;;
+      accept-danger)
+        # AC-3: write log entry with accept_danger:true and the four
+        # required fields (already validated pre-flight). Merge into
+        # .entries; existing entries are overwritten by design (re-running
+        # accept-danger updates the rationale).
+        local _risk _rat _eff _rev tmp_log
+        _risk=$(echo "$line" | jq -r '.risk')
+        _rat=$(echo "$line" | jq -r '.rationale')
+        _eff=$(echo "$line" | jq -r '.efficiency_justification')
+        _rev=$(echo "$line" | jq -r '.reviewer')
+        if [[ ! -f "$LOG_FILE" ]]; then
+          jq -n '{entries:{}}' > "$LOG_FILE"
+        fi
+        tmp_log=$(mktemp)
+        jq --arg p "$perm" --arg risk "$_risk" --arg rat "$_rat" \
+           --arg eff "$_eff" --arg rev "$_rev" \
+           '.entries[$p] = {risk: $risk, rationale: $rat, efficiency_justification: $eff, reviewer: $rev, accept_danger: true}' \
+           "$LOG_FILE" > "$tmp_log"
+        # @side-effect: writes-permissions-log
+        mv "$tmp_log" "$LOG_FILE"
+        applied=$((applied+1))
+        ;;
+    esac
+  done < "$DECISIONS_FILE"
+
+  # Cleanup backups on success.
+  trap - ERR
+  [[ -f "$local_file.bak" ]] && rm "$local_file.bak"
+  [[ -f "$main_file.bak"  ]] && rm "$main_file.bak"
+
+  jq -n --argjson a "$applied" --argjson s "$skipped" \
+    '{applied: $a, skipped: $s, errors: []}'
+}
+
+# ---------------------------------------------------------------------------
+# BTS-159: decision-append — atomically buffer one validated decision.
+#
+# Replaces the Write+cat+rm dance in /permissions-review with a single
+# typed-flag invocation. Validates with the same semantics as
+# `apply --decisions` pre-flight (same decision vocabulary, same
+# accept-danger 4-field non-empty/non-TODO check, same exit code 2).
+# Error message surface differs slightly: this command names CLI flags
+# (--efficiency), whereas apply names JSON fields (efficiency_justification)
+# since it parses already-formed JSONL. Both reject the same invalid
+# inputs.
+#
+# Constructs the JSON line via jq (never hand-assembled), appends with
+# POSIX O_APPEND for line-atomicity under PIPE_BUF.
+# ---------------------------------------------------------------------------
+# @manifest
+# purpose: Validate one decision (delete | promote | keep-local | accept-danger) against the same vocabulary cmd_apply uses, then atomically append a single JSONL-formed decision to the buffer file via O_APPEND so /permissions-review can build up the decisions batch one row at a time without race-prone Write+cat+rm dances
+# input: --buffer <file>
+# input: --permission <perm>
+# input: --decision <delete|promote|keep-local|accept-danger>
+# input: --risk / --rationale / --efficiency / --reviewer (required when decision=accept-danger)
+# output: writes one JSON line appended to buffer file
+# output: exit-codes 0 ok, 2 missing-flag-or-bad-decision-or-incomplete-accept-danger
+# caller: skill:/permissions-review
+# depends-on: jq
+# depends-on: emit_error_envelope
+# depends-on: tr
+# side-effect: appends-to-buffer-file
+# failure-mode: missing-buffer-flag | exit=2 | visible=stderr-error-envelope | mitigation=supply-buffer-flag
+# failure-mode: missing-permission-flag | exit=2 | visible=stderr-error-envelope | mitigation=supply-permission-flag
+# failure-mode: missing-decision-flag | exit=2 | visible=stderr-error-envelope | mitigation=supply-decision-flag
+# failure-mode: bad-decision-value | exit=2 | visible=stderr-unknown-decision | mitigation=use-vocabulary
+# failure-mode: accept-danger-incomplete-flags | exit=2 | visible=stderr-non-empty-required | mitigation=supply-all-four
+# contract: line-atomic-append-under-PIPE_BUF
+# contract: same-vocabulary-as-cmd_apply
+# anchor: BTS-246 (manifest seed)
+cmd_decision_append() {
+  if [[ -z "$BUFFER_FILE" ]]; then
+    # @failure-mode: missing-buffer-flag
+    emit_error_envelope "decision-append requires --buffer <file>" 2
+  fi
+  if [[ -z "$PERMISSION" ]]; then
+    # @failure-mode: missing-permission-flag
+    emit_error_envelope "decision-append requires --permission <perm>" 2
+  fi
+  if [[ -z "$DECISION" ]]; then
+    # @failure-mode: missing-decision-flag
+    emit_error_envelope "decision-append requires --decision <delete|promote|keep-local|accept-danger>" 2
+  fi
+
+  case "$DECISION" in
+    delete|promote|keep-local) ;;
+    accept-danger)
+      # All four required fields must be non-empty and not "TODO".
+      local _f _v
+      for _f in RISK RATIONALE EFFICIENCY REVIEWER; do
+        _v="${!_f}"
+        if [[ -z "$_v" || "$_v" == "TODO" ]]; then
+          local lower="$(echo "$_f" | tr '[:upper:]' '[:lower:]')"
+          # Field name in the emitted JSON for efficiency is efficiency_justification;
+          # error message uses the friendly flag name for operator clarity.
+          # @failure-mode: accept-danger-incomplete-flags
+          emit_error_envelope "accept-danger requires non-empty --${lower} (got empty or 'TODO')" 2
+        fi
+      done
+      ;;
+    *)
+      # @failure-mode: bad-decision-value
+      emit_error_envelope "unknown decision '$DECISION' (expected delete|promote|keep-local|accept-danger)" 2
+      ;;
+  esac
+
+  # Build the JSON line via jq — never hand-assemble.
+  local json_line
+  if [[ "$DECISION" == "accept-danger" ]]; then
+    json_line=$(jq -nc \
+      --arg p "$PERMISSION" \
+      --arg d "$DECISION" \
+      --arg r "$RISK" \
+      --arg ra "$RATIONALE" \
+      --arg e "$EFFICIENCY" \
+      --arg rv "$REVIEWER" \
+      '{permission:$p, decision:$d, risk:$r, rationale:$ra, efficiency_justification:$e, reviewer:$rv}')
+  else
+    json_line=$(jq -nc \
+      --arg p "$PERMISSION" \
+      --arg d "$DECISION" \
+      '{permission:$p, decision:$d}')
+  fi
+
+  # @side-effect: appends-to-buffer-file
+  echo "$json_line" >> "$BUFFER_FILE"
+}
+
+# ---------------------------------------------------------------------------
+# BTS-161: entry-context — deterministic per-row context for /permissions-review
+# ---------------------------------------------------------------------------
+
+extract_leading_verb() {
+  # Bash(...) → strip wrapper → drop leading <NAME=val> env-prefix tokens →
+  # take first whitespace-separated token → strip trailing :*.
+  local inner="$1"
+  # Drop leading env assignments like "ALLOW_DESTRUCTIVE=1 chmod:* …"
+  while [[ "$inner" =~ ^[A-Z_][A-Z0-9_]*=[^[:space:]]+[[:space:]]+ ]]; do
+    inner="${inner#${BASH_REMATCH[0]}}"
+  done
+  local verb="${inner%%[[:space:]]*}"
+  verb="${verb%:*}"
+  echo "$verb"
+}
+
+scan_hooks_for_verb() {
+  local verb="$1"
+  local hooks_dir="${2:-.claude/hooks}"
+  if [[ -z "$verb" || ! -d "$hooks_dir" ]]; then
+    echo '[]'
+    return
+  fi
+  # Verb's character set might be regex-special — use grep -F is wrong (we want
+  # word boundaries). Use grep -nE with word boundary anchors. Skip echo and
+  # comment lines so noise like `echo "BLOCKED: chmod ..."` doesn't count.
+  local accum='[]'
+  local f
+  for f in "$hooks_dir"/*.sh; do
+    [[ -f "$f" ]] || continue
+    local matches
+    # \bVERB\b matches the verb as a whole word. Keep only lines that ALSO
+    # contain a gate-relevant operator: =~ (regex), case/*) (case branch), or
+    # a regex variable definition with |. Skip comments. This filters out pure
+    # invocations like `INPUT=$(echo ...)` while keeping the actual gating
+    # regexes like `=~ (rm|chmod|chown|...)`.
+    matches=$(grep -nE "\b${verb}\b" "$f" 2>/dev/null \
+      | awk '
+        {
+          # Strip leading "LINENO:" prefix without splitting on inner colons
+          # (which would mangle [[:space:]] character classes — review NIT N1).
+          if (match($0, /^[0-9]+:/) == 0) next
+          line = substr($0, 1, RLENGTH - 1)
+          text = substr($0, RLENGTH + 1)
+          if (text ~ /^[[:space:]]*#/) next
+          if (text ~ /=~/ || text ~ /[[:space:]]case[[:space:]]/ || text ~ /\*\)/) {
+            print line
+          }
+        }')
+    if [[ -n "$matches" ]]; then
+      # Review CONCERN 1: emit one entry per gate-context line rather than a
+      # [first, last] hull across the file. Hulls can span unrelated code when
+      # a verb gates two non-contiguous blocks. One-entry-per-line is truthful.
+      while IFS= read -r line_no; do
+        accum=$(echo "$accum" | jq --arg p "$f" --argjson n "$line_no" \
+          '. + [{path:$p, lines:[$n, $n]}]')
+      done <<< "$matches"
+    fi
+  done
+  echo "$accum"
+}
+
+# @manifest
+# purpose: Compute deterministic per-row context for one permission entry — emits {permission, source_files, matched_pattern, matched_hooks, introduced_in} so /permissions-review can show, for each row, where the entry lives, what DANGER pattern matched, what hooks gate the leading verb, and which commit introduced the string
+# input: positional <permission>
+# input: --settings-dir <path>
+# output: stdout JSON envelope {permission, source_files, matched_pattern, matched_hooks, introduced_in}
+# output: exit-codes 0 ok, 2 missing-positional
+# caller: skill:/permissions-review
+# depends-on: jq
+# depends-on: strip_bash_wrapper
+# depends-on: check_danger
+# depends-on: extract_leading_verb
+# depends-on: scan_hooks_for_verb
+# depends-on: git
+# depends-on: head
+# side-effect: reads-settings-files
+# side-effect: reads-git-history
+# failure-mode: missing-positional | exit=2 | visible=stderr-ERROR-entry-context-requires | mitigation=supply-permission-arg
+# contract: read-only-deterministic
+# anchor: BTS-246 (manifest seed)
+cmd_entry_context() {
+  if [[ -z "$ENTRY_CONTEXT_PERM" ]]; then
+    # @failure-mode: missing-positional
+    echo "ERROR: entry-context requires a permission argument" >&2
+    exit 2
+  fi
+
+  local perm="$ENTRY_CONTEXT_PERM"
+
+  # source_files: which settings file(s) contain the permission, sorted.
+  # @side-effect: reads-settings-files
+  local source_files='[]'
+  local main_file="$SETTINGS_DIR/settings.json"
+  local local_file="$SETTINGS_DIR/settings.local.json"
+  for f in "$main_file" "$local_file"; do
+    [[ -f "$f" ]] || continue
+    if jq -e --arg p "$perm" '.permissions.allow // [] | index($p)' "$f" >/dev/null 2>&1; then
+      source_files=$(echo "$source_files" | jq --arg f "$f" '. + [$f]')
+    fi
+  done
+  source_files=$(echo "$source_files" | jq 'sort')
+
+  # matched_pattern: reuse check_danger via strip_bash_wrapper for Bash() shapes.
+  # Non-Bash shapes return null.
+  local matched_pattern_arg='null'
+  if [[ "$perm" == Bash\(* ]]; then
+    local inner mp
+    inner=$(strip_bash_wrapper "$perm")
+    mp=$(check_danger "$inner" || true)
+    if [[ -n "$mp" ]]; then
+      matched_pattern_arg=$(jq -nc --arg mp "$mp" '$mp')
+    fi
+  fi
+
+  # matched_hooks: leading-verb scan against .claude/hooks/*.sh.
+  local matched_hooks='[]'
+  if [[ "$perm" == Bash\(* ]]; then
+    local inner verb
+    inner=$(strip_bash_wrapper "$perm")
+    verb=$(extract_leading_verb "$inner")
+    matched_hooks=$(scan_hooks_for_verb "$verb")
+  fi
+
+  # introduced_in: first commit (oldest) that introduced the permission string
+  # into either settings file. Null when source_files is empty or git history
+  # has no record of the string.
+  local introduced_arg='null'
+  if [[ "$(echo "$source_files" | jq 'length')" -gt 0 ]]; then
+    local log_line
+    # Review CONCERN 2: scope git log to $SETTINGS_DIR rather than hardcoding
+    # .claude/. Otherwise non-default --settings-dir silently returns null.
+    # @side-effect: reads-git-history
+    log_line=$(git log -S "$perm" --reverse --pretty=format:'%h%x09%s' \
+      -- "$SETTINGS_DIR/settings.json" "$SETTINGS_DIR/settings.local.json" 2>/dev/null | head -1 || true)
+    if [[ -n "$log_line" ]]; then
+      local commit subject
+      commit="${log_line%%	*}"
+      subject="${log_line#*	}"
+      introduced_arg=$(jq -nc --arg c "$commit" --arg s "$subject" \
+        '{commit:$c, subject:$s}')
+    fi
+  fi
+
+  jq -n --arg permission "$perm" --argjson sf "$source_files" --argjson mp "$matched_pattern_arg" --argjson mh "$matched_hooks" --argjson ii "$introduced_arg" \
+    '{permission:$permission, source_files:$sf, matched_pattern:$mp, matched_hooks:$mh, introduced_in:$ii}'
+}
+
+# ---------------------------------------------------------------------------
 # Dispatch
 # ---------------------------------------------------------------------------
 
 case "$CMD" in
-  check) cmd_check ;;
-  init)  cmd_init ;;
-  *)     usage ;;
+  check)            cmd_check ;;
+  init)             cmd_init ;;
+  promote-review)   cmd_promote_review ;;
+  apply)            cmd_apply ;;
+  decision-append)  cmd_decision_append ;;
+  entry-context)    cmd_entry_context ;;
+  *)              usage ;;
 esac

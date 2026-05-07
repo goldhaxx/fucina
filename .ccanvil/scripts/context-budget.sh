@@ -21,7 +21,8 @@ set -euo pipefail
 
 PROJECT_DIR="."
 GLOBAL_CLAUDE_MD="$HOME/.claude/CLAUDE.md"
-TEXT_MODE=false
+# Tri-state: "" = auto (TTY-aware after arg parsing); "true" / "false" = explicit override.
+TEXT_MODE=""
 BUDGET_FLAG=""
 CONTEXT_WINDOW_FLAG=""
 MODEL_FLAG=""
@@ -36,7 +37,7 @@ BUDGET_PERCENT=4  # 4% of context window
 CMD=""
 
 usage() {
-  echo "Usage: context-budget.sh check [--project-dir DIR] [--global-claude-md PATH] [--text] [--budget N] [--context-window N] [--model MODEL_ID]" >&2
+  echo "Usage: context-budget.sh check [--project-dir DIR] [--global-claude-md PATH] [--text|--json] [--budget N] [--context-window N] [--model MODEL_ID]" >&2
   exit 2
 }
 
@@ -50,6 +51,8 @@ while [[ $# -gt 0 ]]; do
       GLOBAL_CLAUDE_MD="$2"; shift 2 ;;
     --text)
       TEXT_MODE=true; shift ;;
+    --json)
+      TEXT_MODE=false; shift ;;
     --budget)
       BUDGET_FLAG="$2"; shift 2 ;;
     --context-window)
@@ -64,6 +67,16 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -z "$CMD" ]] && usage
+
+# TTY-aware default: if no explicit --text/--json was passed, use text when
+# stdout is a terminal and JSON when piped/redirected (BTS-135).
+if [[ -z "$TEXT_MODE" ]]; then
+  if [[ -t 1 ]]; then
+    TEXT_MODE=true
+  else
+    TEXT_MODE=false
+  fi
+fi
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -86,7 +99,29 @@ measure_file() {
 # Commands
 # ---------------------------------------------------------------------------
 
+# @manifest
+# purpose: Measure CLAUDE.md + global instructions + .claude/rules/*.md + settings.json + .claudeignore line/char/token counts, sum totals, and emit a budget envelope (HEALTHY/WARNING/CRITICAL) against a model-aware context-window ceiling — used by /ccanvil-status and /stasis to surface context drift before it bites
+# input: --text (human-readable output)
+# input: --budget <int>
+# input: --context-window <int>
+# input: --model <claude-opus-4-6|claude-sonnet-4-6|...>
+# input: --project-dir <path>
+# output: stdout JSON envelope {files[], totals{lines, chars, tokens}, budget{ceiling, source, status}, warnings[]} or human-readable table
+# output: exit-codes 0 ok-or-budget-warning, 1 critical
+# caller: skill:/stasis
+# depends-on: jq
+# depends-on: measure_file
+# depends-on: wc
+# depends-on: tr
+# side-effect: reads-claude-md-and-rules
+# failure-mode: missing-claude-md-warning | exit=0 | visible=stdout-warning-missing_file | mitigation=create-CLAUDE-md
+# failure-mode: line-count-warning | exit=0 | visible=stdout-warning-line_count | mitigation=trim-CLAUDE-md
+# failure-mode: unknown-model-warning | exit=0 | visible=stderr-WARNING-Unknown-model | mitigation=use-documented-model-id
+# contract: read-only-no-mutations
+# contract: model-lookup-bash-3-compatible
+# anchor: BTS-246 (manifest seed)
 cmd_check() {
+  # @side-effect: reads-claude-md-and-rules
   local files_json="[]"
   local warnings_json="[]"
 
@@ -107,10 +142,12 @@ cmd_check() {
     local claude_lines
     claude_lines=$(wc -l < "$PROJECT_DIR/CLAUDE.md" | tr -d ' ')
     if [[ "$claude_lines" -gt 80 ]]; then
+      # @failure-mode: line-count-warning
       warnings_json=$(echo "$warnings_json" | jq --arg p "$PROJECT_DIR/CLAUDE.md" --argjson l "$claude_lines" \
         '. + [{type: "line_count", path: $p, lines: $l, message: "CLAUDE.md exceeds 80-line recommended maximum"}]')
     fi
   else
+    # @failure-mode: missing-claude-md-warning
     warnings_json=$(echo "$warnings_json" | jq --arg p "$PROJECT_DIR/CLAUDE.md" \
       '. + [{type: "missing_file", path: $p, message: "Project CLAUDE.md not found"}]')
   fi
@@ -159,6 +196,7 @@ cmd_check() {
       claude-sonnet-4-6)     context_window=200000 ;;
       claude-haiku-4-5)      context_window=200000 ;;
       *)
+        # @failure-mode: unknown-model-warning
         echo "WARNING: Unknown model '$MODEL_FLAG', defaulting to ${DEFAULT_CONTEXT_WINDOW} token context window" >&2
         context_window=$DEFAULT_CONTEXT_WINDOW
         ;;

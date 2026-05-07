@@ -47,6 +47,7 @@ flowchart TD
 `/stasis` is the strategic microscope/macroscope that runs before `/compact`. Beyond the basic accomplished/blocked/next-steps snapshot, it performs:
 
 - **Determinism review** — flags operations that should become scripts/hooks (via `.claude/rules/self-review.md` criteria)
+- **Evidence gaps** — runs `docs-check.sh evidence-scan-session` to surface bug-shape captures from this session that lack the four evidence anchors (`Command:`, `Output:`, `Exit:`, `Reproduce:`); enforces `.claude/rules/evidence-required-for-captures.md`
 - **Cross-session patterns** — compares this session to the prior stasis (`git show HEAD~1:docs/stasis.md`) and flags recurring issues; invokes `docs-check.sh legacy-refs-scan` to catch stale references to legacy ccanvil verbs/artifacts
 - **Security review** — via `security-audit` skill when available, else static grep for secrets/PII in the session's diff
 - **Memory candidates** — surfaces non-obvious feedback, surprising project facts, or external references worth auto-memory
@@ -59,13 +60,31 @@ When you run `/recall` after `/compact` (or `/clear`), Claude reads these source
 
 | Source | Purpose |
 |--------|---------|
-| `docs/stasis.md` | What was accomplished, blockers, next steps, prior determinism review |
+| `docs/stasis.md` | What was accomplished, blockers, next steps, prior determinism review, prior evidence gaps |
 | `git log --oneline -10` | Recent commits |
 | `git diff --stat` | Uncommitted changes |
 | `git diff --cached --stat` | Staged changes |
 | `docs/spec.md` | Current feature specification |
 
 It reports the state but does NOT start implementing. You say "Continue" when ready.
+
+## Unified lifecycle-state primitive (BTS-20)
+
+`docs-check.sh lifecycle-state` is the canonical state envelope for skills: one resolver call returns `{state, legal_next_actions, blockers, suggestions}`, codified against `.ccanvil/templates/lifecycle-graph.json`. Skills consume this single primitive instead of re-parsing `validate` + `recommend` independently. `/recall` migrated as the proof-point consumer; `/plan`, `/pr`, and `/stasis` migrate in Session-2/3 ships. The transition graph is data, not skill prose — adding a new state or edge is a JSON edit, not a substrate rewrite.
+
+## Recommend freshness (BTS-113)
+
+`docs-check.sh recommend` distinguishes *"session about to end"* from *"session just resumed after `/compact` + `/recall`"* via a filesystem marker at `.ccanvil/state/last-compact-ts` (epoch). The marker is written by a **PreCompact hook** (`.claude/hooks/post-compact-marker.sh`, registered in `.claude/settings.json` under `hooks.PreCompact`) that fires before every `/compact`.
+
+Decision logic when an aligned stasis exists and no spec is active:
+
+| State | Recommendation |
+|-------|----------------|
+| `marker >= stasis.last_updated` (compact already ran, stasis is stale) | **Forward action** — `/idea triage` if `.triage > 0`, else `/radar` |
+| `marker < stasis.last_updated` (stasis written AFTER last compact) | `/compact to wrap session` |
+| Marker absent (first session, fresh clone, hook didn't fire) | `/compact to wrap session` (safe fallback) |
+
+The marker lives in `.ccanvil/state/` which is gitignored — it's session-local machine state, never committed. `docs-check.sh status` surfaces the timestamp as `.last_compact_ts` (epoch or `null`) alongside `.stasis.last_updated` for observability.
 
 ## When to reset context
 
