@@ -116,33 +116,61 @@ done
 
 CONFIG_FILE=""
 
-# merge_config — Merge ccanvil.json (hub) with ccanvil.local.json (node).
+# _operator_config_path — Return the operator-config file path.
+# Reads $HOME directly; emits empty when HOME is unset (treated as "no
+# operator tier" by callers). BTS-316.
 #
-# Outputs the effective config JSON to stdout. Uses RFC 7396 deep merge
-# via jq's * operator — node wins on conflict (permissive, Option A).
+# Test-injection: CCANVIL_OPERATOR_CONFIG_OVERRIDE wins when set (mirrors
+# LINEAR_QUERY_OVERRIDE pattern). Lets bats fixtures point at a temp file
+# without mutating $HOME, so other config-reading tests see a clean
+# operator-tier (empty / non-existent) without per-test HOME juggling.
+_operator_config_path() {
+  if [[ -n "${CCANVIL_OPERATOR_CONFIG_OVERRIDE:-}" ]]; then
+    echo "$CCANVIL_OPERATOR_CONFIG_OVERRIDE"
+  elif [[ -n "${HOME:-}" ]]; then
+    echo "$HOME/.ccanvil/operator.json"
+  else
+    echo ""
+  fi
+}
+
+# merge_config — 3-tier merge of operator + ccanvil.json (hub) +
+# ccanvil.local.json (node).
 #
-# Exit 0: success (even if both files are missing — outputs {}).
-# Exit 1: a file exists but contains invalid JSON.
+# Tiers (lowest precedence first):
+#   1. Operator: $HOME/.ccanvil/operator.json — operator-wide defaults (BTS-316)
+#   2. Hub: <dir>/.claude/ccanvil.json — distributed via ccanvil-sync
+#   3. Node: <dir>/.claude/ccanvil.local.json — local overrides
+#
+# Outputs the effective config JSON to stdout via RFC 7396 deep merge
+# (jq's * operator). Later tiers override earlier ones; node wins on conflict.
+#
+# Missing tiers are skipped silently (no error). When all three are absent,
+# emits {} and exits 0.
+#
+# Exit 0: success.
+# Exit 1: any existing tier file contains invalid JSON; stderr names the file.
 merge_config() {
   local dir="$1"
+  local operator_file
+  operator_file=$(_operator_config_path)
   local hub_file="$dir/.claude/ccanvil.json"
   local local_file="$dir/.claude/ccanvil.local.json"
 
-  # Neither file exists → empty config
-  if [[ ! -f "$hub_file" && ! -f "$local_file" ]]; then
-    echo '{}'
-    return 0
+  # Validate each tier file that exists. Order matters: error message
+  # names the offending file, not a downstream symptom.
+  if [[ -n "$operator_file" && -f "$operator_file" ]]; then
+    if ! jq empty "$operator_file" 2>/dev/null; then
+      echo "ERROR: $operator_file is not valid JSON" >&2
+      return 1
+    fi
   fi
-
-  # Validate hub file if it exists
   if [[ -f "$hub_file" ]]; then
     if ! jq empty "$hub_file" 2>/dev/null; then
       echo "ERROR: .claude/ccanvil.json is not valid JSON" >&2
       return 1
     fi
   fi
-
-  # Validate local file if it exists
   if [[ -f "$local_file" ]]; then
     if ! jq empty "$local_file" 2>/dev/null; then
       echo "ERROR: .claude/ccanvil.local.json is not valid JSON" >&2
@@ -150,20 +178,35 @@ merge_config() {
     fi
   fi
 
-  # Only hub file → return hub content
-  if [[ -f "$hub_file" && ! -f "$local_file" ]]; then
-    jq '.' "$hub_file"
+  # Collect existing tier files in precedence order (operator → hub → node).
+  local tiers=()
+  if [[ -n "$operator_file" && -f "$operator_file" ]]; then
+    tiers+=("$operator_file")
+  fi
+  if [[ -f "$hub_file" ]]; then
+    tiers+=("$hub_file")
+  fi
+  if [[ -f "$local_file" ]]; then
+    tiers+=("$local_file")
+  fi
+
+  # No tiers → empty config (preserves existing 2-tier "neither file" behavior).
+  if (( ${#tiers[@]} == 0 )); then
+    echo '{}'
     return 0
   fi
 
-  # Only local file → return local content
-  if [[ ! -f "$hub_file" && -f "$local_file" ]]; then
-    jq '.' "$local_file"
+  # Single tier → emit its content directly (cheaper, identical to multi-tier
+  # reduce when N=1).
+  if (( ${#tiers[@]} == 1 )); then
+    jq '.' "${tiers[0]}"
     return 0
   fi
 
-  # Both files exist → deep merge (node wins on conflict)
-  jq -s '.[0] * .[1]' "$hub_file" "$local_file"
+  # Multi-tier deep merge. `reduce` walks tier files in order; later tiers
+  # override earlier ones. Equivalent to .[0] * .[1] * .[2] for 3 tiers and
+  # extends naturally if more tiers are added later.
+  jq -s 'reduce .[] as $x ({}; . * $x)' "${tiers[@]}"
 }
 
 read_config() {
@@ -394,8 +437,9 @@ slug_from_work_id() {
 linear_mcp_adapter() {
   local op="$1" provider_config="$2" op_args="$3"
   local tool="" output_contract="" field_map=""
-  local project team idea_label idea_status icebox_status workspace
-  project=$(echo "$provider_config" | jq -r '.project // ""')
+  local project_name project_id team idea_label idea_status icebox_status workspace
+  project_name=$(echo "$provider_config" | jq -r '.project // ""')
+  project_id=$(echo "$provider_config" | jq -r '.project_id // ""')
   team=$(echo "$provider_config" | jq -r '.team // ""')
   idea_label=$(echo "$provider_config" | jq -r '.idea_label // "idea"')
   idea_status=$(echo "$provider_config" | jq -r '.idea_status // "Idea"')
@@ -452,14 +496,14 @@ linear_mcp_adapter() {
         exit 1
       fi
       output_contract='["id","title","status","priority","createdAt"]'
-      jq -n --arg project "$project" --arg team "$team" --arg state_id "$backlog_state_id" \
+      jq -n --arg project_name "$project_name" --arg project_id "$project_id" --arg team "$team" --arg state_id "$backlog_state_id" \
         --argjson output "$output_contract" \
         '{
           provider: "linear",
           mechanism: "http",
           invocation: {
             command: ("bash .ccanvil/scripts/linear-query.sh list-issues" +
-                      " --project " + ($project | @sh) +
+                      (if $project_id != "" then " --project-id " + ($project_id | @sh) elif $project_name != "" then " --project " + ($project_name | @sh) else "" end) +
                       " --team " + ($team | @sh) +
                       " --state " + ($state_id | @sh) +
                       " --limit 250"),
@@ -481,7 +525,7 @@ linear_mcp_adapter() {
       output_contract='["id","title","status"]'
       local triage_state_id
       triage_state_id=$(linear_state_id "$provider_config" "triage")
-      jq -n --arg project "$project" --arg team "$team" --arg label "$idea_label" \
+      jq -n --arg project_name "$project_name" --arg project_id "$project_id" --arg team "$team" --arg label "$idea_label" \
         --arg state_id "$triage_state_id" \
         --argjson output "$output_contract" \
         '{
@@ -490,7 +534,7 @@ linear_mcp_adapter() {
           invocation: {
             command: ("bash .ccanvil/scripts/linear-query.sh save-issue" +
                       " --team " + ($team | @sh) +
-                      " --project " + ($project | @sh) +
+                      (if $project_id != "" then " --project-id " + ($project_id | @sh) elif $project_name != "" then " --project " + ($project_name | @sh) else "" end) +
                       " --labels " + ($label | @sh) +
                       (if $state_id != "" then " --state " + ($state_id | @sh) else "" end)),
             endpoint: "https://api.linear.app/graphql",
@@ -501,14 +545,14 @@ linear_mcp_adapter() {
       ;;
     idea.list)
       output_contract='["id","title","status","createdAt"]'
-      jq -n --arg project "$project" --arg team "$team" --arg label "$idea_label" \
+      jq -n --arg project_name "$project_name" --arg project_id "$project_id" --arg team "$team" --arg label "$idea_label" \
         --argjson output "$output_contract" \
         '{
           provider: "linear",
           mechanism: "http",
           invocation: {
             command: ("bash .ccanvil/scripts/linear-query.sh list-issues" +
-                      " --project " + ($project | @sh) +
+                      (if $project_id != "" then " --project-id " + ($project_id | @sh) elif $project_name != "" then " --project " + ($project_name | @sh) else "" end) +
                       " --team " + ($team | @sh) +
                       " --label " + ($label | @sh) +
                       " --limit 250"),
@@ -527,14 +571,14 @@ linear_mcp_adapter() {
       # consumers no longer pre-flight against it (the substrate handles
       # the contract end-to-end).
       output_contract='["id","status","statusType"]'
-      jq -n --arg project "$project" --arg team "$team" --arg label "$idea_label" \
+      jq -n --arg project_name "$project_name" --arg project_id "$project_id" --arg team "$team" --arg label "$idea_label" \
         --argjson output "$output_contract" \
         '{
           provider: "linear",
           mechanism: "http",
           invocation: {
             command: ("bash .ccanvil/scripts/linear-query.sh list-issues" +
-                      " --project " + ($project | @sh) +
+                      (if $project_id != "" then " --project-id " + ($project_id | @sh) elif $project_name != "" then " --project " + ($project_name | @sh) else "" end) +
                       " --team " + ($team | @sh) +
                       " --label " + ($label | @sh) +
                       " --limit 250"),
@@ -555,7 +599,7 @@ linear_mcp_adapter() {
       else
         triage_state_arg="triage"
       fi
-      jq -n --arg project "$project" --arg team "$team" --arg label "$idea_label" \
+      jq -n --arg project_name "$project_name" --arg project_id "$project_id" --arg team "$team" --arg label "$idea_label" \
         --arg state "$triage_state_arg" \
         --argjson output "$output_contract" \
         '{
@@ -563,7 +607,7 @@ linear_mcp_adapter() {
           mechanism: "http",
           invocation: {
             command: ("bash .ccanvil/scripts/linear-query.sh list-issues" +
-                      " --project " + ($project | @sh) +
+                      (if $project_id != "" then " --project-id " + ($project_id | @sh) elif $project_name != "" then " --project " + ($project_name | @sh) else "" end) +
                       " --team " + ($team | @sh) +
                       " --label " + ($label | @sh) +
                       " --state " + ($state | @sh) +
@@ -602,7 +646,7 @@ linear_mcp_adapter() {
       else
         icebox_state_arg="icebox"
       fi
-      jq -n --arg project "$project" --arg team "$team" --arg label "$idea_label" \
+      jq -n --arg project_name "$project_name" --arg project_id "$project_id" --arg team "$team" --arg label "$idea_label" \
         --arg state "$icebox_state_arg" \
         --argjson output "$output_contract" \
         '{
@@ -610,7 +654,7 @@ linear_mcp_adapter() {
           mechanism: "http",
           invocation: {
             command: ("bash .ccanvil/scripts/linear-query.sh list-issues" +
-                      " --project " + ($project | @sh) +
+                      (if $project_id != "" then " --project-id " + ($project_id | @sh) elif $project_name != "" then " --project " + ($project_name | @sh) else "" end) +
                       " --team " + ($team | @sh) +
                       " --label " + ($label | @sh) +
                       " --state " + ($state | @sh) +
