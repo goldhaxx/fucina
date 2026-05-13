@@ -1,12 +1,12 @@
 {
   "hub_source": "~/projects/ccanvil",
-  "hub_version": "cbc9b85",
-  "synced_at": "1778432706",
+  "hub_version": "a3907f6",
+  "synced_at": "1778631461",
   "files": {
     ".ccanvil/guide/command-reference.md": {
       "origin": "hub",
-      "hub_hash": "d68720c4905f1b3b1e64b282a34493fed6cdf35ca19122e6db42a4a34ef0a05b",
-      "local_hash": "d68720c4905f1b3b1e64b282a34493fed6cdf35ca19122e6db42a4a34ef0a05b",
+      "hub_hash": "20030b57b8898a7a484cb67ec3ff6544347a28377640c611ececafdffa6498ea",
+      "local_hash": "20030b57b8898a7a484cb67ec3ff6544347a28377640c611ececafdffa6498ea",
       "status": "clean",
       "sync": "tracked"
     },
@@ -103,8 +103,8 @@
     },
     ".ccanvil/scripts/docs-check.sh": {
       "origin": "hub",
-      "hub_hash": "7ac329ffa13e3497ae27677184d03bb14a7c49be7473a2325594fd1258b3bd40",
-      "local_hash": "7ac329ffa13e3497ae27677184d03bb14a7c49be7473a2325594fd1258b3bd40",
+      "hub_hash": "195d796ff7ac030fa76ac94042a07f303b8f83cb2a5592dba1021412890af4fb",
+      "local_hash": "195d796ff7ac030fa76ac94042a07f303b8f83cb2a5592dba1021412890af4fb",
       "status": "clean",
       "sync": "tracked"
     },
@@ -131,8 +131,8 @@
     },
     ".ccanvil/scripts/operations.sh": {
       "origin": "hub",
-      "hub_hash": "7732ebf5ec5f74b3f1b6b32ae85c11a62f34096973664d9b0a7694af860e6034",
-      "local_hash": "7732ebf5ec5f74b3f1b6b32ae85c11a62f34096973664d9b0a7694af860e6034",
+      "hub_hash": "bff29bc43d5b5e7ff8a53c26f25e58011a0a76f36e75d9262befabaca68b7f6b",
+      "local_hash": "bff29bc43d5b5e7ff8a53c26f25e58011a0a76f36e75d9262befabaca68b7f6b",
       "status": "clean",
       "sync": "tracked"
     },
@@ -609,9 +609,10 @@
     },
     ".claude/rules/provider-integration.md": {
       "origin": "hub",
-      "hub_hash": "393b96cdb9c07f70dd8246f13b78ddfcd777fdeb6652ad2501175d0c536309ba",
-      "local_hash": "393b96cdb9c07f70dd8246f13b78ddfcd777fdeb6652ad2501175d0c536309ba",
-      "status": "clean"
+      "hub_hash": "2a1e1434f9fb7beb9758995daeeb4b363b3f68f85325f2da6088cde499238d2a",
+      "local_hash": "2a1e1434f9fb7beb9758995daeeb4b363b3f68f85325f2da6088cde499238d2a",
+      "status": "clean",
+      "sync": "tracked"
     },
     ".claude/skills/drift-watchdog/SKILL.md": {
       "origin": "hub",
