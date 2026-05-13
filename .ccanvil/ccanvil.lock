@@ -1,7 +1,7 @@
 {
   "hub_source": "~/projects/ccanvil",
   "hub_version": "a3907f6",
-  "synced_at": "1778631461",
+  "synced_at": "1778631598",
   "files": {
     ".ccanvil/guide/command-reference.md": {
       "origin": "hub",
@@ -624,6 +624,12 @@
       "origin": "hub",
       "hub_hash": "8ddd8c87264a847a450f5dd418e825e6a47fa2a7105c5cf4d208fb16d3bfd2dd",
       "local_hash": "8ddd8c87264a847a450f5dd418e825e6a47fa2a7105c5cf4d208fb16d3bfd2dd",
+      "status": "clean"
+    },
+    ".claude/rules/background-task-discipline.md": {
+      "origin": "hub",
+      "hub_hash": "9ce9f98a69cb123b5161b74f7b84943af03d1f805b32cf69543e5a14e6f79d55",
+      "local_hash": "9ce9f98a69cb123b5161b74f7b84943af03d1f805b32cf69543e5a14e6f79d55",
       "status": "clean"
     }
   },
