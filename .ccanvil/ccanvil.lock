@@ -631,6 +631,13 @@
       "hub_hash": "9ce9f98a69cb123b5161b74f7b84943af03d1f805b32cf69543e5a14e6f79d55",
       "local_hash": "9ce9f98a69cb123b5161b74f7b84943af03d1f805b32cf69543e5a14e6f79d55",
       "status": "clean"
+    },
+    ".github/workflows/ccanvil-checks.yml": {
+      "origin": "hub",
+      "hub_hash": "436bfbe6b3c4b1532934e9881eb8dac6cdf5b5ea47a8458bd92d14e3c80d840f",
+      "local_hash": "436bfbe6b3c4b1532934e9881eb8dac6cdf5b5ea47a8458bd92d14e3c80d840f",
+      "status": "clean",
+      "sync": "tracked"
     }
   },
   "node_uuid": "c7bcdbe1-7e32-411a-8422-6d5fcf622c1a"
