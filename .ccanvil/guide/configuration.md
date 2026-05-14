@@ -91,6 +91,61 @@ The `info` array is always present in the JSON envelope (empty when no info entr
 
 `.claude/ccanvil.json` accepts a top-level `stacks:` array declaring the project's tech stacks (e.g. `["bats"]`, `["jest", "playwright"]`, `["pytest"]`). Defaults to `["any"]` when absent. Future Tier-1 skill loaders will use this to conditionally load stack-specific skills (`tdd-bats`, `tdd-jest`, etc.) — the field is declarative for now; substrate enforcement ships in a follow-up.
 
+### Hub describes behavior, node describes implementation (BTS-460)
+
+Hub-shipped rules, skills, and hooks describe *behavior* (run the test suite, check the lint, etc.); node-local config (`.claude/ccanvil.json`) describes *implementation* (which tool actually runs). A substrate dispatcher reads the config and forwards to the right runner. This keeps the same hub content working correctly across bats / pytest / vitest / jest / go nodes without per-node forks or tool names leaking through universal rules.
+
+**First concrete instance — test-suite dispatch:**
+
+`.claude/ccanvil.json` accepts an optional top-level `test-provider:` string (`bats`, `pytest`, `vitest`, `jest`, `go`, ...). Resolution order: explicit `test-provider`, then `stacks[0]`, then literal default `bats`.
+
+```jsonc
+{
+  "test-provider": "bats",       // optional — explicit wins
+  "stacks": ["bats"]              // fallback when test-provider absent
+}
+```
+
+Hub rule cites the verb, not the tool:
+
+```
+Run `bash .ccanvil/scripts/docs-check.sh test-suite-run --project-dir . --parallel --progress`.
+```
+
+Dispatcher (`cmd_test_suite_run` in `docs-check.sh`) resolves the provider and exec's the runner. Today only `bats` is implemented (`exec bash bats-report.sh ...`); other providers exit 2 with an explicit `dispatcher not yet implemented` message — the contract is intentionally fail-loud so missing implementations surface at /pr time rather than silently no-op'ing.
+
+**Leak-site inventory (captured follow-up).** As of BTS-460's ship, the following hub-shared content still references tool names directly. Each is a candidate for the same indirection treatment when the friction surfaces:
+
+- `.claude/rules/tdd.md` — bats-specific verbiage (`strict-mode bats`, `bats-report.sh`). Indirect via `test-provider` or rewrite to "the project's test runner".
+- `.claude/skills/stasis/SKILL.md` — line 131 hardcodes `bats-report.sh --parallel` for the post-stasis tests count. Migrate to the dispatcher.
+- `.ccanvil/guide/command-reference.md` — bats-specific entries for `bats-report.sh` / `bats-lint.sh`. Keep as-is for hub developers; downstream consumption is mediated by skills.
+
+Other axes that may want the same dispatcher pattern (when friction surfaces, not before): linter, formatter, package manager, build tool.
+
+### Canonical example-data SSOT (BTS-482)
+
+`.ccanvil/fixtures/canonical-example-data.json` is the hub-shipped source of truth for fake user data used in downstream-node test fixtures. The substrate's design principle: keep CI alerts loud by ensuring every CI red is a real signal, and silence false positives at the data level (not by relaxing detector thresholds).
+
+`security-audit.sh`'s email scanner already auto-allowlists addresses matching the RFC 2606 reserved namespace (`@example.com`, `@example.org`, `@example.net`) and the `noreply@` prefix. Test fixtures that use ad-hoc fakes (`a@b.com`, `z@z.com`, `x@y.com`) match the email-shaped pattern but NOT the reserved namespace, so they flag as MEDIUM PII findings and fail CI. The SSOT documents the canonical addresses, names, and IDs every downstream node should use; following it keeps fixtures auto-allowlisted with no per-node `.security-audit-allowlist` configuration.
+
+```jsonc
+{
+  "version": 1,
+  "emails": [
+    {"address": "alice@example.com", "context": "primary user fixture"},
+    {"address": "bob@example.org",   "context": "secondary user fixture"},
+    {"address": "charlie@example.net", "context": "tertiary user fixture"}
+  ],
+  "names":    [{"first": "Alice", "last": "Example"}, ...],
+  "user_ids": [10001, 10002, 10003],
+  "domains":  ["example.com", "example.org", "example.net", "test", "invalid"]
+}
+```
+
+**Resolution at the substrate layer.** No code reads the SSOT at audit time today — the security-audit script's existing regex (`@example\.(com|org|net)`) is the enforcement point. The SSOT is the *declarative* counterpart: it tells fixture authors which exact values to use. A drift-guard that scans test files for non-canonical example data (failing CI when a fixture uses `a@b.com` instead of `alice@example.com`) is the Phase B follow-up (BTS-483) — keeps alerts loud by surfacing fixture-hygiene drift as a real CI failure.
+
+**The pattern this enables.** Every false-alert surface in ccanvil (workspace-fence heredoc, guard-workspace slash-prefix, shape-gate narrative cascade) has the same shape: a guard fires on a string that *looks* like the dangerous pattern but is *known-safe*. The right answer is never "lower the threshold"; it's "declare the known-safe shape in an SSOT both the guard and the author reference." Phase B unifies that pattern across guards.
+
 <!-- NODE-SPECIFIC-START -->
 <!-- Add project-specific content below this line. -->
 <!-- Hub content above is updated via /ccanvil-pull. -->
